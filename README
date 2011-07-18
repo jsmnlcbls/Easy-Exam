@@ -1,0 +1,5 @@
+Easy Exam is an online web application for multiple choice exam reviews.
+Users can add their own question, and later take sample test using those questions.
+
+Requirements:
+-PHP, Apache, Sqlite (PHP module)

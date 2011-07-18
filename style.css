@@ -1,0 +1,44 @@
+body {
+	font-family: Helvetica;
+	margin: 0px;				
+}
+
+#header {
+	margin-top: 0;
+	background-color: khaki;
+	border-color: brown;
+	border-bottom-width: 20px;
+	border-bottom-style: solid;
+}
+
+#program-name {
+	font-size: 42pt;
+}
+
+#menu {
+	width: 200px;
+	height: 100%;
+	background-color: BROWN;
+	position: absolute;
+	left: 0px;
+}
+
+.menu-option {
+	color: orange;
+	font-weight: bold;
+	cursor: default;
+}
+
+
+
+.menu-option:hover {
+	color: yellow;
+}
+
+#questions-table .question-choice, textarea {
+	width: 300px;
+}
+
+#categories-panel {
+	
+}
