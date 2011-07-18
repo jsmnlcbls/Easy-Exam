@@ -15,12 +15,36 @@ body {
 	font-size: 42pt;
 }
 
-#menu {
-	width: 200px;
+#main-panel {
+	position: relative;
+	left: 200px;
+	top: 20px;
+	width: 500px;
+}
+
+#menu-panel {
+	width: 170px;
 	height: 100%;
 	background-color: BROWN;
 	position: absolute;
 	left: 0px;
+}
+
+#menu-panel > ul, a{
+	padding-left: 10px;
+	list-style-type: none;
+	color: orange;
+	font-weight: bold;
+	cursor: default;
+	text-decoration: none;
+}
+
+.sub-menu {
+	list-style-type: square;
+}
+
+.sub-menu li:hover {
+	color: white;
 }
 
 .menu-option {
@@ -29,14 +53,14 @@ body {
 	cursor: default;
 }
 
-
-
-.menu-option:hover {
-	color: yellow;
-}
-
 #questions-table .question-choice, textarea {
 	width: 300px;
+}
+
+.panel-title {
+	font-size: 20pt;
+	margin-bottom: 10px;
+	display: block;
 }
 
 #categories-panel {

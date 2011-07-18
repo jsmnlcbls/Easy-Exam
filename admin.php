@@ -1,17 +1,22 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<script src = "jquery-1.5.1.js"></script>
-		<link type="text/css" href="style.css" rel="stylesheet" />
-		<title>Administration</title>
-	</head>
-<body>
-	<div id ="header">
-		<span id ="program-name">Easy Exam</span> Administration Panel. Configure settings, add questions etc...
-	</div>
-	<div id = "menu"></div>
-	<div id = "main-panel">
-		<div id = "take-exam-panel"></div>
-	</div>
-</body>
-</html> 
+<?php
+include "common.php";
+
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+
+
+if ($requestMethod == "GET") {
+	$view = filterGET('view', "");
+	include "/views/adminView.php";
+} else if ($requestMethod == "POST") {
+	$action = filterPOST('action');
+	if ($action == "addCategory") {
+		$name = filterPOST("categoryName", "");
+		$parent = filterPOST("parentCategory", "0");
+		
+		include 'category.php';
+		$result = addCategory($name, $parent);
+		displayResultNotification($result);
+	}
+}
+
+
