@@ -1,5 +1,36 @@
 <?php
 
+function checkAnswersToQuestions($category, $userAnswers)
+{
+	$answers = getAnswersToQuestions($category);
+	$total = count($answers);
+	$correctAnswers = 0;
+	foreach ($userAnswers as $key => $value) {
+		if (isset($answers[$key]) && $answers[$key] == $value) {
+			$correctAnswers++;
+		}
+	}
+	
+	return (float) ($correctAnswers/$total) * 100;
+}
+
+function getAnswersToQuestions($category)
+{
+	$database = getDatabase();
+	$statement = $database->prepare("SELECT question_id, answer FROM questions WHERE category = :category");
+	$statement->bindValue(':category', $category);
+	
+	$result = @$statement->execute();
+	$answers = array();
+	if ($result !== false) {
+		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+			$answers[$row['question_id']] = $row['answer'];
+		}
+		return $answers;
+	}
+	return false;
+}
+
 function getQuestions($category, $count)
 {
 	$database = getDatabase();
