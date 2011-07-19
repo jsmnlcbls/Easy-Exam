@@ -30,13 +30,18 @@ body {
 	left: 0px;
 }
 
-#menu-panel > ul, a{
+#menu-panel ul {
 	padding-left: 10px;
 	list-style-type: none;
 	color: orange;
 	font-weight: bold;
 	cursor: default;
-	text-decoration: none;
+}
+
+#menu-panel a {
+	color: orange;
+	text-decoration: none;	
+	cursor: default;  
 }
 
 .sub-menu {

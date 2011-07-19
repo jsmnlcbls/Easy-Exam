@@ -10,7 +10,7 @@
 			<tr>
 				<td>Parent Category</td>
 				<td>
-				<select>
+				<select name = "parentCategory">
 					<?php
 						$categories = (getAllCategories());
 							foreach ($categories as $category) {
