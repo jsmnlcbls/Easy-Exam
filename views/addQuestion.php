@@ -44,11 +44,11 @@
 			<td>
 				<select name = "answer">
 					<option value = ""></option>
-					<option value = "0">A</option>
-					<option value = "1">B</option>
-					<option value = "2">C</option>
-					<option value = "3">D</option>
-					<option value = "4">E</option>
+					<option value = "A">A</option>
+					<option value = "B">B</option>
+					<option value = "C">C</option>
+					<option value = "D">D</option>
+					<option value = "E">E</option>
 				</select></td>
 		</tr>
 		<tr>
