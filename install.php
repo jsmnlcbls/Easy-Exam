@@ -10,8 +10,8 @@ $database->query($query);
 
 $query = "CREATE TABLE IF NOT EXISTS questions (question_id INTEGER PRIMARY KEY, "
 	   . "question TEXT, answer TEXT, choiceA TEXT, choiceB TEXT, choiceC TEXT, "
-	   . "choiceD TEXT, category INTEGER, FOREIGN KEY(category) REFERENCES "
-	   . "category(category_id));";
+	   . "choiceD TEXT, choiceE TEXT, category INTEGER, FOREIGN KEY(category) "
+	   . "REFERENCES category(category_id));";
 
 $database->query($query);
 
