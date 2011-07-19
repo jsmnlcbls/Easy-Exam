@@ -9,4 +9,3 @@ if ($requestMethod == 'GET') {
 	$view = "questions";
 	include '/views/indexView.php';
 }
- 

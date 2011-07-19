@@ -1,8 +1,7 @@
 <div id = "take-exam-panel">
 	<form method = "post" action = "results.php">
 	<?php
-		if (isset($_GET['category'])) {			
-
+		if (isset($_GET['category'])) {
 			$category = intval($_GET['category']);
 			echo "<input type =\"hidden\" name = \"category\" value = \"$category\">";
 			$questions = getQuestions($category, 10);
