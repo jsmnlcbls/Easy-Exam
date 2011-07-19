@@ -1,5 +1,5 @@
 <?php
-include "common.php";
+include "/functions/common.php";
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
@@ -12,7 +12,7 @@ if ($requestMethod == "GET") {
 		$name = filterPOST("categoryName", "");
 		$parent = intval(getPOST("parentCategory", 0));
 		
-		include 'category.php';
+		include '/functions/category.php';
 		$result = addCategory($name, $parent);
 		displayResultNotification($result);
 	} else if ($action == "addQuestion") {
@@ -21,7 +21,7 @@ if ($requestMethod == "GET") {
 		$choices = getPOST("choices");
 		$category = intval(getPOST("category"));
 		
-		include 'question.php';
+		include '/functions/question.php';
 		$result = addQuestion($question, $answer, $choices, $category);
 		displayResultNotification($result);
 	}

@@ -1,5 +1,5 @@
 <?php
-include "common.php";
+include "/functions/common.php";
 
 $database = getDatabase();
 

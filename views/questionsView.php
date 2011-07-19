@@ -2,7 +2,6 @@
 	<form method = "post" action = "results.php">
 	<?php
 		if (isset($_GET['category'])) {
-			include 'question.php';
 
 			$category = intval($_GET['category']);
 			echo "<input type =\"hidden\" name = \"category\" value = \"$category\">";
