@@ -68,6 +68,14 @@ body {
 	display: block;
 }
 
-#categories-panel {
-	
+.question-div {
+	margin-bottom: 20px;
+}
+
+.question {
+	margin-bottom: 10px;
+}
+
+.choices {
+	margin-left: 10px;
 }

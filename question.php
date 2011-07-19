@@ -1,5 +1,22 @@
 <?php
 
+function getQuestions($category, $count)
+{
+	$database = getDatabase();
+	$statement = $database->prepare("SELECT * FROM questions WHERE category = :category");
+	$statement->bindValue(':category', $category);
+	
+	$result = @$statement->execute();
+	$questions = array();
+	if ($result !== false) {
+		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+			$questions[$row['question_id']] = $row;
+		}
+		return $questions;
+	}
+	return false;
+}
+
 function addQuestion($question, $answer, $options, $category)
 {
 	$choiceValues = array_values($options);
