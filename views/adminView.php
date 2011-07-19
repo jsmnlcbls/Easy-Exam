@@ -33,6 +33,8 @@
 		<?php
 		if ($view == "addCategory") {
 			include "views/addCategory.php";
+		} else if ($view == "addQuestion") { 
+			include "views/addQuestion.php";
 		} else if ($view == "success") {
 			echo "<h2>Success!</h2>";
 		} else if ($view == "error") {

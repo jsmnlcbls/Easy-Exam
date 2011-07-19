@@ -26,6 +26,15 @@ function getAllCategories()
 	return $categories;
 }
 
+function getPOST($key, $default = null)
+{
+	if (isset($_POST[$key])) {
+		return $_POST[$key];
+	} else {
+		return $default;
+	}
+}
+
 /**
  * Filters string using the built in PHP function
  * @param String $string
