@@ -21,7 +21,7 @@
 						"" != $value['name']) {
 						$categoryId = $value['category_id'];
 						$listItems .= "<li catId = {$categoryId} parent = {$value['parent_category']}>";
-						$listItems .= "<a href = \"?category={$categoryId}\">" . $value['name'] . "</a>";
+						$listItems .= "<a href = \"index.php?category={$categoryId}\">" . $value['name'] . "</a>";
 						unset ($menu[$key]);
 						$listItems .= printMenu($menu, $categoryId);
 						echo "</li>";
