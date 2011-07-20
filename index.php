@@ -6,6 +6,9 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == 'GET') {
 	include '/functions/question.php';
 	
-	$view = "questions";
+	$view = "";
+	if ("" != filterGET("category")) {
+		$view = "questions";
+	}
 	include '/views/indexView.php';
 }
