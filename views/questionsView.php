@@ -1,12 +1,13 @@
 <div id = "take-exam-panel">
 	<form method = "post" action = "results.php">
+	<input type = "hidden" name = "action" value = "getResults"/>
 	<?php
 		if (isset($_GET['category'])) {
 			$category = intval($_GET['category']);
 			echo "<input type =\"hidden\" name = \"category\" value = \"$category\">";
 			$questions = getQuestions($category, 10);
 
-			$questionNumber = 1;
+			$questionNumber = 0;
 			foreach ($questions as $value) {
 				$question = $value['question'];
 				$questionId = $value['question_id'];
@@ -30,18 +31,18 @@
 				$output = "";
 				$output .= '<div class = "question-div">';
 				$output .= '<div class = "question">';
-				$output .= $questionNumber. ".&nbsp;" . $question;
+				$output .= ++$questionNumber. ".&nbsp;" . $question;
 				$output .= '</div>';
 				$output .= '<div class = "choices">';
 				$output .= $choicesList;
 				$output .= '</div>';
 				$output .= '</div>';
 				echo $output;
-				$questionNumber++;
 			}
 		}
+		if ($questionNumber > 0) {
+			echo "<input type = \"submit\" value = \"Submit\"/>";
+		}
 	?>
-	<input type = "hidden" name = "action" value = "getResults"/>
-	<input type = "submit" name = "" value = "Submit"/>
 	</form>
 </div>
