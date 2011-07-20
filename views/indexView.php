@@ -22,9 +22,9 @@
 						$categoryId = $value['category_id'];
 						$listItems .= "<li catId = {$categoryId} parent = {$value['parent_category']}>";
 						$listItems .= "<a href = \"index.php?category={$categoryId}\">" . $value['name'] . "</a>";
-						unset ($menu[$key]);
+						$listItems .= "</li>";
 						$listItems .= printMenu($menu, $categoryId);
-						echo "</li>";
+						unset ($menu[$key]);
 					}
 				}
 				if ("" != $listItems) {
