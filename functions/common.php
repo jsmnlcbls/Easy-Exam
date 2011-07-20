@@ -26,6 +26,56 @@ function getAllCategories()
 	return $categories;
 }
 
+function getCategoryHierarchy($parent = 0)
+{
+	function createTree(&$categories, $parent)
+	{
+		$tree = array();
+		foreach ($categories as $key => $value) {
+			if ($parent == $value['parent_category'] &&
+				"" != $value['name']) {
+				$categoryId = $value['category_id'];
+				$tree[$categoryId] = createTree($categories, $categoryId);
+				unset($categories[$key]);
+			}
+		}
+		if (!empty($tree)) {
+			return $tree;	
+		}
+	}
+	
+	$categories = getAllCategories();
+	
+	return createTree($categories, $parent);
+}
+
+function getSubCategories($parent)
+{
+	function searchSubCategories($hierarchy)
+	{
+		$subCategories = array();
+		foreach ($hierarchy as $key => $value) {
+			if (is_array($value)) {
+				$subCategories[] = $key;
+				$result = searchSubCategories($value);
+				if (!empty($result)) {
+					$subCategories = array_merge($result, $subCategories);
+				}
+			} else if (empty($value)) {
+				$subCategories[] = $key;
+			}
+		}
+		return $subCategories;
+	}
+	
+	$hierarchy = getCategoryHierarchy($parent);
+	if (!empty($hierarchy)) {
+		return searchSubCategories($hierarchy);
+	} else {
+		return array();
+	}
+}
+
 function getPOST($key, $default = null)
 {
 	if (isset($_POST[$key])) {
