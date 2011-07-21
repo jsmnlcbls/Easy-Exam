@@ -37,8 +37,12 @@
 			include "views/selectCategory.php";
 		} else if ($view == "editCategory") {
 			include "views/editCategory.php";
-		} else if ($view == "addQuestion") { 
+		} else if ($view == "deleteCategory") {
+			include "views/deleteCategory.php";
+		}else if ($view == "addQuestion") { 
 			include "views/addQuestion.php";
+		} else if ($view == "searchQuestion") {
+			include "views/searchQuestion.php";
 		} else if ($view == "success") {
 			echo "<h2>Success!</h2>";
 		} else if ($view == "error") {
