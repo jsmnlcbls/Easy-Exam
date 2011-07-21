@@ -14,6 +14,16 @@ function getDatabase()
 	return new SQLite3($_SETTINGS['Database File']);
 }
 
+function getCategoryData($id)
+{
+	$database = getDatabase();
+	$statement =  $database->prepare("SELECT * FROM category WHERE category_id = :id");
+	$statement->bindValue(":id", $id);
+	$result = $statement->execute();
+	
+	return $result->fetchArray(SQLITE3_ASSOC);
+}
+
 function getAllCategories()
 {
 	$database = getDatabase();
