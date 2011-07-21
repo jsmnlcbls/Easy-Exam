@@ -12,3 +12,18 @@ function addCategory($name, $parent = 0)
 	}
 	return true;
 }
+
+function editCategory($id, $name, $parent)
+{
+	$database = getDatabase();
+	$statement = $database->prepare("UPDATE category SET name=:name, parent_category=:parentCategory WHERE category_id=:id;");
+	$statement->bindValue(":name", $name);
+	$statement->bindValue(":parentCategory", $parent);
+	$statement->bindValue(":id", $id);
+	
+	$result = @$statement->execute();
+	if ($result === false) {
+		return false;
+	}
+	return true;
+}

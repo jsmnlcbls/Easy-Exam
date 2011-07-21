@@ -14,7 +14,7 @@
 			<li>Category
 				<ul class = "sub-menu">
 					<li><a href = "?view=addCategory">Add</a></li>
-					<li><a href = "?view=editCategory">Edit</a></li>
+					<li><a href = "?view=selectCategory">Edit</a></li>
 					<li><a href = "?view=deleteCategory">Delete</a></li>
 				</ul>
 			</li>
@@ -33,6 +33,10 @@
 		<?php
 		if ($view == "addCategory") {
 			include "views/addCategory.php";
+		} else if ($view == "selectCategory") {
+			include "views/selectCategory.php";
+		} else if ($view == "editCategory") {
+			include "views/editCategory.php";
 		} else if ($view == "addQuestion") { 
 			include "views/addQuestion.php";
 		} else if ($view == "success") {

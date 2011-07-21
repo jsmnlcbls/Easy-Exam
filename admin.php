@@ -24,6 +24,14 @@ if ($requestMethod == "GET") {
 		include '/functions/question.php';
 		$result = addQuestion($question, $answer, $choices, $category);
 		displayResultNotification($result);
+	} else if ($action == "editCategory") {
+		$categoryId = intval(filterPOST("categoryId"));
+		$categoryName = filterPOST("categoryName");
+		$parentCategory = intval(filterPOST("parentCategory"));
+		
+		include '/functions/category.php';
+		$result = editCategory($categoryId, $categoryName, $parentCategory);
+		displayResultNotification($result);
 	}
 }
 
