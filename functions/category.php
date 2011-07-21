@@ -27,16 +27,3 @@ function editCategory($id, $name, $parent)
 	}
 	return true;
 }
-
-function deleteCategory($id)
-{
-	$database = getDatabase();
-	$statement = $database->prepare("DELETE FROM category WHERE category_id=:id;");
-	$statement->bindValue(":id", $id);
-	
-	$result = @$statement->execute();
-	if ($result === false) {
-		return false;
-	}
-	return true;
-}

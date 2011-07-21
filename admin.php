@@ -32,12 +32,6 @@ if ($requestMethod == "GET") {
 		include '/functions/category.php';
 		$result = editCategory($categoryId, $categoryName, $parentCategory);
 		displayResultNotification($result);
-	} else if ($action == "deleteCategory") {
-		$categoryId = intval(filterPOST("category"));
-		
-		include '/functions/category.php';
-		$result = deleteCategory($categoryId);
-		displayResultNotification($result);
 	}
 }
 

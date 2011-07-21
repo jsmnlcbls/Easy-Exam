@@ -37,8 +37,6 @@
 			include "views/selectCategory.php";
 		} else if ($view == "editCategory") {
 			include "views/editCategory.php";
-		} else if ($view == "deleteCategory") {
-			include "views/deleteCategory.php";
 		} else if ($view == "addQuestion") { 
 			include "views/addQuestion.php";
 		} else if ($view == "success") {
