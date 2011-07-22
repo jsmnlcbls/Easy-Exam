@@ -10,24 +10,22 @@
 		<span id ="program-name">Easy Exam</span> Administration Panel. Configure settings, add questions etc...
 	</div>
 	<div id = "menu-panel">
-		<ul id = "main-menu">
-			<li>Category
-				<ul class = "sub-menu">
-					<li><a href = "?view=addCategory">Add</a></li>
-					<li><a href = "?view=selectCategory">Edit</a></li>
-					<li><a href = "?view=deleteCategory">Delete</a></li>
-				</ul>
-			</li>
-			<li>Question
-				<ul class = "sub-menu">
-					<li><a href="?view=addQuestion">Add</a></li>
-					<li><a href="?view=editQuestion">Edit</a></li>
-					<li><a href="?view=deleteQuestion">Delete</a></li>
-					<li><a href="?view=searchQuestion">Search</a></li>
-				</ul>
-			</li>
-			<li>Settings</li>
+		<span class="submenu-title">Questions</span>
+		<ul class = "sub-menu">
+			<li><a href = "?view=addCategory">Add Category</a></li>
+			<li><a href = "?view=selectCategory">Edit Category</a></li>
+			<li><a href = "?view=deleteCategory">Delete Category</a></li>
+			<li><a href="?view=addQuestion">Add Question</a></li>
+			<li><a href="?view=searchQuestion">Search Questions</a></li>
 		</ul>
+		<br/>
+		<span class="submenu-title">Exam</span>
+		<ul class = "sub-menu">
+			<li><a href="?view=addExam">Add</a></li>
+			<li><a href="?view=editExam">Edit</a></li>
+			<li><a href="?view=deleteExam">Delete</a></li>
+		</ul>
+		
 	</div>
 	<div id = "main-panel">
 		<?php

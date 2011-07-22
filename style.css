@@ -36,6 +36,7 @@ body {
 	color: orange;
 	font-weight: bold;
 	cursor: default;
+	margin: 0px;
 }
 
 #menu-panel a {
@@ -62,6 +63,10 @@ body {
 	width: 300px;
 }
 
+.question-choice {
+	padding: 2px 2px 2px 20px;
+}
+
 .panel-title {
 	font-size: 20pt;
 	margin-bottom: 10px;
@@ -78,4 +83,18 @@ body {
 
 .choices {
 	margin-left: 10px;
+}
+
+.letterChoice {
+	display: inline;
+    height: inherit;
+    margin-left: 3px;
+    margin-top: 3px;
+    position: absolute;
+}
+
+.submenu-title {
+	color: khaki;
+	font-weight: bolder;
+	font-size: 120%;
 }
