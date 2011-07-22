@@ -3,6 +3,16 @@
 	<form method = "post" action = "admin.php">
 	<table id = "questions-table">
 		<tr>
+			<td>Type</td>
+			<td>
+				<select name = "questionType">
+					<option value = "">None Selected</option>
+					<option value = "r">Review Question</option>
+					<option value = "e">Exam Question</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
 			<td>Category</td>
 			<td>
 				<select name = "category">
@@ -25,19 +35,19 @@
 		</tr>
 		<tr>
 			<td rowspan = "5">Choices</td>
-			<td>A <input class = "question-choice" type = "text" name = "choices[]"></td>
+			<td><span class="letterChoice">A</span><input class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
-			<td>B <input class = "question-choice" type = "text" name = "choices[]"></td>
+			<td><span class="letterChoice">B</span><input class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
-			<td>C <input class = "question-choice" type = "text" name = "choices[]"></td>
+			<td><span class="letterChoice">C</span><input class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
-			<td>D <input class = "question-choice" type = "text" name = "choices[]"></td>
+			<td><span class="letterChoice">D</span><input class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
-			<td>E <input class = "question-choice" type = "text" name = "choices[]"></td>
+			<td><span class="letterChoice">E</span><input class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
 			<td>Answer</td>

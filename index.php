@@ -15,7 +15,7 @@ if ($requestMethod == 'GET') {
 		$questions = getQuestions($category, 10);
 		if (count($subCategories) > 0) {
 			foreach ($subCategories as $value) {
-				$questions += getQuestions($value, 10);
+				$questions += getQuestions($value, 'r');
 			}
 		}
 		$view = "questions";

@@ -31,11 +31,12 @@ function getAnswersToQuestions($category)
 	return false;
 }
 
-function getQuestions($category, $count)
+function getQuestions($category, $type)
 {
 	$database = getDatabase();
-	$statement = $database->prepare("SELECT * FROM questions WHERE category = :category");
+	$statement = $database->prepare("SELECT * FROM questions WHERE category = :category AND :type = :type");
 	$statement->bindValue(':category', $category);
+	$statement->bindValue(':type', $type);
 	
 	$result = @$statement->execute();
 	$questions = array();
@@ -48,9 +49,15 @@ function getQuestions($category, $count)
 	return false;
 }
 
-function addQuestion($question, $answer, $options, $category)
+function addQuestion($data)
 {
-	$choiceValues = array_values($options);
+	$question = $data['question'];
+	$answer = $data['answer'];
+	$category = $data['category'];
+	$type = $data['type'];
+	$choices = $data['choices'];
+	
+	$choiceValues = array_values($choices);
 	$choiceColumns = array("choiceA", "choiceB", "choiceC", "choiceD", "choiceE");
 	
 	$valuesLength = count($choiceValues);
@@ -68,8 +75,8 @@ function addQuestion($question, $answer, $options, $category)
 	}
 	
 	
-	$columns = "question, answer, category, " . implode(", ", $choiceColumns);
-	$values = ":question, :answer, :category, " . implode (", ", $parameterNames);
+	$columns = "question, answer, category, type, " . implode(", ", $choiceColumns);
+	$values = ":question, :answer, :category, :type, " . implode (", ", $parameterNames);
 	
 	$database = getDatabase();
 	$statement = $database->prepare("INSERT INTO questions ($columns) VALUES ($values)");
@@ -78,6 +85,7 @@ function addQuestion($question, $answer, $options, $category)
 	$statement->bindValue(":question", $question);
 	$statement->bindValue(":answer", $answer);
 	$statement->bindValue(":category", $category);
+	$statement->bindValue(":type", $type);
 	
 	foreach ($parameterNames as $key => $name) {
 		$statement->bindValue($name, $choiceValues[$key]);

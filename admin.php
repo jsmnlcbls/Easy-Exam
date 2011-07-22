@@ -20,9 +20,13 @@ if ($requestMethod == "GET") {
 		$answer = filterPOST("answer", "");
 		$choices = getPOST("choices");
 		$category = intval(getPOST("category"));
+		$type = substr(filterPOST("questionType"), 0, 1);
 		
 		include '/functions/question.php';
-		$result = addQuestion($question, $answer, $choices, $category);
+		$data = array('question' => $question, 'answer' => $answer, 
+					  'choices' => $choices, 'category' => $category, 
+					  'type' => $type);
+		$result = addQuestion($data);
 		displayResultNotification($result);
 	} else if ($action == "editCategory") {
 		$categoryId = intval(filterPOST("categoryId"));
