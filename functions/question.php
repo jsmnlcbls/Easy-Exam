@@ -106,7 +106,6 @@ function searchQuestions($data)
 	$type = $data['type'];
 	
 	$database = getDatabase();
-	
 	$categoryCondition = "";
 	$parameterBindings = array();
 	if (is_array($category)) {
@@ -117,7 +116,8 @@ function searchQuestions($data)
 			$parameterBindings[$parameterName] = $value;
 		}
 		$categoryCondition = implode(" OR ", $condition);
-	} else if (is_string($category)) {
+	} else {
+		$category = intval($category);
 		$categoryCondition = "category=:category";
 		$parameterBindings[':category'] = $category;
 	}
@@ -159,7 +159,7 @@ function searchQuestions($data)
 	}
 	
 	$sqlCondition = implode (" AND ", $sqlCondition);
-	
+
 	if ("" == $sqlCondition) {
 		return array();
 	}
