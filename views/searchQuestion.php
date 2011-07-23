@@ -21,7 +21,7 @@
 					$categories = getAllCategories();
 					foreach ($categories as $category) {
 						if ($category['category_id'] == 0) {
-							echo '<option value = "0">All Categories</option>';
+							echo '<option value = "">None Selected</option>';
 						} else {
 							echo "<option value = \"{$category['category_id']}\">{$category['name']}</option>";
 						}
@@ -31,11 +31,11 @@
 			</td>
 		</tr>
 		<tr>
-			<td>Search Questions For: </td>
+			<td>Search Questions For</td>
 			<td><input type = "text" name = "question"/></td>
 		</tr>
 		<tr>
-			<td>Search Choices For: </td>
+			<td>Search Choices For</td>
 			<td><input type = "text" name = "choice"/></td>
 		</tr>
 		<tr>
@@ -44,7 +44,7 @@
 		</tr>
 	</table>
 	<div style="font-size:80%; color:GREEN">
-		The wildcard characters "%" and "_" can be used.<br/>
+		The wildcard characters "%" and "_" can be used in searching.<br/>
 		"%" will match any number of characters<br/>
 		"_" will match just one character<br/>
 		Examples: <br/>

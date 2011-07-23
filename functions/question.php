@@ -116,8 +116,7 @@ function searchQuestions($data)
 			$parameterBindings[$parameterName] = $value;
 		}
 		$categoryCondition = implode(" OR ", $condition);
-	} else {
-		$category = intval($category);
+	} else if (!empty($category)) {
 		$categoryCondition = "category=:category";
 		$parameterBindings[':category'] = $category;
 	}
@@ -159,7 +158,6 @@ function searchQuestions($data)
 	}
 	
 	$sqlCondition = implode (" AND ", $sqlCondition);
-
 	if ("" == $sqlCondition) {
 		return array();
 	}
