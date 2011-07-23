@@ -11,22 +11,33 @@
 	
 	$result = searchQuestions($data);
 	
-	echo "<table id =\"searchResultsTable\">";
-	echo "<tr><td>#</td><td>Question</td><td>Action</td></tr>";
-	$counter = 1;
-	foreach ($result as $question) {
-		$id = $question['question_id'];
-		echo "<tr><td>{$counter}</td><td>";
-		echo "<form method=\"get\">";
-		echo $question['question'];
-		echo "</td><td>";
-		echo "<a href=\"?view=editQuestion&category=$id\">Edit</a> | ";
-		echo "<a href=\"?view=deleteQuestion&category=$id\">Delete</a>";
-		echo "</td></tr>";
-		echo "</form>";
-		$counter++;
+	$countResults = count($result);
+	if ($countResults > 0) {
+		if ($countResults == 1) {
+			echo "1 question found.";
+		} else {
+			echo "$countResults questions found.";
+		}
+		echo "<br/><br/>";
+		echo "<table id =\"searchResultsTable\">";
+		echo "<tr><td>#</td><td>Question</td><td>Action</td></tr>";
+		$counter = 1;
+		foreach ($result as $question) {
+			$id = $question['question_id'];
+			echo "<tr><td>{$counter}</td><td>";
+			echo "<form method=\"get\">";
+			echo $question['question'];
+			echo "</td><td>";
+			echo "<a href=\"?view=editQuestion&category=$id\">Edit</a> | ";
+			echo "<a href=\"?view=deleteQuestion&category=$id\">Delete</a>";
+			echo "</td></tr>";
+			echo "</form>";
+			$counter++;
+		}
+		echo "</table>";
+	} else {
+		echo "No search results found.";
 	}
-	echo "</table>";
 	?>
 </div>
 		
