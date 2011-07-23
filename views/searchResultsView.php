@@ -28,8 +28,8 @@
 			echo "<form method=\"get\">";
 			echo $question['question'];
 			echo "</td><td>";
-			echo "<a href=\"?view=editQuestion&category=$id\">Edit</a> | ";
-			echo "<a href=\"?view=deleteQuestion&category=$id\">Delete</a>";
+			echo "<a href=\"?view=editQuestion&questionId=$id\">Edit</a> | ";
+			echo "<a href=\"?view=deleteQuestion&questionId=$id\">Delete</a>";
 			echo "</td></tr>";
 			echo "</form>";
 			$counter++;
