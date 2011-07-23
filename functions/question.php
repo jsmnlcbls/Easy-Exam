@@ -159,6 +159,11 @@ function searchQuestions($data)
 	}
 	
 	$sqlCondition = implode (" AND ", $sqlCondition);
+	
+	if ("" == $sqlCondition) {
+		return array();
+	}
+	
 	$statement = $database->prepare("SELECT question_id, question FROM questions WHERE $sqlCondition");
 	
 	foreach ($parameterBindings as $key => $value) {
