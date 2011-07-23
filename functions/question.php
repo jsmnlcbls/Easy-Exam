@@ -97,3 +97,82 @@ function addQuestion($data)
 	}
 	return true;
 }
+
+function searchQuestions($data)
+{
+	$category = $data['category'];
+	$question = $data['question'];
+	$choice = $data['choice'];
+	$type = $data['type'];
+	
+	$database = getDatabase();
+	
+	$categoryCondition = "";
+	$parameterBindings = array();
+	if (is_array($category)) {
+		$condition = array();
+		foreach ($category as $key => $value) {
+			$parameterName = ":category{$key}";
+			$condition[] = "category=$parameterName";
+			$parameterBindings[$parameterName] = $value;
+		}
+		$categoryCondition = implode(" OR ", $condition);
+	} else if (is_string($category)) {
+		$categoryCondition = "category=:category";
+		$parameterBindings[':category'] = $category;
+	}
+	
+	$questionCondition = "";
+	if ($question != "") {
+		$questionCondition = "question LIKE :question";
+		$parameterBindings[":question"] = $question;
+	}
+	
+	$choiceCondition = "";
+	if ($choice != "") {
+		$condition = array();
+		foreach (range('A', 'E') as $letter) {
+			$condition[] = "choice{$letter} LIKE :choice{$letter}";
+			$parameterBindings[":choice{$letter}"] = $choice;
+		}
+		$choiceCondition = implode(" OR ", $condition);
+	}
+	
+	$typeCondition = "";
+	if ($type != "") {
+		$typeCondition = "type = :type";
+		$parameterBindings[":type"] = $type;
+	}
+	
+	$sqlCondition = array();
+	if ("" != $categoryCondition) {
+		$sqlCondition[] = $categoryCondition;
+	}
+	if ("" != $questionCondition) {
+		$sqlCondition[] = $questionCondition;
+	}
+	if ("" != $choiceCondition) {
+		$sqlCondition[] = $choiceCondition;
+	}
+	if ("" != $typeCondition) {
+		$sqlCondition[] = $typeCondition;
+	}
+	
+	$sqlCondition = implode (" AND ", $sqlCondition);
+	$statement = $database->prepare("SELECT question_id, question FROM questions WHERE $sqlCondition");
+	
+	foreach ($parameterBindings as $key => $value) {
+		$statement->bindValue($key, $value);
+	}
+	
+	$result = $statement->execute();
+
+	$questions = array();
+	if ($result !== false) {
+		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+			$questions[$row['question_id']] = $row;
+		}
+		return $questions;
+	}
+	return false;
+}

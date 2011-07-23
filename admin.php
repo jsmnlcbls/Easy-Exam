@@ -28,7 +28,7 @@ if ($requestMethod == "GET") {
 					  'type' => $type);
 		$result = addQuestion($data);
 		displayResultNotification($result);
-	} else if ($action == "editCategory") {
+	}else if ($action == "editCategory") {
 		$categoryId = intval(filterPOST("categoryId"));
 		$categoryName = filterPOST("categoryName");
 		$parentCategory = intval(filterPOST("parentCategory"));
