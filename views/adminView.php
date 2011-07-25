@@ -45,7 +45,9 @@
 			include "views/editQuestion.php";
 		}else if ($view == "searchResultsQuestion") {
 			include "views/searchResultsView.php";
-		}else if ($view == "success") {
+		}else if ($view == "addExam") {
+			include "views/addExam.php";
+		} else if ($view == "success") {
 			echo "<h2>Success!</h2>";
 		} else if ($view == "error") {
 			echo "<h2>Error. Please try again.</h2>";
