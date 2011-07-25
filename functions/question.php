@@ -34,7 +34,7 @@ function getAnswersToQuestions($category)
 function getQuestions($category, $type)
 {
 	$database = getDatabase();
-	$statement = $database->prepare("SELECT * FROM questions WHERE category = :category AND :type = :type");
+	$statement = $database->prepare("SELECT * FROM questions WHERE category = :category AND type = :type");
 	$statement->bindValue(':category', $category);
 	$statement->bindValue(':type', $type);
 	
@@ -176,6 +176,69 @@ function searchQuestions($data)
 			$questions[$row['question_id']] = $row;
 		}
 		return $questions;
+	}
+	return false;
+}
+
+function getQuestionData($id)
+{
+	$database = getDatabase();
+	
+	$statement = $database->prepare("SELECT * FROM questions WHERE question_id=:questionId");
+	$statement->bindValue(":questionId", $id);
+	
+	$result = $statement->execute();
+	
+	if ($result !== false) {
+		return $result->fetchArray(SQLITE3_ASSOC);
+	}
+	return false;
+}
+
+function updateQuestion($id, $data)
+{
+	$question = $data['question'];
+	$type = $data['type'];
+	$category = $data['category'];
+	$answer = $data['answer'];
+	$choices = $data['choices'];
+	
+	$database = getDatabase();
+	
+	$columnValues = array();
+	$parameters = array();
+	
+	$columnValues[] = "question=:question";
+	$columnValues[] = "type=:type";
+	$columnValues[] = "category=:category";
+	$columnValues[] = "answer=:answer";
+	
+	$parameters[':question'] = $question;
+	$parameters[':type'] = $type;
+	$parameters[':category'] = $category;
+	$parameters[':answer'] = $answer;
+	
+	foreach (range('A', 'B') as $key => $letter) {
+		$columnValues[] = "choice{$letter}=:choice{$letter}";
+		if (isset($choices[$key])) {
+			$parameters[":choice{$letter}"] = $choices[$key];
+		} else {
+			$parameters[":choice{$letter}"] = "";
+		}
+	}
+	
+	$columnValuesSql = implode(", ", $columnValues);
+	
+	$statement = $database->prepare("UPDATE questions SET $columnValuesSql WHERE question_id=:id");
+	$statement->bindValue(':id', $id);
+	
+	foreach ($parameters as $key => $value) {
+		$statement->bindValue($key, $value);
+	}
+	
+	$result = $statement->execute();
+	if (false !== $result) {
+		return true;
 	}
 	return false;
 }
