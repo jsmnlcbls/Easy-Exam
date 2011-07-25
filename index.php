@@ -12,7 +12,7 @@ if ($requestMethod == 'GET') {
 	if ("" != $category) {
 		$category = intval($category);
 		$subCategories = getSubCategories($category);
-		$questions = getQuestions($category, 10);
+		$questions = getQuestions($category, "r");
 		if (count($subCategories) > 0) {
 			foreach ($subCategories as $value) {
 				$questions += getQuestions($value, 'r');
