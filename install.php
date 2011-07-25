@@ -3,9 +3,9 @@ include "/functions/common.php";
 
 $database = getDatabase();
 
-$query = "CREATE TABLE IF NOT EXISTS category (category_id INTEGER PRIMARY KEY, name TEXT UNIQUE, "
-	   . "parent_category INTEGER, FOREIGN KEY (parent_category) REFERENCES "
-	   . "category(category_id))";
+$query = "CREATE TABLE IF NOT EXISTS category (category_id INTEGER PRIMARY KEY, "
+	   . "name TEXT UNIQUE, menu_visibility INTEGER, parent_category INTEGER, "
+	   . "FOREIGN KEY (parent_category) REFERENCES category(category_id))";
 $database->query($query);
 
 $query = "CREATE TABLE IF NOT EXISTS questions (question_id INTEGER PRIMARY KEY, "

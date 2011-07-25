@@ -24,6 +24,18 @@ function getCategoryData($id)
 	return $result->fetchArray(SQLITE3_ASSOC);
 }
 
+function getAllMenuCategories()
+{
+	$database = getDatabase();
+	$result = $database->query("SELECT * FROM category WHERE menu_visibility = 1 ORDER BY name");
+	
+	$categories = array();
+	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		$categories[$row['category_id']] = $row;
+	}
+	return $categories;
+}
+
 function getAllCategories()
 {
 	$database = getDatabase();

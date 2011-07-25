@@ -3,6 +3,7 @@ $data = getCategoryData(filterGET("category"));
 $categoryName = $data['name'];
 $categoryId = $data['category_id'];
 $parentId = $data['parent_category'];
+$menuVisibility = $data['menu_visibility']
 ?>
 <div id = "edit-category-panel">
 	<span class = "panel-title">Edit Category: <em><?php echo $categoryName;?></em></span>
@@ -35,6 +36,12 @@ $parentId = $data['parent_category'];
 						}
 					?>
 				</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Options</td>
+				<td>
+					<input type ="checkbox" name ="menuVisibility" value="1" <?php if($menuVisibility == 1) echo "checked=\"checked\"";?>>Show on menu
 				</td>
 			</tr>
 			<tr>

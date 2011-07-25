@@ -11,9 +11,11 @@ if ($requestMethod == "GET") {
 	if ($action == "addCategory") {
 		$name = filterPOST("categoryName", "");
 		$parent = intval(getPOST("parentCategory", 0));
+		$menuVisibility = intval(getPOST("menuVisibility"));
 		
+		$data = array('name' => $name, 'parent' => $parent, 'showOnMenu' => $menuVisibility);
 		include '/functions/category.php';
-		$result = addCategory($name, $parent);
+		$result = addCategory($data);
 		displayResultNotification($result);
 	} else if ($action == "addQuestion") {
 		$question = getPOST("question", "");
@@ -32,9 +34,11 @@ if ($requestMethod == "GET") {
 		$categoryId = intval(filterPOST("categoryId"));
 		$categoryName = filterPOST("categoryName");
 		$parentCategory = intval(filterPOST("parentCategory"));
+		$menuVisibility = intval(getPOST("menuVisibility"));
 		
+		$data = array('name' => $categoryName, 'parent' => $parentCategory, 'menuVisibility' => $menuVisibility);
 		include '/functions/category.php';
-		$result = editCategory($categoryId, $categoryName, $parentCategory);
+		$result = editCategory($categoryId, $data);
 		displayResultNotification($result);
 	} else if ($action == "editQuestion") {
 		$questionId = intval(filterPOST("questionId"));

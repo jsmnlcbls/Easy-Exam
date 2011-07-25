@@ -11,7 +11,7 @@
 	</div>
 	<div id = "menu-panel">
 		<?php
-			$categories = getAllCategories();
+			$categories = getAllMenuCategories();
 			
 			function printMenu(&$menu, $parent)
 			{
