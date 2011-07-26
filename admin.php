@@ -53,6 +53,23 @@ if ($requestMethod == "GET") {
 					  'answer' => $answer, 'category' => $category);
 		$result = updateQuestion($questionId, $data);
 		displayResultNotification($result);
+	} else if ($action == "addExam") {
+		
+		$name = filterPOST("examName");
+		$category = intval(getPOST("category"));
+		$startDateTime = filterPOST("startDate") . " " . filterPOST("startTime");
+		$endDateTime = filterPOST("endDate") . " " . filterPOST("endTime");
+		$timeLimit = filterPOST("timeLimit");
+		$passingScore = filterPOST("passingScore");
+		
+		$data = array('name' => $name, 'category' => $category, 
+					  'startDateTime' => $startDateTime, 
+					  'endDateTime' => $endDateTime, 'timeLimit' => $timeLimit, 
+					  'passingScore' => $passingScore);
+		
+		include "functions/exam.php";
+		$result = addExam($data);
+		displayResultNotification($result);
 	}
 }
 

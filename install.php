@@ -17,8 +17,10 @@ $database->query($query);
 $query = "INSERT INTO category (category_id, name) VALUES (0, '');";
 $success = @$database->query($query);
 
-$query = "CREATE TABLE IF NOT EXISTS exam (exam_id INTEGER PRIMARY KEY, name TEXT, "
-	   . "start_date TEXT, end_date TEXT, questions TEXT);";
+$query = "CREATE TABLE IF NOT EXISTS exam (exam_id INTEGER PRIMARY KEY, name TEXT UNIQUE, "
+	   . "start_date_time TEXT, end_date_time TEXT, questions TEXT, time_limit TEXT, "
+	   . "passing_score INTEGER, questions_category INTEGER, FOREIGN KEY(questions_category) "
+	   . "REFERENCES category(category_id));";
 $database->query($query);
 
 if ($success) {

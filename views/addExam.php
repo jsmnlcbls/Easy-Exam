@@ -2,15 +2,16 @@
 <div id = "add-exam-panel">
 	<span class = "panel-title">Create New Exam</span>
 	<form method = "post" action = "admin.php" id = "add-exam-form">
+		<input type = "hidden" name = "action" value = "addExam" />
 		<table>
 			<tr>
 				<td>Exam Name</td>
-				<td><input type = "text" name = "categoryName" /></td>
+				<td><input type = "text" name = "examName" /></td>
 			</tr>
 			<tr>
 				<td>Get Questions From</td>
 				<td>
-				<select name = "parentCategory">
+				<select name = "category">
 					<?php
 						$categories = (getAllCategories());
 							foreach ($categories as $category) {
@@ -25,27 +26,34 @@
 				</td>
 			</tr>
 			<tr>
-				<td>Passing Score</td>
-				<td><input type="text" name="passingScore" style="width:2em"/> %
-				</td>
-			</tr>
-			<tr>
-				<td>Start Of Exam</td>
+				<td>Exam Availability Start</td>
 				<td>
 					Date <input style="width:5em;text-align:center" type="text" name="startDate"/>
 					Time <input style="width:3em;text-align:center" type="text" name="startTime"/>
 				</td>
 			</tr>
 			<tr>
-				<td>End Of Exam</td>
+				<td>Exam Availability End</td>
 				<td>
 					Date <input style="width:5em;text-align:center" type="text" name="endDate"/>
 					Time <input style="width:3em;text-align:center" type="text" name="endTime"/>
 				</td>
 			</tr>
 			<tr>
+				<td>Time Limit In Hours</td>
+				<td>
+					<input style="width:2em;text-align:center" type="text" name="timeLimit"/>
+				</td>
+			</tr>
+			<tr>
+				<td>Passing Score</td>
+				<td><input type="text" name="passingScore" style="width:2em"/> %
+				</td>
+			</tr>
+			
+			<tr>
 				<td></td>
-				<td><input type = "submit" value = "Add" name = "action"/></td>
+				<td><input type = "submit" value = "Add"/></td>
 			</tr>
 			<tr>
 				
@@ -62,7 +70,7 @@
 			</tr>
 			
 		</table>
-		<input type = "hidden" name = "action" value = "addCategory" />
+		
 	</form>
 </div>
 		
