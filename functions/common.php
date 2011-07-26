@@ -2,6 +2,10 @@
 
 $_SETTINGS = array();
 $_SETTINGS['Database File'] = "database.sqlite";
+$_SETTINGS['Time Zone'] = "Asia/Manila";
+
+date_default_timezone_set ($_SETTINGS['Time Zone']);
+
 
 /**
  * Returns the SQLite database
@@ -12,6 +16,22 @@ function getDatabase()
 {
 	global $_SETTINGS;
 	return new SQLite3($_SETTINGS['Database File']);
+}
+
+function getAvailableExams()
+{
+	$localDateTime = date("Y-m-d H:s");
+	
+	$database = getDatabase();
+	$statement = $database->prepare("SELECT *, '$localDateTime' FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name");
+	$statement->bindValue(":dateTime", $localDateTime);
+	$result = $statement->execute();
+	
+	$exams = array();
+	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		$exams[] = $row;
+	}
+	return $exams;
 }
 
 function getCategoryData($id)

@@ -10,6 +10,7 @@
 		<span id ="program-name">Easy Exam</span> Your Do It Yourself Multiple Choice Exam Review!
 	</div>
 	<div id = "menu-panel">
+		<span style="font-size:120%;color:GOLD">Review</span>
 		<?php
 			$categories = getAllMenuCategories();
 			
@@ -34,6 +35,18 @@
 			}
 			echo printMenu($categories, 0);
 		?>
+		<br/>
+		<span style="font-size:120%;color:GOLD">Available Exams</span>
+		<ul>
+		<?php
+			$exams = getAvailableExams();
+			foreach ($exams as $value) {
+				$name = $value['name'];
+				$id = $value['exam_id'];
+				echo "<li><a href=\"index.php?exam=$id\">$name</a></li>";
+			}
+		?>
+		</ul>
 	</div>
 	<div id = "main-panel">
 		<?php
