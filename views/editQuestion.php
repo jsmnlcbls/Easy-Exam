@@ -2,6 +2,7 @@
 	include "functions/question.php";
 
 	$id = intval(filterGET("questionId", ""));
+	$examId = intval(filterGET("examId"));
 	$data = getQuestionData($id);
 	$type = $data['type'];
 	$question = $data['question'];
@@ -14,11 +15,28 @@
 	$choiceE = $data['choiceE'];
 ?>
 <div id = "edit-question-panel">
-	<span class = "panel-title">Modify Question</span>
+	<span class = "panel-title">
+	<?php
+		if ($view == "editQuestion") {
+			echo "Modify Question";
+		} else {
+			echo "Modify Exam Question";
+		}
+	?>
+	</span>
 	<form method = "post" action = "admin.php">
 	<input type ="hidden" name ="questionId" value ="<?php echo $id?>"/>
 	<input type ="hidden" name ="action" value="editQuestion">
 	<table id = "questions-table">
+		<?php
+		if ($view == "editExamQuestion") {
+			echo "<input type =\"hidden\" name =\"questionType\" value=\"e\">";
+			echo "<input type =\"hidden\" name =\"category\" value=\"$category\">";
+			echo "<input type =\"hidden\" name =\"redirect\" value=\"r\">";
+			echo "<input type =\"hidden\" name =\"examId\" value=\"$examId\">";
+			 
+		} else if ($view == "editQuestion") {
+		?>	
 		<tr>
 			<td>Type</td>
 			<td>
@@ -34,6 +52,7 @@
 					<option value = "r" <?php markIfSelectedType("r");?>>Review Question</option>
 					<option value = "e" <?php markIfSelectedType("e");?>>Exam Question</option>
 				</select>
+				
 			</td>
 		</tr>
 		<tr>
@@ -55,6 +74,9 @@
 				</select>
 			</td>
 		</tr>
+		<?php
+		}
+		?>
 		<tr>
 			<td>Question</td>
 			<td><textarea name = "question"><?php echo $question;?></textarea></td>

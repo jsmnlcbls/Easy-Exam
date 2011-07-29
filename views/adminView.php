@@ -22,7 +22,7 @@
 		<span class="submenu-title">Exam</span>
 		<ul class = "sub-menu">
 			<li><a href="?view=addExam">Add</a></li>
-			<li><a href="?view=editExam">Edit</a></li>
+			<li><a href="?view=selectExam">Edit</a></li>
 			<li><a href="?view=deleteExam">Delete</a></li>
 		</ul>
 		
@@ -41,12 +41,21 @@
 			include "views/addQuestion.php";
 		} else if ($view == "searchQuestion") {
 			include "views/searchQuestion.php";
-		} else if ($view == "editQuestion") {
+		} else if ($view == "editQuestion" || $view == "editExamQuestion") {
 			include "views/editQuestion.php";
-		}else if ($view == "searchResultsQuestion") {
+		} else if ($view == "searchResultsQuestion") {
 			include "views/searchResultsView.php";
-		}else if ($view == "addExam") {
+		} else if ($view == "addExam") {
 			include "views/addExam.php";
+		} else if ($view == "selectExam") {
+			include "views/selectExam.php";
+		} else if ($view == "editExam") {
+			$examView = filterGet("examView");
+			if ($examView == "properties") {
+				include "views/editExam.php";
+			} else if ($examView == "questions") {
+				include "views/editExamQuestions.php";
+			}
 		} else if ($view == "success") {
 			echo "<h2>Success!</h2>";
 		} else if ($view == "error") {

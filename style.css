@@ -85,6 +85,11 @@ body {
 	margin-left: 10px;
 }
 
+.question-options {
+	margin-left: 2em;
+	font-size: 80%;
+}
+
 .letterChoice {
 	display: inline;
     height: inherit;

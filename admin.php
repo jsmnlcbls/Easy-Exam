@@ -52,9 +52,19 @@ if ($requestMethod == "GET") {
 		$data = array('question' => $question, 'type' => $type, 'choices' => $choices,
 					  'answer' => $answer, 'category' => $category);
 		$result = updateQuestion($questionId, $data);
-		displayResultNotification($result);
-	} else if ($action == "addExam") {
 		
+		$examId = intval(getPOST('examId', ''));
+		if (empty($examId)) {
+			displayResultNotification($result);
+		} else {
+			//this does not seem to work
+			//$location = array('view' => 'editExam', 'examId' => $examId, 'examView' => 'questions');
+			//redirect($_SERVER['REQUEST_URI'] . "?" . http_build_query($location));
+			
+			//workaround
+			redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExam&examId=$examId&examView=questions");
+		}
+	} else if ($action == "addExam" || $action == "editExam") {
 		$name = filterPOST("examName");
 		$category = intval(getPOST("category"));
 		$startDateTime = filterPOST("startDate") . " " . filterPOST("startTime");
@@ -68,9 +78,15 @@ if ($requestMethod == "GET") {
 					  'passingScore' => $passingScore);
 		
 		include "functions/exam.php";
-		$result = addExam($data);
+		if ($action == "addExam") {
+			$result = addExam($data);
+		} else if ($action == "editExam") {
+			$id = intval(getPOST("examId"));
+			$result = updateExam($id, $data);
+		}
 		displayResultNotification($result);
 	}
+	
 }
 
 

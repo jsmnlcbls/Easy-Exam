@@ -18,12 +18,36 @@ function getDatabase()
 	return new SQLite3($_SETTINGS['Database File']);
 }
 
+function getExamData($id)
+{
+	$database = getDatabase();
+	
+	$statement = $database->prepare("SELECT * FROM exam WHERE exam_id=:id");
+	$statement->bindValue(":id", $id);
+	$result = $statement->execute();
+	
+	return $result->fetchArray(SQLITE3_ASSOC);
+}
+
+function getAllExams()
+{
+	$database = getDatabase();
+	$statement = $database->prepare("SELECT * FROM exam");
+	$result = $statement->execute();
+	
+	$exams = array();
+	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		$exams[] = $row;
+	}
+	return $exams;
+}
+
 function getAvailableExams()
 {
 	$localDateTime = date("Y-m-d H:s");
 	
 	$database = getDatabase();
-	$statement = $database->prepare("SELECT *, '$localDateTime' FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name");
+	$statement = $database->prepare("SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name");
 	$statement->bindValue(":dateTime", $localDateTime);
 	$result = $statement->execute();
 	
@@ -161,5 +185,10 @@ function displayResultNotification($success)
 	if ($success) {
 		$address = $_SERVER['REQUEST_URI'] . "?view=success";
 	}
-	header("Location: $address");
+	redirect($address);
+}
+
+function redirect($location)
+{
+	header("Location: $location");
 }
