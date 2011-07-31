@@ -218,7 +218,7 @@ function updateQuestion($id, $data)
 	$parameters[':category'] = $category;
 	$parameters[':answer'] = $answer;
 	
-	foreach (range('A', 'B') as $key => $letter) {
+	foreach (range('A', 'E') as $key => $letter) {
 		$columnValues[] = "choice{$letter}=:choice{$letter}";
 		if (isset($choices[$key])) {
 			$parameters[":choice{$letter}"] = $choices[$key];
