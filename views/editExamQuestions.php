@@ -11,6 +11,12 @@ $examName = $data['name'];
 		include "functions/exam.php";
 		
 		$questions = getExamQuestions($examId);
+		$questionsCount = count($questions);
+		
+		echo "<div style=\"color: GREEN; margin-bottom: 1em;\">";
+		echo "Total Questions: $questionsCount";
+		echo "</div>";
+		
 		$count = 1;
 		foreach ($questions as $value) {
 			$out = "<div class=\"question-div\">";
