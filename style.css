@@ -90,6 +90,12 @@ body {
 	font-size: 80%;
 }
 
+.question-options a {
+	text-decoration: none;
+	color: blue;
+}
+
+
 .letterChoice {
 	display: inline;
     height: inherit;
@@ -102,4 +108,18 @@ body {
 	color: khaki;
 	font-weight: bolder;
 	font-size: 120%;
+}
+
+.hidden-form{
+	margin: 0px;
+	display: inline;
+}
+
+.hidden-form button {
+	background:none;
+    border:none;
+    margin:0;
+    padding:0;
+	color: blue;
+	cursor: pointer;
 }

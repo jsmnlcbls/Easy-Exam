@@ -91,6 +91,24 @@ if ($requestMethod == "GET") {
 		include "functions/question.php";
 		$result = deleteQuestion($id);
 		displayResultNotification($result);
+	} else if ($action == "deleteQuestionFromExam") {
+		$id = intval(getPOST("questionId"));
+		$examId = intval(getPOST("examId"));
+		include "functions/question.php";
+		$data = getQuestionData($id);
+		$data['type'] = "";
+		$choices = array();
+		foreach (range('A', 'E') as $letter) {
+			$choices[] = $data["choice$letter"];
+		}
+		$data['choices'] = $choices;
+		
+		$result = updateQuestion($id, $data);
+		if ($result) {
+			redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExam&examId=$examId&examView=questions");
+		} else {
+			displayResultNotification(false);
+		}
 	}
 	
 }
