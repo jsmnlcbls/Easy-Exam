@@ -242,3 +242,16 @@ function updateQuestion($id, $data)
 	}
 	return false;
 }
+
+function deleteQuestion($id)
+{
+	$database = getDatabase();
+	$statement = $database->prepare("DELETE FROM questions WHERE question_id=:id");
+	$statement->bindValue(":id", $id);
+	
+	$result = $statement->execute();
+	if (false !== $result) {
+		return true;
+	}
+	return false;
+}

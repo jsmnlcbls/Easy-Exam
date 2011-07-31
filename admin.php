@@ -85,6 +85,12 @@ if ($requestMethod == "GET") {
 			$result = updateExam($id, $data);
 		}
 		displayResultNotification($result);
+	} else if ($action == "deleteQuestion") {
+		$id = intval(getPOST("questionId"));
+		
+		include "functions/question.php";
+		$result = deleteQuestion($id);
+		displayResultNotification($result);
 	}
 	
 }
