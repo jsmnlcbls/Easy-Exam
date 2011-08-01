@@ -77,3 +77,16 @@ function getExamQuestions($examId)
 	}
 	$database = getDatabase();
 }
+
+function deleteExam($id)
+{
+	$database = getDatabase();
+	$statement = $database->prepare("DELETE FROM exam WHERE exam_id = :id");
+	$statement->bindValue(":id", $id);
+	
+	$result = $statement->execute();
+	if ($result !== false) {
+		return true;
+	}
+	return false;
+}

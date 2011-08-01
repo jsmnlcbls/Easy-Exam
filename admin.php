@@ -94,6 +94,7 @@ if ($requestMethod == "GET") {
 	} else if ($action == "deleteQuestionFromExam") {
 		$id = intval(getPOST("questionId"));
 		$examId = intval(getPOST("examId"));
+		
 		include "functions/question.php";
 		$data = getQuestionData($id);
 		$data['type'] = "";
@@ -109,6 +110,12 @@ if ($requestMethod == "GET") {
 		} else {
 			displayResultNotification(false);
 		}
+	} else if ($action == "deleteExam") {
+		$id = intval(getPOST("examId"));
+		
+		include "functions/exam.php";
+		$result = deleteExam($id);
+		displayResultNotification($result);
 	}
 	
 }

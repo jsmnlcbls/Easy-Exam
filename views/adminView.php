@@ -58,7 +58,9 @@
 			}
 		} else if ($view == "deleteQuestion") { 
 			include "views/deleteQuestion.php";
-		}else if ($view == "success") {
+		} else if ($view == "deleteExam") {
+			include "views/deleteExam.php";
+		} else if ($view == "success") {
 			echo "<h2>Success!</h2>";
 		} else if ($view == "error") {
 			echo "<h2>Error. Please try again.</h2>";
