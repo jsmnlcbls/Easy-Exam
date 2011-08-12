@@ -1,21 +1,34 @@
 <?php
 
 $_SETTINGS = array();
-$_SETTINGS['Database File'] = "database.sqlite";
+$_SETTINGS['Data Source Name'] = "mysql:dbname=easy_exam;host=localhost";
+$_SETTINGS['Database User'] = 'root';
+$_SETTINGS['Database Password'] = "";
 $_SETTINGS['Time Zone'] = "Asia/Manila";
 
 date_default_timezone_set ($_SETTINGS['Time Zone']);
 
 
-/**
- * Returns the SQLite database
- * @global array $_SETTINGS
- * @return SQLite3 
- */
 function getDatabase()
 {
-	global $_SETTINGS;
-	return new SQLite3($_SETTINGS['Database File']);
+	try {
+		global $_SETTINGS;
+		$database = new PDO($_SETTINGS['Data Source Name'], 
+							$_SETTINGS['Database User'], 
+							$_SETTINGS['Database Password']);
+		return $database;
+	} catch (PDOException $exception) {
+		throw $exception;
+	}
+}
+
+function fetchData(&$source)
+{
+	$data = array();
+	while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
+		$data[] = $row;
+	}
+	return $data;
 }
 
 function getExamData($id)
@@ -26,20 +39,14 @@ function getExamData($id)
 	$statement->bindValue(":id", $id);
 	$result = $statement->execute();
 	
-	return $result->fetchArray(SQLITE3_ASSOC);
+	return $statement->fetch(PDO::FETCH_ASSOC);
 }
 
 function getAllExams()
 {
 	$database = getDatabase();
-	$statement = $database->prepare("SELECT * FROM exam");
-	$result = $statement->execute();
-	
-	$exams = array();
-	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-		$exams[] = $row;
-	}
-	return $exams;
+	$statement = $database->query("SELECT * FROM exam");
+	return fetchData($statement);
 }
 
 function getAvailableExams()
@@ -49,13 +56,8 @@ function getAvailableExams()
 	$database = getDatabase();
 	$statement = $database->prepare("SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name");
 	$statement->bindValue(":dateTime", $localDateTime);
-	$result = $statement->execute();
-	
-	$exams = array();
-	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-		$exams[] = $row;
-	}
-	return $exams;
+	$statement->execute();
+	return fetchData($statement);
 }
 
 function getCategoryData($id)
@@ -63,9 +65,8 @@ function getCategoryData($id)
 	$database = getDatabase();
 	$statement =  $database->prepare("SELECT * FROM category WHERE category_id = :id");
 	$statement->bindValue(":id", $id);
-	$result = $statement->execute();
-	
-	return $result->fetchArray(SQLITE3_ASSOC);
+	$statement->execute();
+	return $statement->fetch(PDO::FETCH_ASSOC);
 }
 
 function getAllMenuCategories()
@@ -74,7 +75,7 @@ function getAllMenuCategories()
 	$result = $database->query("SELECT * FROM category WHERE menu_visibility = 1 ORDER BY name");
 	
 	$categories = array();
-	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+	while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		$categories[$row['category_id']] = $row;
 	}
 	return $categories;
@@ -86,7 +87,7 @@ function getAllCategories()
 	$result = $database->query("SELECT * FROM category ORDER BY name");
 	
 	$categories = array();
-	while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+	while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 		$categories[$row['category_id']] = $row;
 	}
 	return $categories;

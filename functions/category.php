@@ -12,6 +12,7 @@ function addCategory($data)
 	$statement->bindValue(":parent", $parent);
 	$statement->bindValue(":menuVisibility", $menuVisibility);
 	$result = @$statement->execute();
+	
 	if ($result === false) {
 		return false;
 	}

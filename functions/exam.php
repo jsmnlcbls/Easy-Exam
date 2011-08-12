@@ -41,7 +41,7 @@ function updateExam($examId, $data)
 	$database = getDatabase();
 	$sql = "UPDATE exam SET name=:name, questions_category=:category, "
 		 . "start_date_time=:startDateTime, end_date_time=:endDateTime, "
-		 . "time_limit=:timeLimit, passing_score=:passingScore, questions=:questions";
+		 . "time_limit=:timeLimit, passing_score=:passingScore";
 	$statement = $database->prepare($sql);
 	$statement->bindValue(":name", $name);
 	$statement->bindValue(":category", $category);
@@ -60,22 +60,13 @@ function updateExam($examId, $data)
 function getExamQuestions($examId)
 {
 	$data = getExamData($examId);
-	$questions = array();
 	$database = getDatabase();
-	if ($data['questions'] == "") {
-		$category = $data['questions_category'];
-		$sql = "SElECT * FROM questions WHERE category=:category AND type='e'";
-		$statement = $database->prepare($sql);
-		$statement->bindValue(":category", $category);
-		$result = $statement->execute();
-		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-			$questions[] = $row;
-		}
-		return $questions;
-	} else {
-		
-	}
-	$database = getDatabase();
+	$category = $data['questions_category'];
+	$sql = "SElECT * FROM questions WHERE category=:category AND type='e'";
+	$statement = $database->prepare($sql);
+	$statement->bindValue(":category", $category);
+	$statement->execute();
+	return fetchData($statement);
 }
 
 function deleteExam($id)

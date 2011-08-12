@@ -23,7 +23,7 @@ function getAnswersToQuestions($category)
 	$result = @$statement->execute();
 	$answers = array();
 	if ($result !== false) {
-		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+		while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
 			$answers[$row['question_id']] = $row['answer'];
 		}
 		return $answers;
@@ -39,12 +39,8 @@ function getQuestions($category, $type)
 	$statement->bindValue(':type', $type);
 	
 	$result = @$statement->execute();
-	$questions = array();
 	if ($result !== false) {
-		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-			$questions[$row['question_id']] = $row;
-		}
-		return $questions;
+		return fetchData($statement);
 	}
 	return false;
 }
@@ -73,7 +69,6 @@ function addQuestion($data)
 	foreach($choiceColumns as $value) {
 		$parameterNames[] = ":" . $value;
 	}
-	
 	
 	$columns = "question, answer, category, type, " . implode(", ", $choiceColumns);
 	$values = ":question, :answer, :category, :type, " . implode (", ", $parameterNames);
@@ -170,12 +165,8 @@ function searchQuestions($data)
 	
 	$result = $statement->execute();
 
-	$questions = array();
 	if ($result !== false) {
-		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-			$questions[$row['question_id']] = $row;
-		}
-		return $questions;
+		return fetchData($statement);
 	}
 	return false;
 }
@@ -190,7 +181,7 @@ function getQuestionData($id)
 	$result = $statement->execute();
 	
 	if ($result !== false) {
-		return $result->fetchArray(SQLITE3_ASSOC);
+		return $statement->fetch(PDO::FETCH_ASSOC);
 	}
 	return false;
 }
