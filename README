@@ -4,4 +4,4 @@ let users take a mock exam of a category or take the real exam where scores
 will be recorded.
 
 Requirements:
--PHP, Apache, PHP Sqlite3 module
+-PHP, Apache, MySQL
