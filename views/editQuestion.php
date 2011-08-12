@@ -49,7 +49,7 @@
 				}
 				?>
 				<select name = "questionType">
-					<option value = "" <?php markIfSelectedType("r");?>>Unassigned</option>
+					<option value = "" <?php markIfSelectedType("");?>>Unassigned</option>
 					<option value = "r" <?php markIfSelectedType("r");?>>Review Question</option>
 					<option value = "e" <?php markIfSelectedType("e");?>>Exam Question</option>
 				</select>
