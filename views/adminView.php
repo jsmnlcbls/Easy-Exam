@@ -50,7 +50,8 @@
 			'deleteQuestion' => 'deleteQuestion.php',
 			'deleteExam' => 'deleteExam.php',
 			'addUser' => 'addUser.php',
-			'listUsers' => 'listUsers.php'
+			'listUsers' => 'listUsers.php',
+			'editUser' => 'editUser.php'
 		);
 		
 		if ($view == "editExam") {

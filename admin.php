@@ -125,6 +125,16 @@ if ($requestMethod == "GET") {
 		$data = array('name' => $name, 'password' => $password, 'role' => $role);
 		$result = addUser($data);
 		displayResultNotification($result);
+	} else if ($action == "editUser") {
+		include "functions/user.php";
+		$name = filterPOST("username");
+		$password = filterPOST("password");
+		$role = getPOST('role');
+		$id = intval(getPOST('id'));
+	
+		$data = array('name' => $name, 'password' => $password, 'role' => $role, 'id' => $id);
+		$result = updateUser($id, $data);
+		displayResultNotification($result);
 	}
 }
 
