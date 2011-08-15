@@ -29,7 +29,7 @@
 		<span class="submenu-title">User</span>
 		<ul class = "sub-menu">
 			<li><a href="?view=addUser">Add</a></li>
-			<li><a href="?view=listUser">List</a></li>
+			<li><a href="?view=listUsers">List</a></li>
 		</ul>
 		
 	</div>
@@ -49,7 +49,8 @@
 			'selectExam' => 'selectExam.php',
 			'deleteQuestion' => 'deleteQuestion.php',
 			'deleteExam' => 'deleteExam.php',
-			'addUser' => 'addUser.php'
+			'addUser' => 'addUser.php',
+			'listUsers' => 'listUsers.php'
 		);
 		
 		if ($view == "editExam") {

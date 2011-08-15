@@ -116,8 +116,16 @@ if ($requestMethod == "GET") {
 		include "functions/exam.php";
 		$result = deleteExam($id);
 		displayResultNotification($result);
+	} else if ($action == "addUser") {
+		include "functions/user.php";
+		$name = filterPOST('username');
+		$password = filterPOST('password');
+		$role = getPost('role');
+		
+		$data = array('name' => $name, 'password' => $password, 'role' => $role);
+		$result = addUser($data);
+		displayResultNotification($result);
 	}
-	
 }
 
 
