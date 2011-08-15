@@ -22,6 +22,42 @@ function getDatabase()
 	}
 }
 
+//For SELECT sql
+function queryDatabase($sql, $parameters = null)
+{
+	if (is_array($parameters)) {
+		$database = getDatabase();
+		$statement = $database->prepare($sql);
+		foreach ($parameters as $key => $value) {
+			$statement->bindValue($key, $value);
+		}
+		$statement->execute();
+		return fetchData($statement);
+	} else if (null == $parameters) {
+		$database = getDatabase();
+		$statement = $database->query($sql);
+		return fetchData($statement);
+	}
+	return false;
+}
+
+//For INSERT, UPDATE, DELETE sql
+function executeDatabase($sql, $parameters = null)
+{
+	if (is_array($parameters)) {
+		$database = getDatabase();
+		$statement = $database->prepare($sql);
+		foreach ($parameters as $key => $value) {
+			$statement->bindValue($key, $value);
+		}
+		return $statement->execute();
+	} else if (null == $parameters) {
+		$database = getDatabase();
+		return $database->query($sql);
+	}
+	return false;
+}
+
 function fetchData(&$source)
 {
 	$data = array();
