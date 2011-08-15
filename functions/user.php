@@ -14,7 +14,7 @@ function getAllRoles()
 
 function getAllUsers()
 {
-	$sql = "SELECT id, name, role FROM accounts";
+	$sql = "SELECT id, name, role FROM accounts ORDER BY name ASC";
 	return queryDatabase($sql);
 }
 
