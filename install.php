@@ -69,6 +69,34 @@ CREATE TABLE IF NOT EXISTS `questions` (
 QUERY;
 
 $query[] = <<<QUERY
+CREATE TABLE IF NOT EXISTS `role` (
+  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+QUERY;
+
+$query[] = <<<QUERY
+INSERT INTO `role` (`id`, `name`) VALUES
+(1, 'Examinee'),
+(2, 'Reviewer'),
+(4, 'Examiner');
+QUERY;
+
+$query[] = <<<QUERY
+CREATE TABLE IF NOT EXISTS `accounts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `role` tinyint(4) NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `password` char(40) NOT NULL,
+  `salt` char(16) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  KEY `role` (`role`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+QUERY;
+
+$query[] = <<<QUERY
 ALTER TABLE `exam`
   ADD CONSTRAINT `exam_ibfk_1` FOREIGN KEY (`questions_category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE;
 QUERY;
