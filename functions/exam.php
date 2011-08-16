@@ -41,7 +41,7 @@ function updateExam($examId, $data)
 	$database = getDatabase();
 	$sql = "UPDATE exam SET name=:name, questions_category=:category, "
 		 . "start_date_time=:startDateTime, end_date_time=:endDateTime, "
-		 . "time_limit=:timeLimit, passing_score=:passingScore";
+		 . "time_limit=:timeLimit, passing_score=:passingScore WHERE exam_id = :examId";
 	$statement = $database->prepare($sql);
 	$statement->bindValue(":name", $name);
 	$statement->bindValue(":category", $category);
@@ -49,6 +49,7 @@ function updateExam($examId, $data)
 	$statement->bindValue(":endDateTime", $endDateTime);
 	$statement->bindValue(":timeLimit", $timeLimit);
 	$statement->bindValue(":passingScore", $passingScore);
+	$statement->bindValue(":examId", $examId);
 	
 	$result = $statement->execute();
 	if ($result === false) {
