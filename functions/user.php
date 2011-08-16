@@ -65,6 +65,17 @@ function updateUser($id, $data)
 	return false;
 }
 
+function deleteUser($id)
+{
+	$sql = "DELETE FROM accounts WHERE id = :id";
+	$parameters = array(':id' => $id);
+	$result = executeDatabase($sql, $parameters);
+	if ($result !== false) {
+		return true;
+	}
+	return false;
+}
+
 function _deriveRole($roleArray)
 {
 	$role = 0;

@@ -58,7 +58,7 @@ function executeDatabase($sql, $parameters = null)
 	return false;
 }
 
-function fetchData(&$source, $index)
+function fetchData(&$source, $index = '')
 {
 	$data = array();
 	if ($index != "") {

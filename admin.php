@@ -135,6 +135,12 @@ if ($requestMethod == "GET") {
 		$data = array('name' => $name, 'password' => $password, 'role' => $role, 'id' => $id);
 		$result = updateUser($id, $data);
 		displayResultNotification($result);
+	} else if ($action == "deleteUser") {
+		include "functions/user.php";
+		$id = intval(getPOST('id'));
+	
+		$result = deleteUser($id);
+		displayResultNotification($result);
 	}
 }
 
