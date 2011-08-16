@@ -23,7 +23,7 @@ function getDatabase()
 }
 
 //For SELECT sql
-function queryDatabase($sql, $parameters = null)
+function queryDatabase($sql, $parameters = null, $index = "")
 {
 	if (is_array($parameters)) {
 		$database = getDatabase();
@@ -32,11 +32,11 @@ function queryDatabase($sql, $parameters = null)
 			$statement->bindValue($key, $value);
 		}
 		$statement->execute();
-		return fetchData($statement);
+		return fetchData($statement, $index);
 	} else if (null == $parameters) {
 		$database = getDatabase();
 		$statement = $database->query($sql);
-		return fetchData($statement);
+		return fetchData($statement, $index);
 	}
 	return false;
 }
@@ -58,75 +58,61 @@ function executeDatabase($sql, $parameters = null)
 	return false;
 }
 
-function fetchData(&$source)
+function fetchData(&$source, $index)
 {
 	$data = array();
-	while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
-		$data[] = $row;
+	if ($index != "") {
+		while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
+			$data[$row[$index]] = $row;
+		}
+	} else {
+		while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
+			$data[] = $row;
+		}
 	}
 	return $data;
 }
 
 function getExamData($id)
 {
-	$database = getDatabase();
-	
-	$statement = $database->prepare("SELECT * FROM exam WHERE exam_id=:id");
-	$statement->bindValue(":id", $id);
-	$result = $statement->execute();
-	
-	return $statement->fetch(PDO::FETCH_ASSOC);
+	$sql = "SELECT * FROM exam WHERE exam_id=:id";
+	$parameters = array(':id' => $id);
+	$result = queryDatabase($sql, $parameters);
+	return array_shift($result);
 }
 
 function getAllExams()
 {
-	$database = getDatabase();
-	$statement = $database->query("SELECT * FROM exam");
-	return fetchData($statement);
+	$sql = "SELECT * FROM exam";
+	return queryDatabase($sql);
 }
 
 function getAvailableExams()
 {
 	$localDateTime = date("Y-m-d H:s");
-	
-	$database = getDatabase();
-	$statement = $database->prepare("SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name");
-	$statement->bindValue(":dateTime", $localDateTime);
-	$statement->execute();
-	return fetchData($statement);
+	$sql = "SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name";
+	$parameters = array(':dateTime' => $localDateTime);
+	return queryDatabase($sql, $parameters);
 }
 
 function getCategoryData($id)
 {
-	$database = getDatabase();
-	$statement =  $database->prepare("SELECT * FROM category WHERE category_id = :id");
-	$statement->bindValue(":id", $id);
-	$statement->execute();
-	return $statement->fetch(PDO::FETCH_ASSOC);
+	$sql = "SELECT * FROM category WHERE category_id = :id";
+	$parameters = array(':id' => $id);
+	$result = queryDatabase($sql, $parameters);
+	return array_shift($result);
 }
 
 function getAllMenuCategories()
 {
-	$database = getDatabase();
-	$result = $database->query("SELECT * FROM category WHERE menu_visibility = 1 ORDER BY name");
-	
-	$categories = array();
-	while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		$categories[$row['category_id']] = $row;
-	}
-	return $categories;
+	$sql = "SELECT * FROM category WHERE menu_visibility = 1 ORDER BY name";
+	return queryDatabase($sql, null, 'category_id');
 }
 
 function getAllCategories()
 {
-	$database = getDatabase();
-	$result = $database->query("SELECT * FROM category ORDER BY name");
-	
-	$categories = array();
-	while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		$categories[$row['category_id']] = $row;
-	}
-	return $categories;
+	$sql = "SELECT * FROM category ORDER BY name";
+	return queryDatabase($sql);
 }
 
 function getCategoryHierarchy($parent = 0)
