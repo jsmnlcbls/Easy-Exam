@@ -33,64 +33,33 @@ function getAnswersToQuestions($category)
 
 function getQuestions($category, $type)
 {
-	$database = getDatabase();
-	$statement = $database->prepare("SELECT * FROM questions WHERE category = :category AND type = :type");
-	$statement->bindValue(':category', $category);
-	$statement->bindValue(':type', $type);
-	
-	$result = @$statement->execute();
-	if ($result !== false) {
-		return fetchData($statement);
-	}
-	return false;
+	$sql = "SELECT * FROM questions WHERE category = :category AND type = :type";
+	$parameters = array(':category' => $category, ':type' => $type);
+	return queryDatabase($sql, $parameters);
 }
 
 function addQuestion($data)
 {
-	$question = $data['question'];
-	$answer = $data['answer'];
-	$category = $data['category'];
-	$type = $data['type'];
-	$choices = $data['choices'];
-	
-	$choiceValues = array_values($choices);
-	$choiceColumns = array("choiceA", "choiceB", "choiceC", "choiceD", "choiceE");
-	
-	$valuesLength = count($choiceValues);
-	$columnLength = 5; //count($choiceColumns);
-	//remove excess columns to be inserted upon if options are less than the
-	//maximum number of columns
-	for ($a = 0; $a < ($columnLength - $valuesLength); $a++) {
-		array_pop($choiceColumns);
-	}
-	
-	//build parameterNames out of the remaining column names
-	$parameterNames = array();
-	foreach($choiceColumns as $value) {
-		$parameterNames[] = ":" . $value;
+	$choiceValues = array_values($data['choices']);
+	$choiceColumns = array();
+	$letters = range('A', 'E');
+	$parameterChoices = array();
+	foreach ($choiceValues as $key => $value) {
+		$columnName = "choice" . $letters[$key];
+		$parameterChoices[":{$columnName}"] = $value;
+		$choiceColumns[] = $columnName;
 	}
 	
 	$columns = "question, answer, category, type, " . implode(", ", $choiceColumns);
-	$values = ":question, :answer, :category, :type, " . implode (", ", $parameterNames);
+	$values = ":question, :answer, :category, :type, " . implode (", ", array_keys($parameterChoices));
 	
-	$database = getDatabase();
-	$statement = $database->prepare("INSERT INTO questions ($columns) VALUES ($values)");
-	
-	
-	$statement->bindValue(":question", $question);
-	$statement->bindValue(":answer", $answer);
-	$statement->bindValue(":category", $category);
-	$statement->bindValue(":type", $type);
-	
-	foreach ($parameterNames as $key => $name) {
-		$statement->bindValue($name, $choiceValues[$key]);
-	}
-	
-	$result = @$statement->execute();
-	if ($result === false) {
-		return false;
-	}
-	return true;
+	$sql = "INSERT INTO questions ($columns) VALUES ($values)";
+	$parameters = array(':question' => $data['question'],
+						':answer' => $data['answer'],
+						':category' => $data['category'],
+						':type' => $data['type']);
+	$parameters += $parameterChoices;
+	return executeDatabase($sql, $parameters);
 }
 
 function searchQuestions($data)
@@ -100,26 +69,25 @@ function searchQuestions($data)
 	$choice = $data['choice'];
 	$type = $data['type'];
 	
-	$database = getDatabase();
 	$categoryCondition = "";
-	$parameterBindings = array();
+	$parameters = array();
 	if (is_array($category)) {
 		$condition = array();
 		foreach ($category as $key => $value) {
 			$parameterName = ":category{$key}";
 			$condition[] = "category=$parameterName";
-			$parameterBindings[$parameterName] = $value;
+			$parameters[$parameterName] = $value;
 		}
 		$categoryCondition = implode(" OR ", $condition);
 	} else if (!empty($category)) {
 		$categoryCondition = "category=:category";
-		$parameterBindings[':category'] = $category;
+		$parameters[':category'] = $category;
 	}
 	
 	$questionCondition = "";
 	if ($question != "") {
 		$questionCondition = "question LIKE :question";
-		$parameterBindings[":question"] = $question;
+		$parameters[":question"] = $question;
 	}
 	
 	$choiceCondition = "";
@@ -127,7 +95,7 @@ function searchQuestions($data)
 		$condition = array();
 		foreach (range('A', 'E') as $letter) {
 			$condition[] = "choice{$letter} LIKE :choice{$letter}";
-			$parameterBindings[":choice{$letter}"] = $choice;
+			$parameters[":choice{$letter}"] = $choice;
 		}
 		$choiceCondition = implode(" OR ", $condition);
 	}
@@ -135,7 +103,7 @@ function searchQuestions($data)
 	$typeCondition = "";
 	if ($type != "") {
 		$typeCondition = "type = :type";
-		$parameterBindings[":type"] = $type;
+		$parameters[":type"] = $type;
 	}
 	
 	$sqlCondition = array();
@@ -157,45 +125,20 @@ function searchQuestions($data)
 		return array();
 	}
 	
-	$statement = $database->prepare("SELECT question_id, question FROM questions WHERE $sqlCondition");
-	
-	foreach ($parameterBindings as $key => $value) {
-		$statement->bindValue($key, $value);
-	}
-	
-	$result = $statement->execute();
-
-	if ($result !== false) {
-		return fetchData($statement);
-	}
-	return false;
+	$sql = "SELECT question_id, question FROM questions WHERE $sqlCondition";
+	return queryDatabase($sql, $parameters);
 }
 
 function getQuestionData($id)
 {
-	$database = getDatabase();
-	
-	$statement = $database->prepare("SELECT * FROM questions WHERE question_id=:questionId");
-	$statement->bindValue(":questionId", $id);
-	
-	$result = $statement->execute();
-	
-	if ($result !== false) {
-		return $statement->fetch(PDO::FETCH_ASSOC);
-	}
-	return false;
+	$sql = "SELECT * FROM questions WHERE question_id=:questionId";
+	$parameters = array(':questionId' => $id);
+	$result = queryDatabase($sql, $parameters);
+	return array_shift($result);
 }
 
 function updateQuestion($id, $data)
 {
-	$question = $data['question'];
-	$type = $data['type'];
-	$category = $data['category'];
-	$answer = $data['answer'];
-	$choices = $data['choices'];
-	
-	$database = getDatabase();
-	
 	$columnValues = array();
 	$parameters = array();
 	
@@ -204,11 +147,13 @@ function updateQuestion($id, $data)
 	$columnValues[] = "category=:category";
 	$columnValues[] = "answer=:answer";
 	
-	$parameters[':question'] = $question;
-	$parameters[':type'] = $type;
-	$parameters[':category'] = $category;
-	$parameters[':answer'] = $answer;
+	$parameters[':question'] = $data['question'];
+	$parameters[':type'] = $data['type'];
+	$parameters[':category'] = $data['category'];
+	$parameters[':answer'] = $data['answer'];
+	$parameters[':id'] = $id;
 	
+	$choices = $data['choices'];
 	foreach (range('A', 'E') as $key => $letter) {
 		$columnValues[] = "choice{$letter}=:choice{$letter}";
 		if (isset($choices[$key])) {
@@ -220,29 +165,13 @@ function updateQuestion($id, $data)
 	
 	$columnValuesSql = implode(", ", $columnValues);
 	
-	$statement = $database->prepare("UPDATE questions SET $columnValuesSql WHERE question_id=:id");
-	$statement->bindValue(':id', $id);
-	
-	foreach ($parameters as $key => $value) {
-		$statement->bindValue($key, $value);
-	}
-	
-	$result = $statement->execute();
-	if (false !== $result) {
-		return true;
-	}
-	return false;
+	$sql = "UPDATE questions SET $columnValuesSql WHERE question_id=:id";
+	return executeDatabase($sql, $parameters);
 }
 
 function deleteQuestion($id)
 {
-	$database = getDatabase();
-	$statement = $database->prepare("DELETE FROM questions WHERE question_id=:id");
-	$statement->bindValue(":id", $id);
-	
-	$result = $statement->execute();
-	if (false !== $result) {
-		return true;
-	}
-	return false;
+	$sql = "DELETE FROM questions WHERE question_id=:id";
+	$parameters = array(':id' => $id);
+	return executeDatabase($sql, $parameters);
 }

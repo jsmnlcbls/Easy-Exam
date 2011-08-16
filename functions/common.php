@@ -6,85 +6,102 @@ $_SETTINGS['Database User'] = 'root';
 $_SETTINGS['Database Password'] = "";
 $_SETTINGS['Time Zone'] = "Asia/Manila";
 
-date_default_timezone_set ($_SETTINGS['Time Zone']);
+$_DB_ERROR = array();
 
+date_default_timezone_set ($_SETTINGS['Time Zone']);
 
 function getDatabase()
 {
+	static $_database = null;
+	
+	if (null != $_database) {
+		return $_database;
+	}
+	
 	try {
 		global $_SETTINGS;
-		$database = new PDO($_SETTINGS['Data Source Name'], 
+		$_database = new PDO($_SETTINGS['Data Source Name'], 
 							$_SETTINGS['Database User'], 
 							$_SETTINGS['Database Password']);
-		return $database;
 	} catch (PDOException $exception) {
-		throw $exception;
+		_setDbError('', $exception->getCode(), $exception->getMessage());
 	}
+	return $_database;
 }
 
-//For SELECT sql
+/**
+ * Execute a SELECT SQL statement and return its results or false on failure.
+ * @param String $sql
+ * @param Array $parameters an array with key-value pair corresponding to the
+ * parameter names and values respectively
+ * @param type $index String the primary key column (if included in the query)
+ * that will be used to index the results
+ * @return Mix
+ */
 function queryDatabase($sql, $parameters = null, $index = "")
 {
+	$database = getDatabase();
+	$statement = $database->prepare($sql);
+	
 	if (is_array($parameters)) {
-		$database = getDatabase();
-		$statement = $database->prepare($sql);
 		foreach ($parameters as $key => $value) {
 			$statement->bindValue($key, $value);
 		}
-		$statement->execute();
-		return fetchData($statement, $index);
-	} else if (null == $parameters) {
-		$database = getDatabase();
-		$statement = $database->query($sql);
-		return fetchData($statement, $index);
 	}
-	return false;
+	
+	$result = $statement->execute();
+	if ($result !== false) {
+		return _fetchData($statement, $index);
+	} else {
+		$errorInfo = $statement->errorInfo();
+		_setDbError($errorInfo[0], $errorInfo[1], $errorInfo[2]);
+		return false;
+	}
 }
 
-//For INSERT, UPDATE, DELETE sql
+/**
+ * Execute a non SELECT SQL statement. Returns true on success, or false on failure.
+ * @param String $sql the sql statement
+ * @param Array $parameters an array with key-value pair corresponding to the
+ * parameter names and values respectively
+ * @return Mixed
+ */
 function executeDatabase($sql, $parameters = null)
 {
+	$database = getDatabase();
+	$statement = $database->prepare($sql);
 	if (is_array($parameters)) {
-		$database = getDatabase();
-		$statement = $database->prepare($sql);
 		foreach ($parameters as $key => $value) {
 			$statement->bindValue($key, $value);
 		}
-		return $statement->execute();
-	} else if (null == $parameters) {
-		$database = getDatabase();
-		return $database->query($sql);
 	}
-	return false;
-}
-
-function fetchData(&$source, $index = '')
-{
-	$data = array();
-	if ($index != "") {
-		while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
-			$data[$row[$index]] = $row;
-		}
+	$result = $statement->execute();
+	
+	if ($result === true) {
+		return true;
 	} else {
-		while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
-			$data[] = $row;
-		}
+		$errorInfo = $statement->errorInfo();
+		_setDbError($errorInfo[0], $errorInfo[1], $errorInfo[2]);		
+		return false;
 	}
-	return $data;
 }
 
-function getExamData($id)
+/**
+ * Returns an array containing the database error information or a specific
+ * subset of that error info depending on key
+ * @global array $_DB_ERROR
+ * @param type $key specific error key
+ * @return Mixed 
+ */
+function getDatabaseError($key = "")
 {
-	$sql = "SELECT * FROM exam WHERE exam_id=:id";
-	$parameters = array(':id' => $id);
-	$result = queryDatabase($sql, $parameters);
-	return array_shift($result);
-}
-
-function getAllExams()
-{
-	$sql = "SELECT * FROM exam";
-	return queryDatabase($sql);
+	global $_DB_ERROR;
+	
+	if ($key == "") {
+		return $_DB_ERROR;
+	} else if (isset($_DB_ERROR[$key])) {
+		return $_DB_ERROR[$key];
+	}
 }
 
 function getAvailableExams()
@@ -214,4 +231,28 @@ function displayResultNotification($success)
 function redirect($location)
 {
 	header("Location: $location");
+}
+
+function _fetchData(&$source, $index = '')
+{
+	$data = array();
+	if ($index != "") {
+		while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
+			$data[$row[$index]] = $row;
+		}
+	} else {
+		while ($row = $source->fetch(PDO::FETCH_ASSOC)) {
+			$data[] = $row;
+		}
+	}
+	return $data;
+}
+
+
+function _setDbError($sqlState, $dbErrorCode, $message)
+{
+	global $_DB_ERROR;
+	$_DB_ERROR = array('SQL_STATE' => $sqlState, 
+						'DB_ERROR_CODE' => $dbErrorCode,
+						'ERROR_MESSAGE' => $message);
 }

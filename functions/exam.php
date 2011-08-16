@@ -2,83 +2,60 @@
 
 function addExam($data)
 {
-	$name = $data['name'];
-	$category = $data['category'];
-	$startDateTime = $data['startDateTime'];
-	$endDateTime = $data['endDateTime'];
-	$timeLimit = $data['timeLimit'];
-	$passingScore = $data['passingScore'];
-	
-	$database = getDatabase();
-	
 	$sql = "INSERT INTO exam (name, start_date_time, end_date_time, time_limit, "
 		 . "passing_score, questions_category) VALUES (:name, :startDateTime, "
 		 . ":endDateTime, :timeLimit, :passingScore, :category)";
-	$statement = $database->prepare($sql);
-	$statement->bindValue(":name", $name);
-	$statement->bindValue(":category", $category);
-	$statement->bindValue(":startDateTime", $startDateTime);
-	$statement->bindValue(":endDateTime", $endDateTime);
-	$statement->bindValue(":timeLimit", $timeLimit);
-	$statement->bindValue(":passingScore", $passingScore);
+
+	$parameters = array(':name' => $data['name'], ':category' => $data['category'], 
+						':startDateTime' => $data['startDateTime'], 
+						':endDateTime' => $data['endDateTime'],
+						':timeLimit' => $data['timeLimit'], 
+						':passingScore' => $data['passingScore']);
 	
-	$result = @$statement->execute();
-	if ($result === false) {
-		return false;
-	}
-	return true;
+	return executeDatabase($sql, $parameters);
 }
 
 function updateExam($examId, $data)
 {
-	$name = $data['name'];
-	$category = $data['category'];
-	$startDateTime = $data['startDateTime'];
-	$endDateTime = $data['endDateTime'];
-	$timeLimit = $data['timeLimit'];
-	$passingScore = $data['passingScore'];
-	
-	$database = getDatabase();
 	$sql = "UPDATE exam SET name=:name, questions_category=:category, "
 		 . "start_date_time=:startDateTime, end_date_time=:endDateTime, "
 		 . "time_limit=:timeLimit, passing_score=:passingScore WHERE exam_id = :examId";
-	$statement = $database->prepare($sql);
-	$statement->bindValue(":name", $name);
-	$statement->bindValue(":category", $category);
-	$statement->bindValue(":startDateTime", $startDateTime);
-	$statement->bindValue(":endDateTime", $endDateTime);
-	$statement->bindValue(":timeLimit", $timeLimit);
-	$statement->bindValue(":passingScore", $passingScore);
-	$statement->bindValue(":examId", $examId);
 	
-	$result = $statement->execute();
-	if ($result === false) {
-		return false;
-	}
-	return true;
+	$parameters = array(':name' => $data['name'], ':category' => $data['category'],
+						':startDateTime' => $data['startDateTime'], 
+						':endDateTime' => $data['endDateTime'],
+						':timeLimit' => $data['timeLimit'],
+						':passingScore' => $data['passingScore']);
+	
+	return executeDatabase($sql, $parameters);
+}
+
+function getExamData($id)
+{
+	$sql = "SELECT * FROM exam WHERE exam_id=:id";
+	$parameters = array(':id' => $id);
+	$result = queryDatabase($sql, $parameters);
+	return array_shift($result);
+}
+
+function getAllExams()
+{
+	$sql = "SELECT * FROM exam";
+	return queryDatabase($sql);
 }
 
 function getExamQuestions($examId)
 {
 	$data = getExamData($examId);
-	$database = getDatabase();
 	$category = $data['questions_category'];
 	$sql = "SElECT * FROM questions WHERE category=:category AND type='e'";
-	$statement = $database->prepare($sql);
-	$statement->bindValue(":category", $category);
-	$statement->execute();
-	return fetchData($statement);
+	$parameters = array(':category' => $category);
+	return queryDatabase($sql, $parameters);
 }
 
 function deleteExam($id)
 {
-	$database = getDatabase();
-	$statement = $database->prepare("DELETE FROM exam WHERE exam_id = :id");
-	$statement->bindValue(":id", $id);
-	
-	$result = $statement->execute();
-	if ($result !== false) {
-		return true;
-	}
-	return false;
+	$sql = "DELETE FROM exam WHERE exam_id = :id";
+	$parameters = array(':id' => $id);
+	return executeDatabase($sql, $parameters);
 }

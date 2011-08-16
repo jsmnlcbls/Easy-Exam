@@ -10,6 +10,7 @@
 					<select name = "examId">
 					<option value = "">None Selected</option>
 					<?php
+						include "functions/exam.php";
 						$exams = getAllExams();
 						foreach ($exams as $value) {
 							echo "<option value = \"{$value['exam_id']}\">{$value['name']}</option>";
