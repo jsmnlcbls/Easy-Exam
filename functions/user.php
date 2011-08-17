@@ -26,12 +26,8 @@ function addUser($data)
 	$parameters = array(':name' => $data['name'], ':role' => $role, 
 						':password' => $passwordData['hash'], ':salt' => $passwordData['salt']);
 	
-	$result = executeDatabase($sql, $parameters);
-	if ($result !== false) {
-		return true;
-	} else {
-		return false;
-	}
+	return executeDatabase($sql, $parameters);
+	
 }
 
 function getUserData($id)
@@ -58,22 +54,14 @@ function updateUser($id, $data)
 	} else {
 		$sql = "UPDATE accounts SET name = :name, role = :role WHERE id = :id";
 	}
-	$result = executeDatabase($sql, $parameters);
-	if ($result !== false) {
-		return true;
-	}
-	return false;
+	return executeDatabase($sql, $parameters);
 }
 
 function deleteUser($id)
 {
 	$sql = "DELETE FROM accounts WHERE id = :id";
 	$parameters = array(':id' => $id);
-	$result = executeDatabase($sql, $parameters);
-	if ($result !== false) {
-		return true;
-	}
-	return false;
+	return executeDatabase($sql, $parameters);
 }
 
 function _deriveRole($roleArray)
