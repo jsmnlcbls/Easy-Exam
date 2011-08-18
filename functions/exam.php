@@ -25,7 +25,8 @@ function updateExam($examId, $data)
 						':startDateTime' => $data['startDateTime'], 
 						':endDateTime' => $data['endDateTime'],
 						':timeLimit' => $data['timeLimit'],
-						':passingScore' => $data['passingScore']);
+						':passingScore' => $data['passingScore'],
+						':examId' => $examId);
 	
 	return executeDatabase($sql, $parameters);
 }
