@@ -1,5 +1,20 @@
 <?php
 
+function getCategoryQuestions($category, $questionType, $includeSubcategories = true)
+{
+	$questions = getQuestions($category, $questionType);
+	
+	if ($includeSubcategories) {
+		$subCategories = getSubCategories($category);
+		if (count($subCategories) > 0) {
+			foreach ($subCategories as $value) {
+				$questions += getQuestions($value, $questionType);
+			}
+		}
+	}
+	return $questions;
+}
+
 function checkAnswersToQuestions($category, $userAnswers)
 {
 	$answers = getAnswersToQuestions($category);

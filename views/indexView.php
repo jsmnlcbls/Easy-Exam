@@ -22,7 +22,7 @@
 						"" != $value['name']) {
 						$categoryId = $value['category_id'];
 						$listItems .= "<li catId = {$categoryId} parent = {$value['parent_category']}>";
-						$listItems .= "<a href = \"index.php?category={$categoryId}\">" . $value['name'] . "</a>";
+						$listItems .= "<a href = \"index.php?reviewCategory={$categoryId}\">" . $value['name'] . "</a>";
 						$listItems .= "</li>";
 						$listItems .= printMenu($menu, $categoryId);
 						unset ($menu[$key]);
@@ -51,7 +51,7 @@
 	<div id = "main-panel">
 		<?php
 		if ($view == "questions") {
-			include "/views/questionsView.php";
+			include "views/questionsView.php";
 		} else if ($view == "results") {
 			echo "<h2>Your Score: $score %</h2>";
 		}
