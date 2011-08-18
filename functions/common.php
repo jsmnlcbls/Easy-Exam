@@ -219,6 +219,11 @@ function filterGET($key, $default = null)
 	}
 }
 
+function escapeOutput($output)
+{
+	return htmlentities($output, ENT_QUOTES);
+}
+
 function displayResultNotification($success)
 {
 	$address = $_SERVER['REQUEST_URI'] . "?view=error";
