@@ -22,7 +22,7 @@
 						"" != $value['name']) {
 						$categoryId = $value['category_id'];
 						$listItems .= "<li catId = {$categoryId} parent = {$value['parent_category']}>";
-						$listItems .= "<a href = \"index.php?reviewCategory={$categoryId}\">" . $value['name'] . "</a>";
+						$listItems .= "<a href = \"index.php?reviewCategory={$categoryId}\">" . escapeOutput($value['name']) . "</a>";
 						$listItems .= "</li>";
 						$listItems .= printMenu($menu, $categoryId);
 						unset ($menu[$key]);
@@ -41,7 +41,7 @@
 		<?php
 			$exams = getAvailableExams();
 			foreach ($exams as $value) {
-				$name = $value['name'];
+				$name = escapeOutput($value['name']);
 				$id = $value['exam_id'];
 				echo "<li><a href=\"index.php?exam=$id\">$name</a></li>";
 			}

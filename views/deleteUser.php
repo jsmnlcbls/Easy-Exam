@@ -1,7 +1,7 @@
 <?php
 include "functions/user.php";
 
-$id = filterGET('id');
+$id = intval(filterGET('id'));
 $data = getUserData($id);
 ?>
 <div id = "delete-user-panel">
@@ -14,7 +14,7 @@ $data = getUserData($id);
 		<table>
 			<tr>
 				<td>User Name</td>
-				<td><strong><?php echo $data['name']?></strong></td>
+				<td><strong><?php echo escapeOutput($data['name']);?></strong></td>
 			</tr>
 			<tr>
 				<td>Role</td>
@@ -24,7 +24,7 @@ $data = getUserData($id);
 					$roles = getAllRoles();
 					foreach ($roles as $id => $name) {
 						if ($data['role'] & $id) {
-							echo $name;
+							echo escapeOutput($name);
 							echo "<br/>";
 						}
 					}

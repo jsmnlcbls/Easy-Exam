@@ -4,15 +4,15 @@
 	$id = intval(filterGET("questionId", ""));
 	$examId = intval(filterGET("examId"));
 	$data = getQuestionData($id);
-	$type = $data['type'];
-	$question = $data['question'];
-	$answer = $data['answer'];
-	$category = $data['category'];
-	$choiceA = $data['choiceA'];
-	$choiceB = $data['choiceB'];
-	$choiceC = $data['choiceC'];
-	$choiceD = $data['choiceD'];
-	$choiceE = $data['choiceE'];
+	$type = escapeOutput($data['type']);
+	$question = escapeOutput($data['question']);
+	$answer = escapeOutput($data['answer']);
+	$category = intval($data['category']);
+	$choiceA = escapeOutput($data['choiceA']);
+	$choiceB = escapeOutput($data['choiceB']);
+	$choiceC = escapeOutput($data['choiceC']);
+	$choiceD = escapeOutput($data['choiceD']);
+	$choiceE = escapeOutput($data['choiceE']);
 ?>
 <div id = "edit-question-panel">
 	<span class = "panel-title">

@@ -15,7 +15,7 @@
 					$roles = getAllRoles();
 					foreach ($roles as $id => $name) {
 						echo "<input type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
-						echo $name;
+						echo escapeOutput($name);
 						echo "<br/>";
 					}
 				?>

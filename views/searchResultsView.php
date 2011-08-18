@@ -26,7 +26,7 @@
 			$id = $question['question_id'];
 			echo "<tr><td>{$counter}</td><td>";
 			echo "<form method=\"get\">";
-			echo $question['question'];
+			echo escapeOutput($question['question']);
 			echo "</td><td>";
 			echo "<a href=\"?view=editQuestion&questionId=$id\">Edit</a> | ";
 			echo "<a href=\"?view=deleteQuestion&questionId=$id\">Delete</a>";

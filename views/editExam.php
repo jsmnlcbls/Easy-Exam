@@ -1,12 +1,13 @@
 <?php
-$data = getExamData(filterGET("examId"));
-$examId = $data['exam_id'];
-$name = $data['name'];
-$questionsCategory = $data['questions_category'];
-$startDateTime = $data['start_date_time'];
-$endDateTime = $data['end_date_time'];
-$passingScore = $data['passing_score'];
-$timeLimit = $data['time_limit'];
+include "functions/exam.php";
+$data = getExamData(intval(filterGET("examId")));
+$examId = intval($data['exam_id']);
+$name = escapeOutput($data['name']);
+$questionsCategory = escapeOutput($data['questions_category']);
+$startDateTime = escapeOutput($data['start_date_time']);
+$endDateTime = escapeOutput($data['end_date_time']);
+$passingScore = escapeOutput($data['passing_score']);
+$timeLimit = escapeOutput($data['time_limit']);
 ?>
 <div id = "add-exam-panel">
 	<span class = "panel-title">Modify An Exam</span>
@@ -25,7 +26,7 @@ $timeLimit = $data['time_limit'];
 					<?php
 						$categories = getAllCategories();
 						foreach ($categories as $category) {
-							$name = $category['name'];
+							$name = escapeOutput($category['name']);
 							$id = $category['category_id'];
 							if ($id == $questionsCategory) {
 								echo "<option selected = \"selected\" value = \"{$id}\">{$name}</option>";

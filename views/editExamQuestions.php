@@ -1,15 +1,14 @@
 <?php
+include "functions/exam.php";
 $examId = intval(filterGET("examId"));
 $data = getExamData($examId);
-$examName = $data['name'];
+$examName = escapeOutput($data['name']);
 ?>
 <div id = "edit-category-panel">
-	<span class = "panel-title">Edit Questions Of Exam: <em><?php echo $examName;?></em></span>
+	<span class = "panel-title">Edit Questions Of Exam: <em><?php echo escapeOutput($examName);?></em></span>
 	
 	<input type = "hidden" name = "action" value = "editCategory" />
 	<?php
-	include "functions/exam.php";
-
 	$questions = getExamQuestions($examId);
 	$questionsCount = count($questions);
 
@@ -20,11 +19,11 @@ $examName = $data['name'];
 	$count = 1;
 	foreach ($questions as $value) {
 		$out = "<div class=\"question-div\">";
-		$out .= "<div class=\"question\">$count. {$value['question']}</div>";
+		$out .= "<div class=\"question\">$count." . escapeOutput($value['question']) . "</div>";
 		foreach (range('A', 'E') as $letter) {
 			$key = "choice$letter";
 			if ($value[$key] != "") {
-				$out .= "<div class=\"choices\">$letter. {$value[$key]}</div>";
+				$out .= "<div class=\"choices\">". "$letter." . escapeOutput($value[$key]) . "</div>";
 			}
 		}
 		$parameters = array('view' => 'editExamQuestion', 'questionId' => $value['question_id'],

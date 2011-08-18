@@ -1,8 +1,8 @@
 <?php
-$data = getCategoryData(filterGET("category"));
-$categoryName = $data['name'];
-$categoryId = $data['category_id'];
-$parentId = $data['parent_category'];
+$data = getCategoryData(intval(filterGET("category")));
+$categoryName = escapeOutput($data['name']);
+$categoryId = intval($data['category_id']);
+$parentId = intval($data['parent_category']);
 $menuVisibility = $data['menu_visibility']
 ?>
 <div id = "edit-category-panel">
@@ -25,13 +25,14 @@ $menuVisibility = $data['menu_visibility']
 				<select name = "parentCategory">
 					<?php
 						$categories = getAllCategories();
-							foreach ($categories as $category) {
+						foreach ($categories as $category) {
+							$name = escapeOutput($category['name']);
 							if ($category['category_id'] == 0) {
 								echo '<option value = "0">None Selected</option>';
 							} else if ($category['category_id'] == $parentId) {
-								echo "<option value = \"{$category['category_id']}\" selected=\"selected\">{$category['name']}</option>";
+								echo "<option value = \"{$category['category_id']}\" selected=\"selected\">{$name}</option>";
 							}else {
-								echo "<option value = \"{$category['category_id']}\">{$category['name']}</option>";
+								echo "<option value = \"{$category['category_id']}\">{$name}</option>";
 							}
 						}
 					?>

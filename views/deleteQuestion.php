@@ -30,34 +30,34 @@ $data = getQuestionData($questionId);
 				<strong>
 			<?php
 			$category = getCategoryData($data['category']);
-			echo $category['name'];
+			echo escapeOutput($category['name']);
 			?>
 				</strong>
 			</td>
 		</tr>
 		<tr>
 			<td>Question</td>
-			<td><strong><?php echo $data['question'];?></strong></td>
+			<td><strong><?php echo escapeOutput($data['question']);?></strong></td>
 		</tr>
 		<tr>
 			<td rowspan = "5">Choices</td>
-			<td>A. <strong><?php echo $data['choiceA'];?></strong></td>
+			<td>A. <strong><?php echo escapeOutput($data['choiceA']);?></strong></td>
 		</tr>
 		<tr>
-			<td>B. <strong><?php echo $data['choiceB'];?></strong></td>
+			<td>B. <strong><?php echo escapeOutput($data['choiceB']);?></strong></td>
 		</tr>
 		<tr>
-			<td>C. <strong><?php echo $data['choiceC'];?></strong></td>
+			<td>C. <strong><?php echo escapeOutput($data['choiceC']);?></strong></td>
 		</tr>
 		<tr>
-			<td>D. <strong><?php echo $data['choiceD'];?></strong></td>
+			<td>D. <strong><?php echo escapeOutput($data['choiceD']);?></strong></td>
 		</tr>
 		<tr>
-			<td>E. <strong><?php echo $data['choiceE'];?></strong></td>
+			<td>E. <strong><?php echo escapeOutput($data['choiceE']);?></strong></td>
 		</tr>
 		<tr>
 			<td>Answer</td>
-			<td><strong><?php echo $data['answer']; ?></strong></td>
+			<td><strong><?php echo escapeOutput($data['answer']); ?></strong></td>
 		</tr>
 		<tr>
 			<td></td>

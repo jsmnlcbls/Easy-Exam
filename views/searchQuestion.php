@@ -23,7 +23,8 @@
 						if ($category['category_id'] == 0) {
 							echo '<option value = "">None Selected</option>';
 						} else {
-							echo "<option value = \"{$category['category_id']}\">{$category['name']}</option>";
+							$name = escapeOutput($category['name']);
+							echo "<option value = \"{$category['category_id']}\">{$name}</option>";
 						}
 					}
 				?>

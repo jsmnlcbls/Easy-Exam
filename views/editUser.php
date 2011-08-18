@@ -1,7 +1,7 @@
 <?php
 include "functions/user.php";
 
-$id = filterGET('id');
+$id = intval(filterGET('id'));
 $data = getUserData($id);
 ?>
 <div id = "edit-user-panel">
@@ -14,7 +14,7 @@ $data = getUserData($id);
 		<table>
 			<tr>
 				<td>User Name</td>
-				<td><input type = "text" name = "username" value = "<?php echo $data['name']?>"/></td>
+				<td><input type = "text" name = "username" value = "<?php echo escapeOutput($data['name']);?>"/></td>
 			</tr>
 			<tr>
 				<td>Role</td>
@@ -27,7 +27,7 @@ $data = getUserData($id);
 						} else {
 							echo "<input type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
 						}
-						echo $name;
+						echo escapeOutput($name);
 						echo "<br/>";
 					}
 				?>

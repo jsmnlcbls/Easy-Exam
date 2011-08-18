@@ -10,11 +10,13 @@
 					<select name = "category">
 					<?php
 						$categories = (getAllCategories());
-							foreach ($categories as $category) {
-							if ($category['category_id'] == 0) {
+						foreach ($categories as $category) {
+							$categoryId = $category['category_id'];
+							if ($categoryId == 0) {
 								echo '<option value = "0">None Selected</option>';
 							} else {
-								echo "<option value = \"{$category['category_id']}\">{$category['name']}</option>";
+								$name = escapeOutput($category['name']);
+								echo "<option value = \"{$categoryId}\">{$name}</option>";
 							}
 						}
 					?>

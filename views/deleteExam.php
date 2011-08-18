@@ -13,7 +13,8 @@
 						include "functions/exam.php";
 						$exams = getAllExams();
 						foreach ($exams as $value) {
-							echo "<option value = \"{$value['exam_id']}\">{$value['name']}</option>";
+							$name = escapeOutput($value['name']);
+							echo "<option value = \"{$value['exam_id']}\">{$name}</option>";
 						}
 					?>
 					</select>
