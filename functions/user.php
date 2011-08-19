@@ -77,6 +77,6 @@ function _derivePassword($clearText)
 {
 	$rand = mt_rand(100000, 999999);
 	$salt = substr(md5($rand), 0, 16);
-	$password = sha1($salt . $clearText);
+	$password = hash("sha256", $salt . $clearText);
 	return array('hash' => $password, 'salt' => $salt);
 }
