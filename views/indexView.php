@@ -7,9 +7,9 @@
 	</head>
 <body>
 	<div id ="header">
-		<span id ="program-name">Easy Exam</span> Your Do It Yourself Multiple Choice Exam Review!
+		<span id ="program-name">Easy Exam
 	</div>
-	<div id = "menu-panel">
+	<div id = "left-panel">
 		<span style="font-size:120%;color:GOLD">Review</span>
 		<?php
 			$categories = getAllMenuCategories();

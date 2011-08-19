@@ -9,7 +9,7 @@
 	<div id ="header">
 		<span id ="program-name">Easy Exam</span> Administration Panel. Configure settings, add questions etc...
 	</div>
-	<div id = "menu-panel">
+	<div id = "left-panel">
 		<span class="submenu-title">Questions</span>
 		<ul class = "sub-menu">
 			<li><a href = "?view=addCategory">Add Category</a></li>

@@ -22,7 +22,7 @@ body {
 	width: 500px;
 }
 
-#menu-panel {
+#left-panel {
 	width: 170px;
 	height: 100%;
 	background-color: BROWN;
@@ -30,7 +30,7 @@ body {
 	left: 0px;
 }
 
-#menu-panel ul {
+#left-panel ul {
 	padding-left: 10px;
 	list-style-type: none;
 	color: orange;
@@ -39,7 +39,7 @@ body {
 	margin: 0px;
 }
 
-#menu-panel a {
+#left-panel a {
 	color: orange;
 	text-decoration: none;	
 	cursor: default;  
