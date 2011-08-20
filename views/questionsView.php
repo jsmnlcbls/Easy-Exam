@@ -1,4 +1,12 @@
 <div id = "take-exam-panel">
+	<span class = "panel-title">
+	<?php
+	if (isset($reviewCategory)) {
+		$categoryData = getCategoryData($reviewCategory);
+		echo $categoryData['name'] . " Review Questions";
+	}
+	?>
+	</span>
 	<form method = "post" action = "index.php">
 	<input type = "hidden" name = "action" value = "checkReviewAnswers"/>
 	<?php
