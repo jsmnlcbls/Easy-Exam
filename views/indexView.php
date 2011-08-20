@@ -7,7 +7,14 @@
 	</head>
 <body>
 	<div id ="header">
-		<span id ="program-name">Easy Exam
+		<span id ="program-name">Easy Exam</span>
+		<span>Welcome <strong>
+		<?php
+		include "functions/user.php";
+		$userData = getUserData(getLoggedInUser('id'));
+		echo $userData['name'];
+		?>
+		</em>,</strong>
 	</div>
 	<div id = "left-panel">
 		<span style="font-size:120%;color:GOLD">Review</span>
@@ -47,13 +54,25 @@
 			}
 		?>
 		</ul>
+		<br/>
+		<span style="font-size:120%;color:GOLD">My Account</span>
+		<ul>
+			<li>
+				<form action = "login.php" method ="post" class="hidden-form">
+					<input type = "hidden" name ="action" value ="logout"/>
+					<button id ="logout-button">Logout</button>
+				</form>
+			</li>
+		</ul>
 	</div>
 	<div id = "main-panel">
 		<?php
-		if ($view == "questions") {
-			include "views/questionsView.php";
-		} else if ($view == "results") {
-			echo "<h2>Your Score: $score %</h2>";
+		if (isset($innerView) && !empty($innerView)) {
+			if ($innerView == "reviewQuestions" && isset($reviewCategory)) {	
+				echo renderView("views/questionsView.php", array('reviewCategory' => $reviewCategory));
+			} else if ($innerView == "results" && isset($score)) {
+				echo "<h2>Your Score: $score %</h2>";
+			}
 		}
 		?>
 	</div>

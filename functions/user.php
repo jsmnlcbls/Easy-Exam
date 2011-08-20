@@ -1,5 +1,6 @@
 <?php
 
+
 function getAllRoles()
 {
 	$sql = "SELECT * FROM role";
@@ -73,10 +74,10 @@ function _deriveRole($roleArray)
 	return $role;
 }
 
-function _derivePassword($clearText)
+function _derivePassword($plainText)
 {
 	$rand = mt_rand(100000, 999999);
 	$salt = substr(md5($rand), 0, 16);
-	$password = hash("sha256", $salt . $clearText);
+	$password = _hashPassword($plainText, $salt);
 	return array('hash' => $password, 'salt' => $salt);
 }

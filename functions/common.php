@@ -5,10 +5,59 @@ $_SETTINGS['Data Source Name'] = "mysql:dbname=easy_exam;host=localhost";
 $_SETTINGS['Database User'] = 'root';
 $_SETTINGS['Database Password'] = "";
 $_SETTINGS['Time Zone'] = "Asia/Manila";
+$_SETTINGS['Login Page'] = 'login.php';
+$_SETTINGS['User Page'] = 'index.php';
 
 $_DB_ERROR = array();
 
 date_default_timezone_set ($_SETTINGS['Time Zone']);
+
+/**
+ * Authenticate a user using the database accounts table. Returns the user id on
+ * success, or false otherwise.
+ * @param String $username
+ * @param String $password
+ * @return Mixed
+ */
+function authenticateUser($username, $password)
+{
+	$sql = "SELECT id, password, salt FROM accounts WHERE name = :username";
+	$result = queryDatabase($sql, array(':username' => $username));
+	$loginDetails = array_shift($result);
+	if (is_array($loginDetails) && !empty($loginDetails)) {
+		$passwordHash = _hashPassword($_POST['password'], $loginDetails['salt']);
+		if ($passwordHash == $loginDetails['password']) {
+			return $loginDetails['id'];
+		}
+		return false;
+	}
+}
+
+/**
+ * Issues a redirect and halts PHP execution if the user is not yet logged in.
+ * @global array $_SETTINGS
+ * @return void
+ */
+function allowLoggedInUserOnly()
+{
+	session_start();
+	if (isset($_SESSION['user'])) {
+		return true;
+	}
+	global $_SETTINGS;
+	redirect($_SETTINGS['Login Page']);
+	die();
+}
+
+function getLoggedInUser($key = null)
+{
+	if (null == $key && isset($_SESSION['user'])) {
+		return $_SESSION['user'];
+	}
+	if (isset($_SESSION['user'][$key])) {
+		return $_SESSION['user'][$key];
+	}
+}
 
 function getDatabase()
 {
@@ -219,6 +268,25 @@ function filterGET($key, $default = null)
 	}
 }
 
+function renderView($filename, $arguments = array(), $escapeStrings = false)
+{
+	ob_start();
+	if (count($arguments) > 0) {
+		if ($escapeStrings) {
+			foreach ($arguments as $key => $value) {
+				if (is_string($value)) {
+					$arguments[$key] = escapeOutput($value);
+				}
+			}
+		}
+		extract($arguments);
+	}
+	include $filename;
+	$render = ob_get_contents();
+	ob_clean();
+	return $render;
+}
+
 function escapeOutput($output)
 {
 	return htmlentities($output, ENT_QUOTES);
@@ -260,4 +328,19 @@ function _setDbError($sqlState, $dbErrorCode, $message)
 	$_DB_ERROR = array('SQL_STATE' => $sqlState, 
 						'DB_ERROR_CODE' => $dbErrorCode,
 						'ERROR_MESSAGE' => $message);
+}
+
+function _hashPassword($password, $salt)
+{
+	return hash("sha256", $salt . $password);
+}
+
+function _setLoggedInUser($id)
+{
+	$_SESSION['user'] = array('id' => $id);
+}
+
+function _logoutUser()
+{
+	unset($_SESSION['user']);
 }
