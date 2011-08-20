@@ -14,7 +14,7 @@
 		$userData = getUserData(getLoggedInUser('id'));
 		echo $userData['name'];
 		?>
-		</em>,</strong>
+		</em></strong>
 	</div>
 	<div id = "left-panel">
 		<span style="font-size:120%;color:GOLD">Review</span>
@@ -70,6 +70,8 @@
 		if (isset($innerView) && !empty($innerView)) {
 			if ($innerView == "reviewQuestions" && isset($reviewCategory)) {	
 				echo renderView("views/questionsView.php", array('reviewCategory' => $reviewCategory));
+			} else if ($innerView == "examQuestions" && isset($examData)) {
+				echo renderView("views/questionsView.php", array('examData' => $examData));
 			} else if ($innerView == "results" && isset($score)) {
 				echo "<h2>Your Score: $score %</h2>";
 			}
