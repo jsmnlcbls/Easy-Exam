@@ -15,9 +15,9 @@ function getCategoryQuestions($category, $questionType, $includeSubcategories = 
 	return $questions;
 }
 
-function checkAnswersToQuestions($category, $userAnswers)
+function checkAnswersToQuestions($category, $userAnswers, $questionType)
 {
-	$answers = getAnswersToQuestions($category);
+	$answers = getAnswersToQuestions($category, $questionType);
 	$total = count($answers);
 	$correctAnswers = 0;
 	foreach ($userAnswers as $key => $value) {
@@ -25,15 +25,16 @@ function checkAnswersToQuestions($category, $userAnswers)
 			$correctAnswers++;
 		}
 	}
-	
 	return (float) ($correctAnswers/$total) * 100;
 }
 
-function getAnswersToQuestions($category)
+function getAnswersToQuestions($category, $questionType)
 {
 	$database = getDatabase();
-	$statement = $database->prepare("SELECT question_id, answer FROM questions WHERE category = :category");
+	$sql = "SELECT question_id, answer FROM questions WHERE category = :category AND type = :questionType";
+	$statement = $database->prepare($sql);
 	$statement->bindValue(':category', $category);
+	$statement->bindValue(':questionType', $questionType);
 	
 	$result = @$statement->execute();
 	$answers = array();
