@@ -2,7 +2,8 @@
 
 function getSettings($key = null) {
 	static $settings = 
-	array('Data Source Name' => "mysql:dbname=easy_exam;host=localhost",
+	array('Database Name' => 'easy_ex',
+		  'Database Host' => 'localhost',
 		  'Database User' => 'root',
 		  'Database Password' => '',
 		  'Time Zone' => "Asia/Manila",
@@ -79,8 +80,10 @@ function getDatabase()
 		return $_database;
 	}
 	
+	$dataSourceName = "mysql:dbname=". getSettings('Database Name') 
+					. ";host=" . getSettings('Database Host');
 	try {
-		$_database = new PDO(getSettings('Data Source Name'), 
+		$_database = new PDO($dataSourceName, 
 							getSettings('Database User'), 
 							getSettings('Database Password'));
 	} catch (PDOException $exception) {
