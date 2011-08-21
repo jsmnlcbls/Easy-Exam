@@ -1,16 +1,26 @@
 <?php
 
-$_SETTINGS = array();
-$_SETTINGS['Data Source Name'] = "mysql:dbname=easy_exam;host=localhost";
-$_SETTINGS['Database User'] = 'root';
-$_SETTINGS['Database Password'] = "";
-$_SETTINGS['Time Zone'] = "Asia/Manila";
-$_SETTINGS['Login Page'] = 'login.php';
-$_SETTINGS['User Page'] = 'index.php';
+function getSettings($key = null) {
+	static $settings = 
+	array('Data Source Name' => "mysql:dbname=easy_exam;host=localhost",
+		  'Database User' => 'root',
+		  'Database Password' => '',
+		  'Time Zone' => "Asia/Manila",
+		  'Login Page' => 'login.php',
+		  'User Page' => 'index.php'
+	);
+	if ($key == null) {
+		return $settings;
+	} elseif (isset($settings[$key])) {
+		return $settings[$key];
+	}
+}
 
-$_DB_ERROR = array();
-
-date_default_timezone_set ($_SETTINGS['Time Zone']);
+function initialize()
+{
+	session_start();
+	date_default_timezone_set (getSettings('Time Zone'));	
+}
 
 /**
  * Authenticate a user using the database accounts table. Returns the user id on
@@ -35,7 +45,6 @@ function authenticateUser($username, $password)
 
 /**
  * Issues a redirect and halts PHP execution if the user is not yet logged in.
- * @global array $_SETTINGS
  * @return void
  */
 function allowLoggedInUserOnly()
@@ -44,8 +53,7 @@ function allowLoggedInUserOnly()
 	if (isset($_SESSION['user'])) {
 		return true;
 	}
-	global $_SETTINGS;
-	redirect($_SETTINGS['Login Page']);
+	redirect(getSettings('Login Page'));
 	die();
 }
 
@@ -59,6 +67,11 @@ function getLoggedInUser($key = null)
 	}
 }
 
+/**
+ * Returns the database connection or false on error.
+ * @staticvar string $_database
+ * @return Mixed
+ */
 function getDatabase()
 {
 	static $_database = null;
@@ -68,10 +81,9 @@ function getDatabase()
 	}
 	
 	try {
-		global $_SETTINGS;
-		$_database = new PDO($_SETTINGS['Data Source Name'], 
-							$_SETTINGS['Database User'], 
-							$_SETTINGS['Database Password']);
+		$_database = new PDO(getSettings('Data Source Name'), 
+							getSettings('Database User'), 
+							getSettings('Database Password'));
 	} catch (PDOException $exception) {
 		_setDbError('', $exception->getCode(), $exception->getMessage());
 	}
@@ -138,18 +150,16 @@ function executeDatabase($sql, $parameters = null)
 /**
  * Returns an array containing the database error information or a specific
  * subset of that error info depending on key
- * @global array $_DB_ERROR
  * @param type $key specific error key
  * @return Mixed 
  */
 function getDatabaseError($key = "")
 {
-	global $_DB_ERROR;
-	
+	$error = _dbError();
 	if ($key == "") {
-		return $_DB_ERROR;
-	} else if (isset($_DB_ERROR[$key])) {
-		return $_DB_ERROR[$key];
+		return $error;
+	} else if (isset($error[$key])) {
+		return $error[$key];
 	}
 }
 
@@ -324,10 +334,22 @@ function _fetchData(&$source, $index = '')
 
 function _setDbError($sqlState, $dbErrorCode, $message)
 {
-	global $_DB_ERROR;
-	$_DB_ERROR = array('SQL_STATE' => $sqlState, 
+	$error = array('SQL_STATE' => $sqlState, 
 						'DB_ERROR_CODE' => $dbErrorCode,
 						'ERROR_MESSAGE' => $message);
+	_dbError($error);
+}
+
+function _dbError($error = null)
+{
+	static $databaseError = array();
+	
+	if (null == $error) {
+		return $databaseError;
+	} elseif(is_array($error)) {
+		$databaseError = $error;
+	}
+	
 }
 
 function _hashPassword($password, $salt)
