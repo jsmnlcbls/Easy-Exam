@@ -1,5 +1,6 @@
 <?php
 include "/functions/common.php";
+initialize();
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 

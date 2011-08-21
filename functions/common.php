@@ -49,7 +49,6 @@ function authenticateUser($username, $password)
  */
 function allowLoggedInUserOnly()
 {
-	session_start();
 	if (isset($_SESSION['user'])) {
 		return true;
 	}
@@ -316,6 +315,16 @@ function redirect($location)
 	header("Location: $location");
 }
 
+function setLoggedInUser($id)
+{
+	$_SESSION['user'] = array('id' => $id);
+}
+
+function logoutUser()
+{
+	unset($_SESSION['user']);
+}
+
 function _fetchData(&$source, $index = '')
 {
 	$data = array();
@@ -357,12 +366,3 @@ function _hashPassword($password, $salt)
 	return hash("sha256", $salt . $password);
 }
 
-function _setLoggedInUser($id)
-{
-	$_SESSION['user'] = array('id' => $id);
-}
-
-function _logoutUser()
-{
-	unset($_SESSION['user']);
-}
