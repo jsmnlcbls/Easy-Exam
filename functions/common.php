@@ -40,8 +40,8 @@ function authenticateUser($username, $password)
 		if ($passwordHash == $loginDetails['password']) {
 			return $loginDetails['id'];
 		}
-		return false;
 	}
+	return false;
 }
 
 /**
