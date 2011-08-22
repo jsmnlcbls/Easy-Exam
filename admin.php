@@ -5,8 +5,15 @@ initialize();
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 if ($requestMethod == "GET") {
-	$view = filterGET('view', "");
-	include "/views/adminView.php";
+	$isDatabaseInstalled = getDatabase();
+	$viewArgs = array();
+	if (!$isDatabaseInstalled) {
+		$viewArgs['isInstalled'] = false;
+	} else {
+		$viewArgs['isInstalled'] = true;
+		$viewArgs['view'] = filterGet("view");
+	}
+	echo renderView("views/adminView.php", $viewArgs);
 } else if ($requestMethod == "POST") {
 	$action = filterPOST('action');
 	if ($action == "addCategory") {
@@ -141,6 +148,13 @@ if ($requestMethod == "GET") {
 		$id = intval(getPOST('id'));
 	
 		$result = deleteUser($id);
+		displayResultNotification($result);
+	} elseif ($action == "install") {
+		include "functions/install.php";
+		$username = filterGET("databaseUser");
+		$password = filterGET('databasePassword');
+		$host = filterGET("databaseHost");
+		$result = installDatabase($host, $username, $password);
 		displayResultNotification($result);
 	}
 }

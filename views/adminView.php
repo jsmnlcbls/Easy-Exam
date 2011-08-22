@@ -10,28 +10,11 @@
 		<span id ="program-name">Easy Exam</span> Administration Panel. Configure settings, add questions etc...
 	</div>
 	<div id = "left-panel">
-		<span class="submenu-title">Questions</span>
-		<ul class = "sub-menu">
-			<li><a href = "?view=addCategory">Add Category</a></li>
-			<li><a href = "?view=selectCategory">Edit Category</a></li>
-			<li><a href = "?view=deleteCategory">Delete Category</a></li>
-			<li><a href="?view=addQuestion">Add Question</a></li>
-			<li><a href="?view=searchQuestion">Search Questions</a></li>
-		</ul>
-		<br/>
-		<span class="submenu-title">Exam</span>
-		<ul class = "sub-menu">
-			<li><a href="?view=addExam">Add</a></li>
-			<li><a href="?view=selectExam">Edit</a></li>
-			<li><a href="?view=deleteExam">Delete</a></li>
-		</ul>
-		<br/>
-		<span class="submenu-title">User</span>
-		<ul class = "sub-menu">
-			<li><a href="?view=addUser">Add</a></li>
-			<li><a href="?view=listUsers">List</a></li>
-		</ul>
-		
+	<?php
+	if (isset($isInstalled) && $isInstalled) {
+		echo renderView("views/adminMenu.php");
+	}
+	?>
 	</div>
 	<div id = "main-panel">
 		<?php
@@ -52,21 +35,23 @@
 			'addUser' => 'addUser.php',
 			'listUsers' => 'listUsers.php',
 			'editUser' => 'editUser.php',
-			'deleteUser' => 'deleteUser.php'
+			'deleteUser' => 'deleteUser.php',
 		);
 		
-		if ($view == "editExam") {
+		if (isset($isInstalled) && !$isInstalled) {
+			echo renderView("views/installView.php");
+		}elseif ($view == "editExam") {
 			$examView = filterGet("examView");
 			if ($examView == "properties") {
 				include "views/editExam.php";
 			} else if ($examView == "questions") {
 				include "views/editExamQuestions.php";
 			}
-		} else if ($view == "success") {
+		} elseif ($view == "success") {
 			echo "<h2>Success!</h2>";
-		} else if ($view == "error") {
+		} elseif ($view == "error") {
 			echo "<h2>Error. Please try again.</h2>";
-		} else if (isset($viewFile[$view])) {
+		} elseif (isset($viewFile[$view])) {
 			include "views/" . $viewFile[$view];
 		}
 		?>

@@ -2,7 +2,7 @@
 
 function getSettings($key = null) {
 	static $settings = 
-	array('Database Name' => 'easy_ex',
+	array('Database Name' => 'easy_exam',
 		  'Database Host' => 'localhost',
 		  'Database User' => 'root',
 		  'Database Password' => '',
