@@ -13,7 +13,7 @@ if ($requestMethod == "GET") {
 		$viewArgs['isInstalled'] = true;
 		$viewArgs['view'] = filterGet("view");
 	}
-	echo renderView("views/adminView.php", $viewArgs);
+	echo renderView(getViewFile('adminView'), $viewArgs);
 } else if ($requestMethod == "POST") {
 	$action = filterPOST('action');
 	if ($action == "addCategory") {

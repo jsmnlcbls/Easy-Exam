@@ -299,6 +299,50 @@ function renderView($filename, $arguments = array(), $escapeStrings = false)
 	return $render;
 }
 
+function getViewFile($view)
+{
+	$viewFile = '';
+	//whitelist of all views that is allowed
+	switch ($view) {
+		case 'editExamQuestion': 
+			$viewFile = 'editQuestion.php';
+			break;
+		case 'searchResultsQuestion':
+			$viewFile = 'searchResultsView.php';
+			break;
+		//for cases where the view file is the same as the view name
+		//cascade is intentional
+		case 'adminView':
+		case 'indexView':
+		case 'loginView':
+		case 'questions':
+		case 'addCategory':
+		case 'selectCategory':
+		case 'editCategory':
+		case 'deleteCategory':
+		case 'addQuestion':
+		case 'searchQuestion':
+		case 'editQuestion':
+		case 'editExamQuestions':
+		case 'editExamProperties':
+		case 'addExam':
+		case 'selectExam':
+		case 'deleteQuestion':
+		case 'deleteExam':
+		case 'addUser':
+		case 'listUsers':
+		case 'editUser':
+		case 'deleteUser':
+		case 'adminMenu':
+		case 'install':
+			$viewFile = $view . ".php";
+			break;
+		default:
+			return null;
+	}
+	return "views/" . $viewFile;
+}
+
 function escapeOutput($output)
 {
 	return htmlentities($output, ENT_QUOTES);

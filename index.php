@@ -16,7 +16,7 @@ if ($requestMethod == "GET") {
 		$viewArgs = array('innerView' => 'examQuestions',
 							'examData' => $examData);
 	}
-	echo renderView("/views/indexView.php", $viewArgs);
+	echo renderView(getViewFile('indexView'), $viewArgs);
 } else if ($requestMethod == "POST") {
 	$action = filterPOST("action");
 	$viewArgs = array();
@@ -30,5 +30,5 @@ if ($requestMethod == "GET") {
 	}
 	$score = round($score, 2);
 	$viewArgs = array('innerView' => 'results', 'score' => $score);
-	echo renderView("/views/indexView.php", $viewArgs);
+	echo renderView(getViewFile('indexView'), $viewArgs);
 }

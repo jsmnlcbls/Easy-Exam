@@ -2,7 +2,6 @@
 <div id = "select-exam-panel">
 	<span class = "panel-title">Select Exam To Modify</span>
 	<form method = "get" action = "admin.php" id = "select-exam-form">
-		<input type = "hidden" name = "view" value = "editExam"/>
 		<table>
 			<tr>
 				<td>Exam Name</td>
@@ -23,8 +22,8 @@
 			<tr>
 				<td>Options</td>
 				<td>
-					<input checked="checked" type="radio" name="examView" value="properties"/>Edit Exam Properties<br/>
-					<input type="radio" name="examView" value="questions"/>Edit Questions
+					<input checked="checked" type="radio" name="view" value="editExamProperties"/>Edit Exam Properties<br/>
+					<input type="radio" name="view" value="editExamQuestions"/>Edit Questions
 				</td>
 			</tr>
 			<tr>
