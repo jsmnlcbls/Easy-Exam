@@ -42,13 +42,13 @@ $timeLimit = escapeOutput($data['time_limit']);
 				<td>Exam Availability Start</td>
 				<td>
 					<?php
-						$parts = explode(" ", $startDateTime);
-						$startDate = $parts[0];
-						$startTime = $parts[1];
+						$date = date_create($startDateTime);
+						$startDate = date_format($date, "Y-m-d");
+						$startTime = date_format($date, "H:i");
 						
-						$parts = explode(" ", $endDateTime);
-						$endDate = $parts[0];
-						$endTime = $parts[1];
+						$date = date_create($endDateTime);
+						$endDate = date_format($date, "Y-m-d");
+						$endTime = date_format($date, "H:i");
 					?>
 					Date <input value = "<?php echo $startDate; ?>" style="width:5em;text-align:center" type="text" name="startDate"/>
 					Time <input value = "<?php echo $startTime; ?>" style="width:3em;text-align:center" type="text" name="startTime"/>
