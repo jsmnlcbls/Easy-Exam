@@ -370,6 +370,7 @@ function setLoggedInUser($id)
 function logoutUser()
 {
 	unset($_SESSION['user']);
+	session_destroy();
 }
 
 function _fetchData(&$source, $index = '')
