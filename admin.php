@@ -70,7 +70,7 @@ if ($requestMethod == "GET") {
 			//redirect($_SERVER['REQUEST_URI'] . "?" . http_build_query($location));
 			
 			//workaround
-			redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExam&examId=$examId&examView=questions");
+			redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExamQuestions&examId=$examId");
 		}
 	} else if ($action == "addExam" || $action == "editExam") {
 		$name = filterPOST("examName");
