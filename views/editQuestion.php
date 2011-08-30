@@ -1,18 +1,11 @@
 <?php
 	include "functions/question.php";
 
-	$id = intval(filterGET("questionId", ""));
+	$view = filterGET("view");
+	$questionId = intval(filterGET("questionId", ""));
 	$examId = intval(filterGET("examId"));
-	$data = getQuestionData($id);
-	$type = escapeOutput($data['type']);
-	$question = escapeOutput($data['question']);
-	$answer = escapeOutput($data['answer']);
-	$category = intval($data['category']);
-	$choiceA = escapeOutput($data['choiceA']);
-	$choiceB = escapeOutput($data['choiceB']);
-	$choiceC = escapeOutput($data['choiceC']);
-	$choiceD = escapeOutput($data['choiceD']);
-	$choiceE = escapeOutput($data['choiceE']);
+	$data = escapeOutput(getQuestionData($questionId));
+	$questionType = $data['type'];
 ?>
 <div id = "edit-question-panel">
 	<span class = "panel-title">
@@ -25,13 +18,13 @@
 	?>
 	</span>
 	<form method = "post" action = "admin.php">
-	<input type ="hidden" name ="questionId" value ="<?php echo $id?>"/>
+	<input type ="hidden" name ="questionId" value ="<?php echo $questionId?>"/>
 	<input type ="hidden" name ="action" value="editQuestion">
 	<table id = "questions-table">
 		<?php
 		if ($view == "editExamQuestion") {
 			echo "<input type =\"hidden\" name =\"questionType\" value=\"e\">";
-			echo "<input type =\"hidden\" name =\"category\" value=\"$category\">";
+			echo "<input type =\"hidden\" name =\"category\" value=\"{$data['category']}\">";
 			echo "<input type =\"hidden\" name =\"redirect\" value=\"r\">";
 			echo "<input type =\"hidden\" name =\"examId\" value=\"$examId\">";
 			 
@@ -42,8 +35,8 @@
 			<td>
 				<?php
 				function markIfSelectedType($questionType) {
-					global $type;
-					if ($type == $questionType) {
+					global $questionType;
+					if ($questionType == $questionType) {
 						echo "selected = \"selected\"";
 					}
 				}
@@ -65,7 +58,7 @@
 					foreach ($categories as $value) {
 						$categoryId = $value['category_id'];
 						$categoryName = $value['name'];
-						if ($category == $categoryId){
+						if ($data['category'] == $categoryId){
 							echo "<option selected=\"selected\" value = \"{$categoryId}\">{$categoryName}</option>";
 						} else {
 							echo "<option value = \"{$categoryId}\">{$categoryName}</option>";
@@ -80,28 +73,28 @@
 		?>
 		<tr>
 			<td>Question</td>
-			<td><textarea name = "question"><?php echo $question;?></textarea></td>
+			<td><textarea name = "question"><?php echo $data['question'];?></textarea></td>
 		</tr>
 		<tr>
 			<td rowspan = "5">Choices</td>
 			<td><span class="letterChoice">A</span>
-				<input value ="<?php echo $choiceA;?>" class = "question-choice" type = "text" name = "choices[]"></td>
+				<input value ="<?php echo $data['choiceA'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
 			<td><span class="letterChoice">B</span>
-				<input value ="<?php echo $choiceB;?>" class = "question-choice" type = "text" name = "choices[]"></td>
+				<input value ="<?php echo $data['choiceB'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
 			<td><span class="letterChoice">C</span>
-				<input value ="<?php echo $choiceC;?>" class = "question-choice" type = "text" name = "choices[]"></td>
+				<input value ="<?php echo $data['choiceC'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
 			<td><span class="letterChoice">D</span>
-				<input value ="<?php echo $choiceD;?>" class = "question-choice" type = "text" name = "choices[]"></td>
+				<input value ="<?php echo $data['choiceD'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
 			<td><span class="letterChoice">E</span>
-				<input value ="<?php echo $choiceE;?>" class = "question-choice" type = "text" name = "choices[]"></td>
+				<input value ="<?php echo $data['choiceE'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
 		</tr>
 		<tr>
 			<td>Answer</td>
@@ -109,7 +102,7 @@
 				<select name = "answer">
 					<?php
 					foreach (range('A', 'E') as $value) {
-						if ($value == $answer) {
+						if ($value == $data['answer']) {
 							echo "<option selected=\"selected\" value=\"$value\">$value</option>";
 						} else {
 							echo "<option value=\"$value\">$value</option>";

@@ -2,10 +2,9 @@
 include "functions/exam.php";
 $examId = intval(filterGET("examId"));
 $data = getExamData($examId);
-$examName = escapeOutput($data['name']);
 ?>
 <div id = "edit-category-panel">
-	<span class = "panel-title">Edit Questions Of Exam: <em><?php echo escapeOutput($examName);?></em></span>
+	<span class = "panel-title">Edit Questions Of Exam: <em><?php echo escapeOutput($data['name']);?></em></span>
 	
 	<input type = "hidden" name = "action" value = "editCategory" />
 	<?php
