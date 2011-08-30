@@ -48,9 +48,10 @@ function getAllExams()
 function getExamQuestions($examId)
 {
 	$data = getExamData($examId);
+	$questionType = getQuestionTypeId('Exam Question');
 	$category = $data['questions_category'];
-	$sql = "SElECT * FROM questions WHERE category=:category AND type='e'";
-	$parameters = array(':category' => $category);
+	$sql = "SElECT * FROM questions WHERE category=:category AND type=:questionType";
+	$parameters = array(':category' => $category, ':questionType' => $questionType);
 	return queryDatabase($sql, $parameters);
 }
 

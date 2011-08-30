@@ -193,6 +193,27 @@ function getAllCategories()
 	return queryDatabase($sql);
 }
 
+function getAllQuestionTypes()
+{
+	$sql = "SELECT id, name FROM question_type ORDER BY id";
+	return queryDatabase($sql);
+}
+
+function getQuestionTypeId($name)
+{
+	static $questionTypes = null;
+	if ($questionTypes == null) {
+		$types = getAllQuestionTypes();
+		foreach ($types as $value) {
+			$questionTypes[$value['name']] = $value['id'];
+		}
+	}
+	if (isset($questionTypes[$name])) {
+		return $questionTypes[$name];
+	}
+	return null;
+}
+
 function getCategoryHierarchy($parent = 0)
 {
 	function createTree(&$categories, $parent)

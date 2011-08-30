@@ -53,6 +53,22 @@ CREATE TABLE IF NOT EXISTS `exam` (
 QUERY;
 
 $query[] = <<<QUERY
+CREATE TABLE IF NOT EXISTS `question_type` (
+  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=4 ;
+QUERY;
+
+$query[] = <<<QUERY
+INSERT INTO `question_type` (`id`, `name`) VALUES
+(1, 'Unassigned'),
+(2, 'Exam Question'),
+(3, 'Review Question');
+QUERY;
+
+$query[] = <<<QUERY
 CREATE TABLE IF NOT EXISTS `questions` (
   `question_id` int(11) NOT NULL AUTO_INCREMENT,
   `question` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
@@ -63,9 +79,10 @@ CREATE TABLE IF NOT EXISTS `questions` (
   `choiceD` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `choiceE` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `category` int(11) DEFAULT NULL,
-  `type` char(1) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `type` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`question_id`),
-  KEY `category` (`category`)
+  KEY `category` (`category`),
+  KEY `type` (`type`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 QUERY;
 
@@ -104,6 +121,7 @@ QUERY;
 
 $query[] = <<<QUERY
 ALTER TABLE `questions`
+  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `question_type` (`id`),
   ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`);
 QUERY;
 

@@ -23,7 +23,7 @@
 	<table id = "questions-table">
 		<?php
 		if ($view == "editExamQuestion") {
-			echo "<input type =\"hidden\" name =\"questionType\" value=\"e\">";
+			echo "<input type =\"hidden\" name =\"questionType\" value=\"$questionType\">";
 			echo "<input type =\"hidden\" name =\"category\" value=\"{$data['category']}\">";
 			echo "<input type =\"hidden\" name =\"redirect\" value=\"r\">";
 			echo "<input type =\"hidden\" name =\"examId\" value=\"$examId\">";
@@ -33,18 +33,19 @@
 		<tr>
 			<td>Type</td>
 			<td>
+				<select name = "questionType">
 				<?php
-				function markIfSelectedType($questionType) {
-					global $questionType;
-					if ($questionType == $questionType) {
-						echo "selected = \"selected\"";
+				$questionTypes = getAllQuestionTypes();
+				foreach ($questionTypes as $value) {
+					$name = escapeOutput($value['name']);
+					$id = intval($value['id']);
+					if ($id == $questionType) {
+						echo "<option selected = \"selected\" value = \"{$id}\">{$name}</option>";	
+					} else {
+						echo "<option value = \"{$id}\">{$name}</option>";
 					}
 				}
 				?>
-				<select name = "questionType">
-					<option value = "" <?php markIfSelectedType("");?>>Unassigned</option>
-					<option value = "r" <?php markIfSelectedType("r");?>>Review Question</option>
-					<option value = "e" <?php markIfSelectedType("e");?>>Exam Question</option>
 				</select>
 				
 			</td>

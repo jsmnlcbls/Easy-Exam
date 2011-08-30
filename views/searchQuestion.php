@@ -9,9 +9,13 @@
 				<td>
 					<select name = "questionType">
 					<option value = "">None Selected</option>
-					<option value = "r">Review Question</option>
-					<option value = "e">Exam Question</option>
-				</select>
+					<?php
+					$questionTypes = getAllQuestionTypes();
+					foreach ($questionTypes as $type) {
+						echo "<option value = \"{$type['id']}\">{$type['name']}</option>";
+					}
+					?>
+					</select>
 				</td>
 			</tr>
 			<td>In Category</td>

@@ -23,14 +23,14 @@
 	<?php
 	$questions = array();
 	include "functions/question.php";
-	if (isset($reviewCategory)) {
+	if (isset($reviewCategory) && isset($questionTypeId)) {
 		echo "<input type = \"hidden\" name = \"action\" value = \"checkReviewAnswers\"/>";
 		echo "<input type =\"hidden\" name = \"category\" value = \"$reviewCategory\">";
-		$questions = getCategoryQuestions($reviewCategory, "r", true);
-	} else if (isset($examData)) {
+		$questions = getCategoryQuestions($reviewCategory, $questionTypeId, true);
+	} else if (isset($examData) && isset($questionTypeId)) {
 		echo "<input type = \"hidden\" name = \"action\" value = \"checkExamAnswers\"/>";
 		echo "<input type =\"hidden\" name = \"category\" value = \"{$examData['questions_category']}\">";
-		$questions = getCategoryQuestions($examData['questions_category'], "e", true);
+		$questions = getCategoryQuestions($examData['questions_category'], $questionTypeId, true);
 	}
 	
 	$questionNumber = 0;

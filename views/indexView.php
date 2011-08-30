@@ -69,9 +69,13 @@
 		<?php
 		if (isset($innerView) && !empty($innerView)) {
 			if ($innerView == "reviewQuestions" && isset($reviewCategory)) {	
-				echo renderView(getViewFile('questions'), array('reviewCategory' => $reviewCategory));
+				echo renderView(getViewFile('questions'), 
+								array('reviewCategory' => $reviewCategory,
+									  'questionTypeId' => $questionTypeId));
 			} else if ($innerView == "examQuestions" && isset($examData)) {
-				echo renderView(getViewFile('questions'), array('examData' => $examData));
+				echo renderView(getViewFile('questions'), 
+								array('examData' => $examData,
+									  'questionTypeId' => $questionTypeId));
 			} else if ($innerView == "results" && isset($score)) {
 				echo "<h2>Your Score: $score %</h2>";
 			}
