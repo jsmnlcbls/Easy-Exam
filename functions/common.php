@@ -245,11 +245,12 @@ function getSubCategories($parent)
 
 function getPOST($key, $default = null)
 {
-	if (isset($_POST[$key])) {
-		return $_POST[$key];
-	} else {
-		return $default;
-	}
+	return _getRequestValues("post", $key, $default);
+}
+
+function getQuery($key, $default = null)
+{
+	return _getRequestValues("get", $key, $default);
 }
 
 /**
@@ -264,8 +265,14 @@ function filterString($string)
 
 function filterPOST($key, $default = null)
 {
-	if (isset($_POST[$key])) {
-		return filterString($_POST[$key]);
+	if (is_array($key)) {
+		$filteredValues = array();
+		foreach ((getPOST($key, $default)) as $key => $value) {
+			$filteredValues[$key] = filterString($value);
+		}
+		return $filteredValues;
+	} elseif (is_string($key)) {
+		return filterString(getPost($key, $default));
 	} else {
 		return $default;
 	}
@@ -273,8 +280,13 @@ function filterPOST($key, $default = null)
 
 function filterGET($key, $default = null) 
 {
-	if (isset($_GET[$key])) {
-		return filterString($_GET[$key]);
+	if (is_array($key)) {
+		$filteredValues = array();
+		foreach ((getQuery($key, $default)) as $key => $value) {
+			$filteredValues[$key] = filterString($value);
+		}
+	} elseif (is_string($key)) {
+		return filterString(getQuery($key, $default));
 	} else {
 		return $default;
 	}
@@ -414,3 +426,29 @@ function _hashPassword($password, $salt)
 	return hash("sha256", $salt . $password);
 }
 
+function _getRequestValues($requestType, $key, $default)
+{
+	$requestType = strtolower($requestType);
+	$requestArray = null;
+	if ($requestType == "post") {
+		$requestArray = $_POST;
+	} elseif ($requestType == "get") {
+		$requestArray = $_GET;
+	}
+	
+	if (is_string($key) && isset($requestArray[$key])) {
+		return $requestArray[$key];
+	} elseif (is_array($key)) {
+		$values = array();
+		foreach ($key as $keyVal) {
+			if (isset($requestArray[$keyVal])) {
+				$values[$keyVal] = $requestArray[$keyVal];
+			} else {
+				$values[$keyVal] = null;
+			}
+		}
+		return $values;
+	} else {
+		return $default;
+	}
+}
