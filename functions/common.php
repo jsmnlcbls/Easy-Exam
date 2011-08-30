@@ -357,7 +357,15 @@ function getViewFile($view)
 
 function escapeOutput($output)
 {
-	return htmlentities($output, ENT_QUOTES);
+	if (is_string($output)) {
+		return htmlentities($output, ENT_QUOTES);
+	} elseif (is_array($output)) {
+		$sanitizedValues = array();
+		foreach ($output as $key => $value) {
+			$sanitizedValues[$key] = htmlentities($value, ENT_QUOTES);
+		}
+		return $sanitizedValues;
+	}
 }
 
 function displayResultNotification($success)
