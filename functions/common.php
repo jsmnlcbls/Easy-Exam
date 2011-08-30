@@ -297,11 +297,7 @@ function renderView($filename, $arguments = array(), $escapeStrings = false)
 	ob_start();
 	if (count($arguments) > 0) {
 		if ($escapeStrings) {
-			foreach ($arguments as $key => $value) {
-				if (is_string($value)) {
-					$arguments[$key] = escapeOutput($value);
-				}
-			}
+			$arguments = escapeOutput($arguments);
 		}
 		extract($arguments);
 	}
