@@ -105,7 +105,7 @@ if ($requestMethod == "GET") {
 		
 		include "functions/question.php";
 		$data = getQuestionData($id);
-		$data['type'] = "";
+		$data['type'] = getQuestionTypeId('Unassigned');
 		$choices = array();
 		foreach (range('A', 'E') as $letter) {
 			$choices[] = $data["choice$letter"];
@@ -114,7 +114,7 @@ if ($requestMethod == "GET") {
 		
 		$result = updateQuestion($id, $data);
 		if ($result) {
-			redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExam&examId=$examId&examView=questions");
+			redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExamQuestions&examId=$examId");
 		} else {
 			displayResultNotification(false);
 		}
