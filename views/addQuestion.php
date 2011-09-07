@@ -5,7 +5,7 @@
 		<tr>
 			<td>Type</td>
 			<td>
-				<select name = "questionType">
+				<select name = "type">
 					<?php
 					$questionTypes = getAllQuestionTypes();
 					foreach ($questionTypes as $type) {
@@ -38,30 +38,30 @@
 		</tr>
 		<tr>
 			<td rowspan = "5">Choices</td>
-			<td><span class="letterChoice">A</span><input class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">B</span><input class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">C</span><input class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">D</span><input class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">E</span><input class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
+			<?php
+			$startRowTag = false;
+			$out = array();
+			foreach (getChoicesLetterColumns() as $letter => $column) {
+				if ($startRowTag) {
+					$out[] = '<tr>'; 
+				}
+				$out[] = '<td><span class = "letterChoice">' . $letter . '</span>';
+				$out[] = '<input class =  "question-choice" type = "text" name = "' . $column .'"/></td>';
+				$out[] = '</tr>';
+				$startRowTag = true;
+			}
+			echo implode ("\n", $out);
+			?>
 		<tr>
 			<td>Answer</td>
 			<td>
 				<select name = "answer">
 					<option value = ""></option>
-					<option value = "A">A</option>
-					<option value = "B">B</option>
-					<option value = "C">C</option>
-					<option value = "D">D</option>
-					<option value = "E">E</option>
+					<?php
+					foreach (getChoicesLetterColumns() as $letter => $value) {
+						echo "<option value = \"$letter\">$letter</option>";
+					}
+					?>
 				</select></td>
 		</tr>
 		<tr>

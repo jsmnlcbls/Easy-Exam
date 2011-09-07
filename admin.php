@@ -26,16 +26,11 @@ if ($requestMethod == "GET") {
 		$result = addCategory($data);
 		displayResultNotification($result);
 	} else if ($action == "addQuestion") {
-		$question = getPOST("question", "");
-		$answer = substr(filterPOST("answer", ""), 0, 1);
-		$choices = getPOST("choices");
-		$category = intval(getPOST("category"));
-		$type = substr(filterPOST("questionType"), 0, 1);
+		$postKeys = array('question', 'answer', 'category', 'type') 
+				  + getChoicesLetterColumns();
+		$data = getPOST($postKeys);
 		
 		include '/functions/question.php';
-		$data = array('question' => $question, 'answer' => $answer, 
-					  'choices' => $choices, 'category' => $category, 
-					  'type' => $type);
 		$result = addQuestion($data);
 		displayResultNotification($result);
 	}else if ($action == "editCategory") {
@@ -50,15 +45,11 @@ if ($requestMethod == "GET") {
 		displayResultNotification($result);
 	} else if ($action == "editQuestion") {
 		$questionId = intval(filterPOST("questionId"));
-		$type = substr(filterPOST("questionType"), 0, 1);
-		$category = intval(filterPOST("category"));
-		$question = getPOST("question");
-		$choices = getPOST("choices");
-		$answer = substr(filterPOST("answer"), 0, 1);
-		
+		$postKeys = array('question', 'answer', 'category', 'type') 
+				  + getChoicesLetterColumns();
+		$data = getPOST($postKeys);
+
 		include '/functions/question.php';
-		$data = array('question' => $question, 'type' => $type, 'choices' => $choices,
-					  'answer' => $answer, 'category' => $category);
 		$result = updateQuestion($questionId, $data);
 		
 		$examId = intval(getPOST('examId', ''));
@@ -106,11 +97,6 @@ if ($requestMethod == "GET") {
 		include "functions/question.php";
 		$data = getQuestionData($id);
 		$data['type'] = getQuestionTypeId('Unassigned');
-		$choices = array();
-		foreach (range('A', 'E') as $letter) {
-			$choices[] = $data["choice$letter"];
-		}
-		$data['choices'] = $choices;
 		
 		$result = updateQuestion($id, $data);
 		if ($result) {

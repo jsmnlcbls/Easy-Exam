@@ -56,17 +56,12 @@ function getQuestions($category, $type)
 
 function addQuestion($data)
 {
-	$choiceValues = array_values($data['choices']);
-	$choiceColumns = array();
-	$letters = range('A', 'E');
 	$parameterChoices = array();
-	foreach ($choiceValues as $key => $value) {
-		$columnName = "choice" . $letters[$key];
-		$parameterChoices[":{$columnName}"] = $value;
-		$choiceColumns[] = $columnName;
+	foreach (getChoicesLetterColumns() as $columnName) {
+		$parameterChoices[":{$columnName}"] = $data[$columnName];
 	}
 	
-	$columns = "question, answer, category, type, " . implode(", ", $choiceColumns);
+	$columns = "question, answer, category, type, " . implode(", ", getChoicesLetterColumns());
 	$values = ":question, :answer, :category, :type, " . implode (", ", array_keys($parameterChoices));
 	
 	$sql = "INSERT INTO questions ($columns) VALUES ($values)";
@@ -109,9 +104,9 @@ function searchQuestions($data)
 	$choiceCondition = "";
 	if ($choice != "") {
 		$condition = array();
-		foreach (range('A', 'E') as $letter) {
-			$condition[] = "choice{$letter} LIKE :choice{$letter}";
-			$parameters[":choice{$letter}"] = $choice;
+		foreach (getChoicesLetterColumns() as $columnName) {
+			$condition[] = "{$columnName} LIKE :{$columnName}";
+			$parameters[":{$columnName}"] = $choice;
 		}
 		$choiceCondition = implode(" OR ", $condition);
 	}
@@ -169,16 +164,14 @@ function updateQuestion($id, $data)
 	$parameters[':answer'] = $data['answer'];
 	$parameters[':id'] = $id;
 	
-	$choices = $data['choices'];
-	foreach (range('A', 'E') as $key => $letter) {
-		$columnValues[] = "choice{$letter}=:choice{$letter}";
-		if (isset($choices[$key])) {
-			$parameters[":choice{$letter}"] = $choices[$key];
+	foreach (getChoicesLetterColumns() as $columnName) {
+		$columnValues[] = "{$columnName}=:{$columnName}";
+		if (isset($data[$columnName])) {
+			$parameters[":{$columnName}"] = $data[$columnName];
 		} else {
-			$parameters[":choice{$letter}"] = "";
+			$parameters[":{$columnName}"] = "";
 		}
 	}
-	
 	$columnValuesSql = implode(", ", $columnValues);
 	
 	$sql = "UPDATE questions SET $columnValuesSql WHERE question_id=:id";

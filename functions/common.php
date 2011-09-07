@@ -328,6 +328,15 @@ function renderView($filename, $arguments = array(), $escapeStrings = false)
 	return $render;
 }
 
+function getChoicesLetterColumns()
+{
+	$choices = array();
+	foreach (range('A', 'E') as $letter) {
+		$choices[$letter] = "choice{$letter}";
+	}
+	return $choices;
+}
+
 function getViewFile($view)
 {
 	$viewFile = '';

@@ -19,10 +19,9 @@ $data = getExamData($examId);
 	foreach ($questions as $value) {
 		$out = "<div class=\"question-div\">";
 		$out .= "<div class=\"question\">$count." . escapeOutput($value['question']) . "</div>";
-		foreach (range('A', 'E') as $letter) {
-			$key = "choice$letter";
-			if ($value[$key] != "") {
-				$out .= "<div class=\"choices\">". "$letter." . escapeOutput($value[$key]) . "</div>";
+		foreach (getChoicesLetterColumns() as $letter => $columnName) {
+			if ($value[$columnName] != "") {
+				$out .= "<div class=\"choices\">". "$letter." . escapeOutput($value[$columnName]) . "</div>";
 			}
 		}
 		$parameters = array('view' => 'editExamQuestion', 'questionId' => $value['question_id'],

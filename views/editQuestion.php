@@ -23,7 +23,7 @@
 	<table id = "questions-table">
 		<?php
 		if ($view == "editExamQuestion") {
-			echo "<input type =\"hidden\" name =\"questionType\" value=\"$questionType\">";
+			echo "<input type =\"hidden\" name =\"type\" value=\"$questionType\">";
 			echo "<input type =\"hidden\" name =\"category\" value=\"{$data['category']}\">";
 			echo "<input type =\"hidden\" name =\"redirect\" value=\"r\">";
 			echo "<input type =\"hidden\" name =\"examId\" value=\"$examId\">";
@@ -33,7 +33,7 @@
 		<tr>
 			<td>Type</td>
 			<td>
-				<select name = "questionType">
+				<select name = "type">
 				<?php
 				$questionTypes = getAllQuestionTypes();
 				foreach ($questionTypes as $value) {
@@ -78,35 +78,31 @@
 		</tr>
 		<tr>
 			<td rowspan = "5">Choices</td>
-			<td><span class="letterChoice">A</span>
-				<input value ="<?php echo $data['choiceA'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">B</span>
-				<input value ="<?php echo $data['choiceB'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">C</span>
-				<input value ="<?php echo $data['choiceC'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">D</span>
-				<input value ="<?php echo $data['choiceD'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
-		<tr>
-			<td><span class="letterChoice">E</span>
-				<input value ="<?php echo $data['choiceE'];?>" class = "question-choice" type = "text" name = "choices[]"></td>
-		</tr>
+			<?php
+			$startRowTag = false;
+			$out = array();
+			foreach (getChoicesLetterColumns() as $letter => $column) {
+				if ($startRowTag) {
+					$out[] = '<tr>'; 
+				}
+				$out[] = '<td><span class = "letterChoice">' . $letter . '</span>';
+				$out[] = '<input class =  "question-choice" type = "text" name = "' . $column .'" value = "'. $data[$column].'"/></td>';
+				$out[] = '</tr>';
+				$startRowTag = true;
+			}
+			echo implode ("\n", $out);
+			?>
 		<tr>
 			<td>Answer</td>
 			<td>
 				<select name = "answer">
+					<option value = ""></option>
 					<?php
-					foreach (range('A', 'E') as $value) {
-						if ($value == $data['answer']) {
-							echo "<option selected=\"selected\" value=\"$value\">$value</option>";
+					foreach (getChoicesLetterColumns() as $letter => $value) {
+						if ($letter == $data['answer']) {
+							echo "<option selected=\"selected\" value=\"$letter\">$letter</option>";
 						} else {
-							echo "<option value=\"$value\">$value</option>";
+							echo "<option value=\"$letter\">$letter</option>";
 						}
 					}
 					?>
