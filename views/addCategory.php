@@ -26,15 +26,6 @@
 				</td>
 			</tr>
 			<tr>
-				<td>Options</td>
-				<td>
-					<input type ="checkbox" name ="menuVisibility" value="1" checked="checked">Show on menu *<br/>
-					<span style="color:GREEN; font-size:80%">
-						*This category will be visible on the main menu,<br/>
-						and it will be shown under its parent category.</span>
-				</td>
-			</tr>
-			<tr>
 				<td></td>
 				<td><input type = "submit" value = "Add" name = "action"/></td>
 			</tr>

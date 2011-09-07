@@ -9,7 +9,6 @@ $query[] = <<<QUERY
 CREATE TABLE IF NOT EXISTS `category` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `menu_visibility` tinyint(1) NOT NULL,
   `parent_category` int(11) NOT NULL,
   PRIMARY KEY (`category_id`),
   KEY `parent_category` (`parent_category`)
@@ -26,8 +25,8 @@ QUERY;
 $query[] = "SET foreign_key_checks = 0;";
 
 $query[] = <<<QUERY
-INSERT INTO `category` (`category_id`, `name`, `menu_visibility`, `parent_category`) 
-VALUES (0, '', 0, 0);
+INSERT INTO `category` (`category_id`, `name`, `parent_category`) 
+VALUES (0, '', 0);
 QUERY;
 
 //because mysql does not follow the category_id value set above and insist on it being 1
