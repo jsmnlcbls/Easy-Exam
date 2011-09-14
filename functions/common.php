@@ -1,8 +1,13 @@
 <?php
+const MULTIPLE_CHOICE_QUESTION = 1;
+const ESSAY_QUESTION = 2;
+const TRUE_OR_FALSE_QUESTION = 3;
+const OBJECTIVE_QUESTION = 4;
 
 function getSettings($key = null) {
 	static $settings = 
-	array('Database Name' => 'easy_exam',
+	array('Data Source Name Prefix' => 'mysql',
+		  'Database Name' => 'easy_exam',
 		  'Database Host' => 'localhost',
 		  'Database User' => 'root',
 		  'Database Password' => '',
@@ -80,8 +85,9 @@ function getDatabase()
 		return $_database;
 	}
 	
-	$dataSourceName = "mysql:dbname=". getSettings('Database Name') 
-					. ";host=" . getSettings('Database Host');
+	$dataSourceName = getSettings('Data Source Name Prefix') . ":dbname=" 
+					. getSettings('Database Name') . ";host=" 
+					. getSettings('Database Host');
 	try {
 		$_database = new PDO($dataSourceName, 
 							getSettings('Database User'), 
@@ -165,6 +171,65 @@ function getDatabaseError($key = "")
 	}
 }
 
+/**
+ * Returns the ID of the last inserted row
+ * @return String
+ */
+function getLastInsertedId()
+{
+	return getDatabase()->lastInsertId();
+}
+
+/**
+ * Starts a database transaction operation
+ * @return boolean
+ */
+function beginTransaction()
+{
+	return getDatabase()->beginTransaction();
+}
+
+/**
+ * Commits the current database transaction
+ * @return boolean
+ */
+function commitTransaction()
+{
+	return getDatabase()->commit();
+}
+
+/**
+ * Inserts a new row into a table
+ * @param String $tableName the tablename to insert to
+ * @param Array $columnValues key value pairs of column names and values
+ */
+function insertIntoTable($tableName, $columnValues)
+{
+	$columns = implode(", ", array_keys($columnValues));
+	$parameters = _createParameterValues($columnValues);
+	$values = implode(", ", array_keys($parameters));
+	$sql = "INSERT INTO $tableName ($columns) VALUES ($values)";
+	return executeDatabase($sql, $parameters);
+}
+
+function updateTable($tableName, $columnValues, $condition, $conditionParameters = array())
+{
+	$setString = _createUpdateSqlSetString(array_keys($columnValues));
+	$parameters = array_merge(_createParameterValues($columnValues), $conditionParameters);
+	$sql = "UPDATE $tableName SET $setString WHERE $condition";
+	echo $sql;
+	return executeDatabase($sql, $parameters);
+}
+
+/**
+ * Rollbacks the current database transaction
+ * @return boolean
+ */
+function rollbackTransaction()
+{
+	return getDatabase()->rollBack();
+}
+
 function getAvailableExams()
 {
 	$localDateTime = date("Y-m-d H:s");
@@ -197,21 +262,6 @@ function getAllQuestionTypes()
 {
 	$sql = "SELECT id, name FROM question_type ORDER BY id";
 	return queryDatabase($sql);
-}
-
-function getQuestionTypeId($name)
-{
-	static $questionTypes = null;
-	if ($questionTypes == null) {
-		$types = getAllQuestionTypes();
-		foreach ($types as $value) {
-			$questionTypes[$value['name']] = $value['id'];
-		}
-	}
-	if (isset($questionTypes[$name])) {
-		return $questionTypes[$name];
-	}
-	return null;
 }
 
 function getCategoryHierarchy($parent = 0)
@@ -264,12 +314,12 @@ function getSubCategories($parent)
 	}
 }
 
-function getPOST($key, $default = null)
+function getPOST($key = null, $default = null)
 {
 	return _getRequestValues("post", $key, $default);
 }
 
-function getQuery($key, $default = null)
+function getQuery($key = null, $default = null)
 {
 	return _getRequestValues("get", $key, $default);
 }
@@ -337,6 +387,14 @@ function getChoicesLetterColumns()
 	return $choices;
 }
 
+function getSecondaryQuestionTables()
+{
+	return array(MULTIPLE_CHOICE_QUESTION => 'multiple_choice',
+				 TRUE_OR_FALSE_QUESTION => 'true_or_false',
+				 OBJECTIVE_QUESTION => 'objective'
+				);
+}
+
 function getViewFile($view)
 {
 	$viewFile = '';
@@ -358,9 +416,16 @@ function getViewFile($view)
 		case 'selectCategory':
 		case 'editCategory':
 		case 'deleteCategory':
-		case 'addQuestion':
+		case 'addTrueOrFalseQuestion':
+		case 'addEssayQuestion':
+		case 'addObjectiveQuestion':
+		case 'addMultipleChoiceQuestion':
 		case 'searchQuestion':
 		case 'editQuestion':
+		case 'editMultipleChoiceQuestion':
+		case 'editEssayQuestion':
+		case 'editTrueOrFalseQuestion':
+		case 'editObjectiveQuestion':
 		case 'editExamQuestions':
 		case 'editExamProperties':
 		case 'addExam':
@@ -419,6 +484,23 @@ function logoutUser()
 	session_destroy();
 }
 
+function getArrayValues($inputArray, $keys = null)
+{
+	if ($keys == null) {
+		return array_values($inputArray);
+	} else if (is_array($keys)) {
+		$values = array();
+		foreach ($keys as $keyVal) {
+			if (isset($inputArray[$keyVal])) {
+				$values[$keyVal] = $inputArray[$keyVal];
+			} else {
+				$values[$keyVal] = null;
+			}
+		}
+		return $values;
+	}
+}
+
 function _fetchData(&$source, $index = '')
 {
 	$data = array();
@@ -438,8 +520,8 @@ function _fetchData(&$source, $index = '')
 function _setDbError($sqlState, $dbErrorCode, $message)
 {
 	$error = array('SQL_STATE' => $sqlState, 
-						'DB_ERROR_CODE' => $dbErrorCode,
-						'ERROR_MESSAGE' => $message);
+					'DB_ERROR_CODE' => $dbErrorCode,
+					'ERROR_MESSAGE' => $message);
 	_dbError($error);
 }
 
@@ -473,16 +555,28 @@ function _getRequestValues($requestType, $key, $default)
 	if (is_string($key) && isset($requestArray[$key])) {
 		return $requestArray[$key];
 	} elseif (is_array($key)) {
-		$values = array();
-		foreach ($key as $keyVal) {
-			if (isset($requestArray[$keyVal])) {
-				$values[$keyVal] = $requestArray[$keyVal];
-			} else {
-				$values[$keyVal] = null;
-			}
-		}
-		return $values;
+		return getArrayValues($requestArray, $key);
+	} elseif (null == $key) {
+		return $requestArray;
 	} else {
 		return $default;
 	}
+}
+
+function _createParameterValues($columnValues)
+{
+	$parameterValues = array();
+	foreach ($columnValues as $column => $value) {
+		$parameterValues[":{$column}"] = $value;
+	}
+	return $parameterValues;
+}
+
+function _createUpdateSqlSetString($columns)
+{
+	$output = array();
+	foreach ($columns as $name) {
+		$output[] = "$name = :$name";
+	}
+	return implode(", ", $output);
 }

@@ -1,35 +1,12 @@
 <div id = "add-question-panel">
-	<span class = "panel-title">Add A Question To Database</span>
+	<span class = "panel-title">Add Multiple Choice Question</span>
 	<form method = "post" action = "admin.php">
+	<input type = "hidden" name = "type" value = "<?php echo MULTIPLE_CHOICE_QUESTION;?>"/>
 	<table id = "questions-table">
-		<tr>
-			<td>Type</td>
-			<td>
-				<select name = "type">
-					<?php
-					$questionTypes = getAllQuestionTypes();
-					foreach ($questionTypes as $type) {
-						echo "<option value = \"{$type['id']}\">{$type['name']}</option>";
-					}
-					?>
-				</select>
-			</td>
-		</tr>
 		<tr>
 			<td>Category</td>
 			<td>
-				<select name = "category">
-				<?php
-					$categories = getAllCategories();
-					foreach ($categories as $category) {
-						if ($category['category_id'] == 0) {
-							echo '<option value = "0">None Selected</option>';
-						} else {
-							echo "<option value = \"{$category['category_id']}\">{$category['name']}</option>";
-						}
-					}
-				?>
-				</select>
+				<?php echo questionCategorySelectHTML(); ?>
 			</td>
 		</tr>
 		<tr>

@@ -49,10 +49,6 @@ body {
 	list-style-type: square;
 }
 
-.sub-menu li:hover {
-	color: white;
-}
-
 .menu-option {
 	color: orange;
 	font-weight: bold;
@@ -74,7 +70,7 @@ body {
 }
 
 .question-div {
-	margin-bottom: 20px;
+	margin-bottom: 10px;
 }
 
 .question {
@@ -127,4 +123,13 @@ body {
 #logout-button {
 	color: orange;
 	font-weight:bold;
+}
+
+.choices-list {
+	font-size: 90%;
+	list-style-type: upper-alpha;
+}
+
+.question-answer {
+	font-size: 90%;
 }

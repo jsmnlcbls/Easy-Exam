@@ -17,32 +17,6 @@
 		</em></strong>
 	</div>
 	<div id = "left-panel">
-		<span style="font-size:120%;color:GOLD">Review</span>
-		<?php
-			$categories = getAllMenuCategories();
-			
-			function printMenu(&$menu, $parent)
-			{
-				$listItems = "";
-				foreach ($menu as $key => $value) {
-					if ($parent == $value['parent_category'] &&
-						"" != $value['name']) {
-						$categoryId = $value['category_id'];
-						$listItems .= "<li catId = {$categoryId} parent = {$value['parent_category']}>";
-						$listItems .= "<a href = \"index.php?reviewCategory={$categoryId}\">" . escapeOutput($value['name']) . "</a>";
-						$listItems .= "</li>";
-						$listItems .= printMenu($menu, $categoryId);
-						unset ($menu[$key]);
-					}
-				}
-				if ("" != $listItems) {
-					$listItems = "<ul>" . $listItems . "</ul>";
-				}
-				return $listItems;
-			}
-			echo printMenu($categories, 0);
-		?>
-		<br/>
 		<span style="font-size:120%;color:GOLD">Available Exams</span>
 		<ul>
 		<?php
@@ -68,14 +42,9 @@
 	<div id = "main-panel">
 		<?php
 		if (isset($innerView) && !empty($innerView)) {
-			if ($innerView == "reviewQuestions" && isset($reviewCategory)) {	
+			if ($innerView == "examQuestions" && isset($examData)) {
 				echo renderView(getViewFile('questions'), 
-								array('reviewCategory' => $reviewCategory,
-									  'questionTypeId' => $questionTypeId));
-			} else if ($innerView == "examQuestions" && isset($examData)) {
-				echo renderView(getViewFile('questions'), 
-								array('examData' => $examData,
-									  'questionTypeId' => $questionTypeId));
+								array('examData' => $examData));
 			} else if ($innerView == "results" && isset($score)) {
 				echo "<h2>Your Score: $score %</h2>";
 			}

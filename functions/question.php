@@ -1,76 +1,94 @@
 <?php
 
-function getCategoryQuestions($category, $questionType, $includeSubcategories = true)
+function sanitizeQuestionData($rawData, $key = null, $type = null)
 {
-	$questions = getQuestions($category, $questionType);
+	if (is_array($rawData) && $key == null) {
+		if (isset($rawData['type'])) {
+			$type = _sanitizeQuestionValue($rawData['type'], 'type');
+		}
+		$sanitized = array();
+		foreach ($rawData as $key => $value) {
+			$sanitized[$key] = _sanitizeQuestionValue($value, $key, $type);
+		}
+		return $sanitized;
+	} else if (is_string($key)) {
+		return _sanitizeQuestionValue($rawData, $key, $type); 
+	}
+}
+
+
+
+function getCategoryQuestions($category, $includeSubcategories = true)
+{
+	$questions = getQuestions($category);
 	
 	if ($includeSubcategories) {
 		$subCategories = getSubCategories($category);
 		if (count($subCategories) > 0) {
 			foreach ($subCategories as $value) {
-				$questions += getQuestions($value, $questionType);
+				$questions += getQuestions($value);
 			}
 		}
 	}
 	return $questions;
 }
 
-function checkAnswersToQuestions($category, $userAnswers, $questionType)
+function checkAnswersToQuestions($category, $userAnswers)
 {
-	$answers = getAnswersToQuestions($category, $questionType);
+	$answers = getAnswersToQuestions($category);
 	$total = count($answers);
 	$correctAnswers = 0;
 	foreach ($userAnswers as $key => $value) {
-		if (isset($answers[$key]) && $answers[$key] == $value) {
+		if (isset($answers[$key]) && $answers[$key]['answer'] == $value) {
 			$correctAnswers++;
 		}
 	}
 	return (float) ($correctAnswers/$total) * 100;
 }
 
-function getAnswersToQuestions($category, $questionType)
+function getAnswersToQuestions($category)
 {
-	$database = getDatabase();
-	$sql = "SELECT question_id, answer FROM questions WHERE category = :category AND type = :questionType";
-	$statement = $database->prepare($sql);
-	$statement->bindValue(':category', $category);
-	$statement->bindValue(':questionType', $questionType);
-	
-	$result = @$statement->execute();
-	$answers = array();
-	if ($result !== false) {
-		while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-			$answers[$row['question_id']] = $row['answer'];
-		}
-		return $answers;
+	$joins = array();
+	foreach (getSecondaryQuestionTables() as $table) {
+		$joins[] = "SELECT q.question_id, t.answer, q.type FROM questions as q INNER JOIN $table AS t "
+			   . "ON q.question_id = t.question_id WHERE q.category = :category AND t.category = :category";
 	}
-	return false;
+	$sql = implode (" UNION ", $joins);
+	
+	$answers = queryDatabase($sql, array(':category' => $category), 'question_id');
+	return $answers;
 }
 
-function getQuestions($category, $type)
+function getQuestions($category)
 {
-	$sql = "SELECT * FROM questions WHERE category = :category AND type = :type";
-	$parameters = array(':category' => $category, ':type' => $type);
+	$sql = "SELECT * FROM questions WHERE category = :category";
+	$parameters = array(':category' => $category);
 	return queryDatabase($sql, $parameters);
 }
 
-function addQuestion($data)
+function addQuestion($type, $rawData)
 {
-	$parameterChoices = array();
-	foreach (getChoicesLetterColumns() as $columnName) {
-		$parameterChoices[":{$columnName}"] = $data[$columnName];
+	$type = sanitizeQuestionData($type, 'type');
+	$questionData = sanitizeQuestionData(_getColumnValues($rawData, $type, "add"));
+	$result = false;
+	switch (intval($type)) {
+		case MULTIPLE_CHOICE_QUESTION:
+			$result = _insertAndSyncQuestion($type, $questionData);
+			break;
+		case TRUE_OR_FALSE_QUESTION:
+			$result = _insertAndSyncQuestion($type, $questionData);
+			break;
+		case OBJECTIVE_QUESTION:
+			$result = _insertAndSyncQuestion($type, $questionData);
+			break;
+		case ESSAY_QUESTION:
+			$result = _insertQuestion($questionData);
+			break;
+		default:
+			$result = false;
+			break;
 	}
-	
-	$columns = "question, answer, category, type, " . implode(", ", getChoicesLetterColumns());
-	$values = ":question, :answer, :category, :type, " . implode (", ", array_keys($parameterChoices));
-	
-	$sql = "INSERT INTO questions ($columns) VALUES ($values)";
-	$parameters = array(':question' => $data['question'],
-						':answer' => $data['answer'],
-						':category' => $data['category'],
-						':type' => $data['type']);
-	$parameters += $parameterChoices;
-	return executeDatabase($sql, $parameters);
+	return $result;
 }
 
 function searchQuestions($data)
@@ -136,46 +154,57 @@ function searchQuestions($data)
 		return array();
 	}
 	
-	$sql = "SELECT question_id, question FROM questions WHERE $sqlCondition";
+	$sql = "SELECT question_id, type, question FROM questions WHERE $sqlCondition";
 	return queryDatabase($sql, $parameters);
 }
 
-function getQuestionData($id)
+function getQuestionData($id, $type = null)
 {
-	$sql = "SELECT * FROM questions WHERE question_id=:questionId";
+	$sql = "SELECT * FROM questions AS t1 ";
+	$join = true;
+	if ($type == MULTIPLE_CHOICE_QUESTION) {
+		$sql .= "INNER JOIN multiple_choice AS t2 ";
+	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+		$sql .= "INNER JOIN true_or_false AS t2 ";
+	} elseif ($type == OBJECTIVE_QUESTION) {
+		$sql .= "INNER JOIN objective AS t2 ";
+	} elseif ($type == ESSAY_QUESTION) {
+		$join = false;
+	}
+	if ($join) {
+		$sql .= "ON t1.question_id = t2.question_id ";
+	}
+	$sql .= "WHERE t1.question_id=:questionId";
+	
 	$parameters = array(':questionId' => $id);
 	$result = queryDatabase($sql, $parameters);
 	return array_shift($result);
 }
 
-function updateQuestion($id, $data)
+function updateQuestion($id, $rawData)
 {
-	$columnValues = array();
-	$parameters = array();
-	
-	$columnValues[] = "question=:question";
-	$columnValues[] = "type=:type";
-	$columnValues[] = "category=:category";
-	$columnValues[] = "answer=:answer";
-	
-	$parameters[':question'] = $data['question'];
-	$parameters[':type'] = $data['type'];
-	$parameters[':category'] = $data['category'];
-	$parameters[':answer'] = $data['answer'];
-	$parameters[':id'] = $id;
-	
-	foreach (getChoicesLetterColumns() as $columnName) {
-		$columnValues[] = "{$columnName}=:{$columnName}";
-		if (isset($data[$columnName])) {
-			$parameters[":{$columnName}"] = $data[$columnName];
-		} else {
-			$parameters[":{$columnName}"] = "";
-		}
+	$id = sanitizeQuestionData($id, 'question_id');
+	$type = sanitizeQuestionData($rawData['type'], 'type');
+	$questionData = sanitizeQuestionData(_getColumnValues($rawData, $type, "edit"));
+	$result = false;
+	switch ($type) {
+		case MULTIPLE_CHOICE_QUESTION:
+			$result = _updateAndSyncQuestion($id, $type, $questionData);
+			break;
+		case TRUE_OR_FALSE_QUESTION:
+			$result = _updateAndSyncQuestion($id, $type, $questionData);
+			break;
+		case OBJECTIVE_QUESTION:
+			print_r($questionData);
+			$result = _updateAndSyncQuestion($id, $type, $questionData);
+			break;
+		case ESSAY_QUESTION:
+			$result = _updateQuestion($id, $questionData);
+			break;
+		default:
+			break;
 	}
-	$columnValuesSql = implode(", ", $columnValues);
-	
-	$sql = "UPDATE questions SET $columnValuesSql WHERE question_id=:id";
-	return executeDatabase($sql, $parameters);
+	return $result;
 }
 
 function deleteQuestion($id)
@@ -183,4 +212,117 @@ function deleteQuestion($id)
 	$sql = "DELETE FROM questions WHERE question_id=:id";
 	$parameters = array(':id' => $id);
 	return executeDatabase($sql, $parameters);
+}
+
+function _insertAndSyncQuestion($type, $data)
+{
+	$secondaryTableList = getSecondaryQuestionTables();
+	$secondaryTable = $secondaryTableList[$type];
+	$mainTableColumnValues = _getNonPrimaryQuestionColumnValues($data);
+	$secondaryTableColumnValues = array_diff_key($data, $mainTableColumnValues);
+	beginTransaction();
+	$success = _insertQuestion($mainTableColumnValues);
+	if ($success) {
+		$secondaryTableColumnValues['category'] = $data['category'];
+		$secondaryTableColumnValues['question_id'] = getLastInsertedId();
+		$success = insertIntoTable($secondaryTable, $secondaryTableColumnValues);
+		if ($success) {
+			commitTransaction();
+			return true;
+		} else {
+			rollbackTransaction();
+			return false;
+		}
+	}
+}
+
+function _insertQuestion($data)
+{
+	return insertIntoTable('questions', $data);
+}
+
+function _updateAndSyncQuestion($id, $type, $data)
+{
+	$secondaryTableList = getSecondaryQuestionTables();
+	$secondaryTable = $secondaryTableList[$type];
+	$mainTableColumnValues = _getNonPrimaryQuestionColumnValues($data);
+	$secondaryTableColumnValues = array_diff_key($data, $mainTableColumnValues);
+	beginTransaction();
+	$success = _updateQuestion($id, $mainTableColumnValues);
+	if ($success) {
+		$secondaryTableColumnValues['category'] = $mainTableColumnValues['category'];
+		$condition = "question_id = :question_id";
+		$conditionParameters = array(':question_id' => $id);
+		$success = updateTable($secondaryTable, $secondaryTableColumnValues, $condition, $conditionParameters);
+		if ($success) {
+			commitTransaction();
+			return true;
+		} else {
+			rollbackTransaction();
+			return false;
+		}
+	}
+}
+
+function _updateQuestion($id, $data)
+{
+	$columnValues = _getNonPrimaryQuestionColumnValues($data);
+	$condition = "question_id = :question_id";
+	$conditionParameters = array(':question_id' => $id);
+	return updateTable('questions', $columnValues, $condition, $conditionParameters);
+}
+
+
+function _getNonPrimaryQuestionColumnValues($data)
+{
+	return getArrayValues($data, array('question', 'category', 'type'));
+}
+
+function _getColumnValues($rawData, $type, $operation)
+{
+	$keys = array('question', 'category', 'type');
+	if ($type == MULTIPLE_CHOICE_QUESTION && $operation == "add") {
+		$keys = array_merge($keys, array('answer'), getChoicesLetterColumns());
+	} elseif ($type == MULTIPLE_CHOICE_QUESTION && $operation == "edit") {
+		$keys = array_merge($keys, array('answer', 'question_id'), getChoicesLetterColumns());
+	} elseif ($type == TRUE_OR_FALSE_QUESTION && $operation == "add") {
+		$keys = array_merge($keys, array('answer')); 
+	} elseif ($type == TRUE_OR_FALSE_QUESTION && $operation == "edit") {
+		$keys = array_merge($keys, array('answer', 'question_id'));
+	} elseif ($type == OBJECTIVE_QUESTION && $operation == "add") { 
+		$keys = array_merge($keys, array('answer'));
+	} elseif ($type == OBJECTIVE_QUESTION && $operation == "edit") { 
+		$keys = array_merge($keys, array('answer', 'question_id'));
+	} elseif ($type == ESSAY_QUESTION) {
+		//default key values
+	} else {
+		return array();
+	}
+	return getArrayValues($rawData, $keys);
+}
+
+function _sanitizeQuestionValue($value, $key, $type = null)
+{
+	switch ($key) {
+		case 'question_id':
+			//cascade intentional
+		case 'category':
+			//cascade intentional
+		case 'type':
+			return intval($value);
+		case 'answer':
+			if ($type == MULTIPLE_CHOICE_QUESTION) { 
+				return substr($value, 0, 1);
+			} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+				return (bool) $value;
+			} else {
+				return $value;
+			}
+			break;
+		default:
+			//by default accept input as is. 
+			//escape or filter it later for output
+			return $value;
+			break;
+	}
 }

@@ -64,7 +64,7 @@
 					YYYY is a 4 digit year, MM is a 2 digit month and DD is the 2 digit day.<br/>
 					Example: For May 8, 2012 the entry should be 2012-05-08 <br/><br/>
 					For the time of exam, the following format is expected: HH:MM<br/>
-					HH is the time in hour (0 t0 24) and MM is in minutes (0 to 60)<br/>
+					HH is the time in hour (0 to 24) and MM is in minutes (0 to 60)<br/>
 					Example: 6:30PM should be specified ad 18:30
 					</p>
 				</td>

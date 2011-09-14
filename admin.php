@@ -5,6 +5,7 @@ initialize();
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 if ($requestMethod == "GET") {
+	include "functions/views.php";
 	$isDatabaseInstalled = getDatabase();
 	$viewArgs = array();
 	if (!$isDatabaseInstalled) {
@@ -26,12 +27,11 @@ if ($requestMethod == "GET") {
 		$result = addCategory($data);
 		displayResultNotification($result);
 	} else if ($action == "addQuestion") {
-		$postKeys = array('question', 'answer', 'category', 'type') 
-				  + getChoicesLetterColumns();
-		$data = getPOST($postKeys);
+		$type = getPOST('type');
+		$data = getPOST();
 		
 		include '/functions/question.php';
-		$result = addQuestion($data);
+		$result = addQuestion($type, $data);
 		displayResultNotification($result);
 	}else if ($action == "editCategory") {
 		$categoryId = intval(filterPOST("categoryId"));
@@ -44,13 +44,10 @@ if ($requestMethod == "GET") {
 		$result = editCategory($categoryId, $data);
 		displayResultNotification($result);
 	} else if ($action == "editQuestion") {
-		$questionId = intval(filterPOST("questionId"));
-		$postKeys = array('question', 'answer', 'category', 'type') 
-				  + getChoicesLetterColumns();
-		$data = getPOST($postKeys);
-
+		$id = getPOST('question_id');
+		$data = getPost();
 		include '/functions/question.php';
-		$result = updateQuestion($questionId, $data);
+		$result = updateQuestion($id, $data);
 		
 		$examId = intval(getPOST('examId', ''));
 		if (empty($examId)) {
@@ -96,7 +93,6 @@ if ($requestMethod == "GET") {
 		
 		include "functions/question.php";
 		$data = getQuestionData($id);
-		$data['type'] = getQuestionTypeId('Unassigned');
 		
 		$result = updateQuestion($id, $data);
 		if ($result) {
@@ -141,6 +137,7 @@ if ($requestMethod == "GET") {
 		$password = filterGET('databasePassword');
 		$host = filterGET("databaseHost");
 		$result = installDatabase($host, $username, $password);
+		
 		displayResultNotification($result);
 	}
 }

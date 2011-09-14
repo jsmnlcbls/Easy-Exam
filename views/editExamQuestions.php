@@ -1,5 +1,6 @@
 <?php
 include "functions/exam.php";
+include "functions/question.php";
 $examId = intval(filterGET("examId"));
 $data = getExamData($examId);
 ?>
@@ -16,28 +17,38 @@ $data = getExamData($examId);
 	echo "</div>";
 
 	$count = 1;
+	echo "<ol>";
 	foreach ($questions as $value) {
-		$out = "<div class=\"question-div\">";
-		$out .= "<div class=\"question\">$count." . escapeOutput($value['question']) . "</div>";
-		foreach (getChoicesLetterColumns() as $letter => $columnName) {
-			if ($value[$columnName] != "") {
-				$out .= "<div class=\"choices\">". "$letter." . escapeOutput($value[$columnName]) . "</div>";
-			}
+		$out = "<li><div class=\"question-div\">";
+		$type = $value['type'];
+		$data = getQuestionData($value['question_id'], $type);
+		$view = '';
+		if ($type == MULTIPLE_CHOICE_QUESTION) {
+			$view = "editMultipleChoiceQuestion";
+			$out .= multipleChoiceQuestionHTML($data);
+		} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+			$view = "editTrueOrFalseQuestion";
+			$out .= trueOrFalseQuestionHTML($data);
+		} elseif ($type == OBJECTIVE_QUESTION) {
+			$view = "editObjectiveQuestion";
+			$out .= objectiveQuestionHTML($data);
+		} elseif ($type == ESSAY_QUESTION) {
+			$view = "editEssayQuestion";
+			$out .= essayQuestionHTML($data);
 		}
-		$parameters = array('view' => 'editExamQuestion', 'questionId' => $value['question_id'],
+		
+		
+		$parameters = array('view' => $view, 'questionId' => $value['question_id'],
 							'examId' => $examId);
 		$editLink = http_build_query($parameters);
-		$out .= "<div class=\"question-options\"><a href=\"?$editLink\">Modify</a>&nbsp;|&nbsp;";
+		$out .= "<div class=\"question-options\"><a href=\"?$editLink\">Modify</a>";
 		$out .= "<form class=\"hidden-form\" method=\"post\" action=\"admin.php\">";
-		$out .= "<input type=\"hidden\" name=\"action\" value=\"deleteQuestionFromExam\">";
-		$out .= "<input type=\"hidden\" name=\"examId\" value=\"$examId\">";
-		$out .= "<input type=\"hidden\" name=\"questionId\" value=\"{$value['question_id']}\">";
-		$out .= "<button>Remove</button>";
 		$out .= "</form></div>";
-		$out .= "</div>";
+		$out .= "</div></li>";
 		echo $out;
 		$count++;
 	}
+	echo "</ol>"
 	?>
 
 </div>
