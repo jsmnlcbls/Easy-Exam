@@ -9,33 +9,12 @@ $query[] = <<<QUERY
 CREATE TABLE IF NOT EXISTS `category` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `menu_visibility` tinyint(1) NOT NULL,
   `parent_category` int(11) NOT NULL,
   PRIMARY KEY (`category_id`),
   KEY `parent_category` (`parent_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 QUERY;
 
-$query[] = <<<QUERY
-ALTER TABLE `category`
-  ADD CONSTRAINT `category_ibfk_1` FOREIGN KEY (`parent_category`) 
-  REFERENCES `category` (`category_id`);
-QUERY;
-
-//temporarily disable
-$query[] = "SET foreign_key_checks = 0;";
-
-$query[] = <<<QUERY
-INSERT INTO `category` (`category_id`, `name`, `menu_visibility`, `parent_category`) 
-VALUES (0, '', 0, 0);
-QUERY;
-
-//because mysql does not follow the category_id value set above and insist on it being 1
-$query[] = <<<QUERY
-UPDATE `category` SET category_id = 0;
-QUERY;
-
-$query[] = "SET foreign_key_checks = 1;";
 
 $query[] = <<<QUERY
 CREATE TABLE IF NOT EXISTS `exam` (
@@ -49,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 QUERY;
 
 $query[] = <<<QUERY
@@ -58,32 +37,27 @@ CREATE TABLE IF NOT EXISTS `question_type` (
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=4 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1; 
 QUERY;
 
 $query[] = <<<QUERY
 INSERT INTO `question_type` (`id`, `name`) VALUES
-(1, 'Unassigned'),
-(2, 'Exam Question'),
-(3, 'Review Question');
+(1, 'Multiple Choice'),
+(2, 'Essay'),
+(3, 'True Or False'),
+(4, 'Objective');
 QUERY;
 
 $query[] = <<<QUERY
 CREATE TABLE IF NOT EXISTS `questions` (
   `question_id` int(11) NOT NULL AUTO_INCREMENT,
-  `question` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  `answer` char(1) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `choiceA` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `choiceB` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `choiceC` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `choiceD` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `choiceE` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `category` int(11) DEFAULT NULL,
-  `type` tinyint(1) DEFAULT NULL,
+  `question` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `category` int(11) NOT NULL,
+  `type` tinyint(1) NOT NULL,
   PRIMARY KEY (`question_id`),
   KEY `category` (`category`),
   KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 QUERY;
 
 $query[] = <<<QUERY
@@ -91,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `role` (
   `id` tinyint(4) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 QUERY;
 
 $query[] = <<<QUERY
@@ -111,8 +85,63 @@ CREATE TABLE IF NOT EXISTS `accounts` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `role` (`role`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
 QUERY;
+
+$query[] = <<<QUERY
+CREATE TABLE IF NOT EXISTS `multiple_choice` (
+  `question_id` int(11) NOT NULL,
+  `choiceA` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `choiceB` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `choiceC` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `choiceD` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `choiceE` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `answer` char(1) COLLATE utf8_unicode_ci NOT NULL,
+  `category` int(11) NOT NULL,
+  PRIMARY KEY (`question_id`),
+  KEY `category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+QUERY;
+
+$query[] = <<<QUERY
+CREATE TABLE IF NOT EXISTS `true_or_false` (
+  `question_id` int(11) NOT NULL,
+  `answer` tinyint(1) NOT NULL,
+  `category` int(11) NOT NULL,
+  PRIMARY KEY (`question_id`),
+  KEY `category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+QUERY;
+
+$query[] = <<<QUERY
+CREATE TABLE IF NOT EXISTS `objective` (
+  `question_id` int(11) NOT NULL,
+  `answer` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `category` int(11) NOT NULL,
+  PRIMARY KEY (`question_id`),
+  KEY `category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+QUERY;
+
+$query[] = <<<QUERY
+ALTER TABLE `category`
+  ADD CONSTRAINT `category_ibfk_1` FOREIGN KEY (`parent_category`) REFERENCES `category` (`category_id`);
+QUERY;
+
+//temporarily disable
+$query[] = "SET foreign_key_checks = 0;";
+
+$query[] = <<<QUERY
+INSERT INTO `category` (`category_id`, `name`, `parent_category`) 
+VALUES (0, '', 0);
+QUERY;
+
+//because mysql does not follow the category_id value set above and insist on it being 1
+$query[] = <<<QUERY
+UPDATE `category` SET category_id = 0;
+QUERY;
+
+$query[] = "SET foreign_key_checks = 1;";
 
 $query[] = <<<QUERY
 ALTER TABLE `exam`
@@ -121,8 +150,26 @@ QUERY;
 
 $query[] = <<<QUERY
 ALTER TABLE `questions`
-  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `question_type` (`id`),
-  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`);
+  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `question_type` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE;
+QUERY;
+
+$query[] = <<<QUERY
+ALTER TABLE `multiple_choice`
+  ADD CONSTRAINT `multiple_choice_ibfk_2` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `multiple_choice_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+QUERY;
+
+$query[] = <<<QUERY
+ALTER TABLE `true_or_false`
+  ADD CONSTRAINT `true_or_false_ibfk_2` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `true_or_false_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+QUERY;
+
+$query[] = <<<QUERY
+ALTER TABLE `objective`
+  ADD CONSTRAINT `objective_ibfk_2` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `objective_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 QUERY;
 
 function installDatabase($host, $dbUser, $dbPassword)
