@@ -1,13 +1,13 @@
 <div id = "search-question-panel">
 	<span class = "panel-title">Search Database For Questions</span>
 	<form method = "get" action = "admin.php">
-	<input type = "hidden" name = "view" value = "searchResultsQuestion">
+	<input type = "hidden" name = "view" value = "question-search-results">
 	<table id = "questions-table">
 		<tr>
 			<tr>
 				<td>Question Type</td>
 				<td>
-					<select name = "questionType">
+					<select name = "type">
 					<option value = "">None Selected</option>
 					<?php
 					$questionTypes = getAllQuestionTypes();
@@ -38,10 +38,6 @@
 		<tr>
 			<td>Search Questions For</td>
 			<td><input type = "text" name = "question"/></td>
-		</tr>
-		<tr>
-			<td>Search Choices For</td>
-			<td><input type = "text" name = "choice"/></td>
 		</tr>
 		<tr>
 			<td></td>

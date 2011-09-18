@@ -11,21 +11,19 @@
 	</div>
 	<div id = "left-panel">
 	<?php
-	if (isset($isInstalled) && $isInstalled) {
-		echo renderView(getViewFile('adminMenu'));
-	}
+		if (isset($menu)) {
+			echo $menu;
+		}
 	?>
 	</div>
 	<div id = "main-panel">
 		<?php
-		if (isset($isInstalled) && !$isInstalled) {
-			echo renderView(getViewFile("install"));
-		} elseif ($view == "success") {
+		if (isset($mainPanel)) {
+			echo $mainPanel;
+		} elseif (isset($view) && $view == "success") {
 			echo "<h2>Success!</h2>";
-		} elseif ($view == "error") {
+		} elseif (isset($view) && $view == "error") {
 			echo "<h2>Error. Please try again.</h2>";
-		} elseif (($file = getViewFile($view)) != null) {
-			echo renderView($file);
 		}
 		?>
 	</div>

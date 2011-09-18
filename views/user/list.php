@@ -18,8 +18,8 @@
 				}
 			}
 			$script = $_SERVER['PHP_SELF'];
-			$editLink = "<a href = \"$script?view=editUser&id={$value['id']}\">Edit</a>";
-			$deleteLink = "<a href = \"$script?view=deleteUser&id={$value['id']}\">Delete</a>";
+			$editLink = "<a href = \"$script?view=user-edit&id={$value['id']}\">Edit</a>";
+			$deleteLink = "<a href = \"$script?view=user-delete&id={$value['id']}\">Delete</a>";
 			$out .= "<tr><td>{$value['name']}</td><td>".implode(", ", $role)."</td><td>$editLink | $deleteLink</td></tr>";
 		}
 		$out .= "</table>";

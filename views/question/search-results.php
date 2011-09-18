@@ -3,12 +3,8 @@
 	<?php
 	include "functions/question.php";
 	
-	$data = array();
-	$data['category'] = intval(filterGET('category'));
-	$data['question'] = filterGET('question');
-	$data['choice'] = filterGET('choice');
-	$data['type'] = substr(filterGET('questionType'), 0, 1);
-	
+	$rawData = getQuery(array('category', 'question', 'type'));
+	$data = sanitizeQuestionData($rawData);
 	$result = searchQuestions($data);
 	
 	$countResults = count($result);
@@ -42,18 +38,3 @@
 	}
 	?>
 </div>
-<?php
-
-function getEditView($type)
-{
-	if ($type == MULTIPLE_CHOICE_QUESTION) {
-		return "editMultipleChoiceQuestion";
-	} elseif ($type == ESSAY_QUESTION) {
-		return "editEssayQuestion";
-	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-		return "editTrueOrFalseQuestion";
-	} elseif ($type == OBJECTIVE_QUESTION) {
-		return "editObjectiveQuestion";
-	}
-}
-?>
