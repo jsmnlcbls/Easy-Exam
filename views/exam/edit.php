@@ -22,8 +22,8 @@
 			<tr>
 				<td>Options</td>
 				<td>
-					<input checked="checked" type="radio" name="view" value="editExamProperties"/>Edit Exam Properties<br/>
-					<input type="radio" name="view" value="editExamQuestions"/>Edit Questions
+					<input checked="checked" type="radio" name="view" value="exam-edit-properties"/>Edit Exam Properties<br/>
+					<input type="radio" name="view" value="exam-edit-questions"/>Edit Questions
 				</td>
 			</tr>
 			<tr>

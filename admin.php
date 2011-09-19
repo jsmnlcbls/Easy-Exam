@@ -7,14 +7,18 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
 	include "functions/views.php";
 	$isDatabaseInstalled = getDatabase();
-	$viewArgs = array();
+	$args = array();
 	if (!$isDatabaseInstalled) {
-		$viewArgs['isInstalled'] = false;
+		$mainPanel = renderView('admin-install');
+		$args = array('mainPanel' => $mainPanel, 'menu' => '');
 	} else {
-		$viewArgs['isInstalled'] = true;
-		$viewArgs['view'] = filterGet("view");
+		$view = filterGET('view', '');
+		if ('' != $view) {
+			$mainPanel = renderView($view);
+			$args = array('mainPanel' => $mainPanel);
+		}
 	}
-	echo renderView(getViewFile('adminView'), $viewArgs);
+	echo renderAdminPage($args);
 } else if ($requestMethod == "POST") {
 	$action = filterPOST('action');
 	if ($action == "addCategory") {
@@ -48,7 +52,6 @@ if ($requestMethod == "GET") {
 		$data = getPost();
 		include '/functions/question.php';
 		$result = updateQuestion($id, $data);
-		
 		$examId = intval(getPOST('examId', ''));
 		if (empty($examId)) {
 			displayResultNotification($result);
@@ -142,4 +145,21 @@ if ($requestMethod == "GET") {
 	}
 }
 
+function displayResultNotification($success)
+{
+	$notification = '';
+	if ($success === true) {
+		$notification = "<h2>Success!</h2>";
+	} elseif ($success === false) {
+		$notification = "<h2>Error. Please try again.</h2>";
+	}
+	$args = array('mainPanel' => $notification);
+	echo renderAdminPage($args);
+}
 
+function renderAdminPage($args)
+{
+	$menu = renderView('admin-menu');
+	$args = array_merge(array('menu' => $menu), $args);
+	return renderView('admin-main', $args);
+}

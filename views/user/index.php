@@ -43,8 +43,7 @@
 		<?php
 		if (isset($innerView) && !empty($innerView)) {
 			if ($innerView == "examQuestions" && isset($examData)) {
-				echo renderView(getViewFile('questions'), 
-								array('examData' => $examData));
+				echo renderView('user-questions', array('examData' => $examData));
 			} else if ($innerView == "results" && isset($score)) {
 				echo "<h2>Your Score: $score %</h2>";
 			}

@@ -22,21 +22,16 @@ $data = getExamData($examId);
 		$out = "<li><div class=\"question-div\">";
 		$type = $value['type'];
 		$data = getQuestionData($value['question_id'], $type);
-		$view = '';
+		$view = getEditView($type);
 		if ($type == MULTIPLE_CHOICE_QUESTION) {
-			$view = "editMultipleChoiceQuestion";
 			$out .= multipleChoiceQuestionHTML($data);
 		} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-			$view = "editTrueOrFalseQuestion";
 			$out .= trueOrFalseQuestionHTML($data);
 		} elseif ($type == OBJECTIVE_QUESTION) {
-			$view = "editObjectiveQuestion";
 			$out .= objectiveQuestionHTML($data);
 		} elseif ($type == ESSAY_QUESTION) {
-			$view = "editEssayQuestion";
 			$out .= essayQuestionHTML($data);
 		}
-		
 		
 		$parameters = array('view' => $view, 'questionId' => $value['question_id'],
 							'examId' => $examId);

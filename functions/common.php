@@ -217,7 +217,6 @@ function updateTable($tableName, $columnValues, $condition, $conditionParameters
 	$setString = _createUpdateSqlSetString(array_keys($columnValues));
 	$parameters = array_merge(_createParameterValues($columnValues), $conditionParameters);
 	$sql = "UPDATE $tableName SET $setString WHERE $condition";
-	echo $sql;
 	return executeDatabase($sql, $parameters);
 }
 
@@ -363,7 +362,13 @@ function filterGET($key, $default = null)
 	}
 }
 
-function renderView($filename, $arguments = array(), $escapeStrings = false)
+function renderView($view, $arguments = array(), $escapeString = false)
+{
+	$viewFile = _getViewFile($view);
+	return renderViewFile($viewFile, $arguments, $escapeString);
+}
+
+function renderViewFile($filename, $arguments = array(), $escapeStrings = false)
 {
 	ob_start();
 	if (count($arguments) > 0) {
@@ -374,7 +379,7 @@ function renderView($filename, $arguments = array(), $escapeStrings = false)
 	}
 	include $filename;
 	$render = ob_get_contents();
-	ob_clean();
+	ob_end_clean();
 	return $render;
 }
 
@@ -395,55 +400,30 @@ function getSecondaryQuestionTables()
 				);
 }
 
-function getViewFile($view)
+function _getViewFile($view)
 {
-	$viewFile = '';
-	//whitelist of all views that is allowed
-	switch ($view) {
-		case 'editExamQuestion': 
-			$viewFile = 'editQuestion.php';
-			break;
-		case 'searchResultsQuestion':
-			$viewFile = 'searchResultsView.php';
-			break;
-		//for cases where the view file is the same as the view name
-		//cascade is intentional
-		case 'adminView':
-		case 'indexView':
-		case 'loginView':
-		case 'questions':
-		case 'addCategory':
-		case 'selectCategory':
-		case 'editCategory':
-		case 'deleteCategory':
-		case 'addTrueOrFalseQuestion':
-		case 'addEssayQuestion':
-		case 'addObjectiveQuestion':
-		case 'addMultipleChoiceQuestion':
-		case 'searchQuestion':
-		case 'editQuestion':
-		case 'editMultipleChoiceQuestion':
-		case 'editEssayQuestion':
-		case 'editTrueOrFalseQuestion':
-		case 'editObjectiveQuestion':
-		case 'editExamQuestions':
-		case 'editExamProperties':
-		case 'addExam':
-		case 'selectExam':
-		case 'deleteQuestion':
-		case 'deleteExam':
-		case 'addUser':
-		case 'listUsers':
-		case 'editUser':
-		case 'deleteUser':
-		case 'adminMenu':
-		case 'install':
-			$viewFile = $view . ".php";
-			break;
-		default:
-			return null;
+	$viewFileHierarchy = explode ('-', $view);
+	$directory = array_shift($viewFileHierarchy);
+	$file = implode('-', $viewFileHierarchy);
+	if (_viewIsInWhiteList($directory, $file)) {
+		$viewFile = 'views' . DIRECTORY_SEPARATOR . $directory 
+							. DIRECTORY_SEPARATOR . $file . '.php'; 
+		return $viewFile;
 	}
-	return "views/" . $viewFile;
+	return '';
+}
+
+function getEditView($type)
+{
+	if ($type == MULTIPLE_CHOICE_QUESTION) {
+		return "question-multiple-choice-edit";
+	} elseif ($type == ESSAY_QUESTION) {
+		return "question-essay-edit";
+	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+		return "question-true-or-false-edit";
+	} elseif ($type == OBJECTIVE_QUESTION) {
+		return "question-objective-edit";
+	}
 }
 
 function escapeOutput($output)
@@ -457,15 +437,6 @@ function escapeOutput($output)
 		}
 		return $sanitizedValues;
 	}
-}
-
-function displayResultNotification($success)
-{
-	$address = $_SERVER['REQUEST_URI'] . "?view=error";
-	if ($success) {
-		$address = $_SERVER['REQUEST_URI'] . "?view=success";
-	}
-	redirect($address);
 }
 
 function redirect($location)
@@ -499,6 +470,38 @@ function getArrayValues($inputArray, $keys = null)
 		}
 		return $values;
 	}
+}
+
+//------------------------Internal functions-----------------------------------
+
+
+function _viewIsInWhiteList($directory, $file)
+{
+	$views = array();
+	switch ($directory) {
+		case 'question':
+			$views = array('category-add', 'category-edit', 'category-delete',
+							'search', 'multiple-choice-add', 'esssay-add', 
+							'objective-add', 'true-or-false-add', 'delete',
+							'search-results', 'multiple-choice-edit', 'essay-edit', 
+							'objective-edit', 'true-or-false-edit', 'category-update');
+			break;
+		case 'exam':
+			$views = array('add', 'edit', 'delete', 'edit-properties', 'edit-questions');
+			break;
+		case 'user':
+			$views = array('add', 'list', 'delete', 'edit', 'index', 'login', 'questions');
+			break;
+		case 'admin':
+			$views = array('main', 'menu', 'install');
+			break;
+		default:
+			break;
+	}
+	if (in_array($file, $views)) {
+		return true;
+	}
+	return false;
 }
 
 function _fetchData(&$source, $index = '')

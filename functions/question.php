@@ -95,7 +95,6 @@ function searchQuestions($data)
 {
 	$category = $data['category'];
 	$question = $data['question'];
-	$choice = $data['choice'];
 	$type = $data['type'];
 	
 	$categoryCondition = "";
@@ -119,16 +118,6 @@ function searchQuestions($data)
 		$parameters[":question"] = $question;
 	}
 	
-	$choiceCondition = "";
-	if ($choice != "") {
-		$condition = array();
-		foreach (getChoicesLetterColumns() as $columnName) {
-			$condition[] = "{$columnName} LIKE :{$columnName}";
-			$parameters[":{$columnName}"] = $choice;
-		}
-		$choiceCondition = implode(" OR ", $condition);
-	}
-	
 	$typeCondition = "";
 	if ($type != "") {
 		$typeCondition = "type = :type";
@@ -141,9 +130,6 @@ function searchQuestions($data)
 	}
 	if ("" != $questionCondition) {
 		$sqlCondition[] = $questionCondition;
-	}
-	if ("" != $choiceCondition) {
-		$sqlCondition[] = $choiceCondition;
 	}
 	if ("" != $typeCondition) {
 		$sqlCondition[] = $typeCondition;
@@ -195,7 +181,6 @@ function updateQuestion($id, $rawData)
 			$result = _updateAndSyncQuestion($id, $type, $questionData);
 			break;
 		case OBJECTIVE_QUESTION:
-			print_r($questionData);
 			$result = _updateAndSyncQuestion($id, $type, $questionData);
 			break;
 		case ESSAY_QUESTION:

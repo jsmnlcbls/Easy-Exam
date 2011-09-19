@@ -4,7 +4,7 @@ initialize();
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
-	echo renderView(getViewFile('loginView'));
+	echo renderView('user-login');
 } else if ($requestMethod == "POST") {
 	$action = filterPOST("action");
 	if ($action == "login") {
@@ -15,10 +15,10 @@ if ($requestMethod == "GET") {
 			redirect(getSettings('User Page'));
 		} else {
 			sleep(3);
-			echo renderView(getViewFile('loginView'), array('loginFailed' => true));
+			echo renderView('user-login', array('loginFailed' => true));
 		}
 	} else if ($action == "logout") {
 		logoutUser();
-		echo renderView(getViewFile('loginView'), array('logout' => true));
+		echo renderView('user-login', array('logout' => true));
 	}
 } 
