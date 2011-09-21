@@ -1,5 +1,18 @@
 <?php
 
+function questionHTML($type, $data)
+{
+	if ($type == MULTIPLE_CHOICE_QUESTION) {
+		return multipleChoiceQuestionHTML($data);
+	} elseif ($type == ESSAY_QUESTION) {
+		return essayQuestionHTML($data);
+	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+		return trueOrFalseQuestionHTML($data);
+	} elseif ($type == OBJECTIVE_QUESTION) {
+		return objectiveQuestionHTML($data);
+	}
+}
+
 function multipleChoiceQuestionHTML($data)
 {
 	$contents = array();

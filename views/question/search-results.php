@@ -27,7 +27,7 @@
 			echo escapeOutput($question['question']);
 			echo "</td><td>";
 			echo "<a href=\"?view=$editView&questionId=$id&type=$type\">Edit</a> | ";
-			echo "<a href=\"?view=deleteQuestion&questionId=$id&type=$type\">Delete</a>";
+			echo "<a href=\"?view=question-delete&questionId=$id&type=$type\">Delete</a>";
 			echo "</td></tr>";
 			echo "</form>";
 			$counter++;
