@@ -6,7 +6,7 @@
 		<table>
 			<tr>
 				<td>Exam Name</td>
-				<td><input type = "text" name = "examName" /></td>
+				<td><input type = "text" name = "name" /></td>
 			</tr>
 			<tr>
 				<td>Get Questions From</td>

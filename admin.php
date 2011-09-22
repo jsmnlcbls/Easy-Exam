@@ -38,61 +38,41 @@ if ($requestMethod == "GET") {
 
 function _addCategoryAction($data)
 {
-	$name = filterPOST("categoryName", "");
-	$parent = intval(getPOST("parentCategory", 0));
-
-	$data = array('name' => $name, 'parent' => $parent);
+	$categoryData = getArrayValues($data, array('name', 'parent'));
 	include '/functions/category.php';
-	return addCategory($data);
+	return addCategory($categoryData);
 }
 
 function _addQuestionAction($data)
 {
-	$type = $data['type'];
-	$data = getPOST();
-
 	include '/functions/question.php';
-	return addQuestion($type, $data);
+	return addQuestion($data);
 }
 
 function _addUserAction($data)
 {
 	include "functions/user.php";
-	$name = $data['username'];
-	$password = $data['password'];
-	$role = $data['role'];
-
-	$data = array('name' => $name, 'password' => $password, 'role' => $role);
-	return addUser($data);
+	$userData = getArrayValues($data, array('name', 'password', 'role'));
+	return addUser($userData);
 }
 
 function _addExamAction($data)
 {
-	$name = $data["examName"];
-	$category = $data["category"];
-	$startDateTime = $data["startDate"] . " " . $data["startTime"];
-	$endDateTime = $data["endDate"] . " " . $data["endTime"];
-	$timeLimit = $data["timeLimit"];
-	$passingScore = $data["passingScore"];
-
-	$data = array('name' => $name, 'category' => $category, 
-				  'startDateTime' => $startDateTime, 
-				  'endDateTime' => $endDateTime, 'timeLimit' => $timeLimit, 
-				  'passingScore' => $passingScore);
-
+	$examData = getArrayValues($data, array('name', 'category', 'timeLimit', 'passingScore'));
+	$examData['startDateTime'] = $data["startDate"] . " " . $data["startTime"];
+	$examData['endDateTime'] = $data["endDate"] . " " . $data["endTime"];
+	
 	include "functions/exam.php";
-	return addExam($data);
+	return addExam($examData);
 }
 
 function _editCategoryAction($data)
 {
 	$categoryId = $data["categoryId"];
-	$categoryName = $data["categoryName"];
-	$parentCategory = $data["parentCategory"];
+	$categoryData = getArrayValues($data, array('name', 'parent'));
 	
-	$data = array('name' => $categoryName, 'parent' => $parentCategory);
 	include '/functions/category.php';
-	return editCategory($categoryId, $data); 
+	return editCategory($categoryId, $categoryData); 
 }
 
 function _editQuestionAction($data)
@@ -115,34 +95,21 @@ function _editQuestionAction($data)
 
 function _editExamAction($data)
 {
-	$name = $data["examName"];
-	$category = $data["category"];
-	$startDateTime = $data["startDate"] . " " . $data["startTime"];
-	$endDateTime = $data["endDate"] . " " . $data["endTime"];
-	$timeLimit = $data["timeLimit"];
-	$passingScore = $data["passingScore"];
-
-	$data = array('name' => $name, 'category' => $category, 
-				  'startDateTime' => $startDateTime, 
-				  'endDateTime' => $endDateTime, 'timeLimit' => $timeLimit, 
-				  'passingScore' => $passingScore);
-
+	$examData = getArrayValues($data, array('name', 'category', 'timeLimit', 'passingScore'));
+	$examData['startDateTime'] = $data["startDate"] . " " . $data["startTime"];
+	$examData['endDateTime'] = $data["endDate"] . " " . $data["endTime"];
+	
 	include "functions/exam.php";
-
-	$id = intval(getPOST("examId"));
-	return updateExam($id, $data);
+	$id = $data["examId"];
+	return updateExam($id, $examData);
 }
 
 function _editUserAction($data)
 {
-	include "functions/user.php";
-	$name = $data["username"];
-	$password = $data["password"];
-	$role = $data['role'];
+	$userData = getArrayValues($data, array('name', 'password', 'role'));
 	$id = $data['id'];
-
-	$data = array('name' => $name, 'password' => $password, 'role' => $role, 'id' => $id);
-	return updateUser($id, $data);
+	include "functions/user.php";
+	return updateUser($id, $userData);
 }
 
 function _deleteQuestionAction($data)

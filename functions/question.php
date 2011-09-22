@@ -66,18 +66,16 @@ function getQuestions($category)
 	return queryDatabase($sql, $parameters);
 }
 
-function addQuestion($type, $rawData)
+function addQuestion($rawData)
 {
-	$type = sanitizeQuestionData($type, 'type');
+	$type = sanitizeQuestionData($rawData['type'], 'type');
 	$questionData = sanitizeQuestionData(_getColumnValues($rawData, $type, "add"));
 	$result = false;
 	switch (intval($type)) {
 		case MULTIPLE_CHOICE_QUESTION:
-			$result = _insertAndSyncQuestion($type, $questionData);
-			break;
+			//cascade intentional
 		case TRUE_OR_FALSE_QUESTION:
-			$result = _insertAndSyncQuestion($type, $questionData);
-			break;
+			//cascade intentional
 		case OBJECTIVE_QUESTION:
 			$result = _insertAndSyncQuestion($type, $questionData);
 			break;

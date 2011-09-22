@@ -6,7 +6,8 @@ $categoryId = getQuery('category', '');
 	<form method = "get" action = "admin.php" id = "edit-category-form">
 		<input type = "hidden" name = "view" value = "question-category-edit"/>
 		<div>
-			Category Name <?php echo questionCategorySelectHTML(array('selected' => $categoryId)); ?> <button>Edit</button>
+			Category Name <?php echo questionCategorySelectHTML(array('selected' => $categoryId)); ?> 
+			<button>Edit</button>
 		</div>
 	</form>
 	<hr/>
