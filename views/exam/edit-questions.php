@@ -22,7 +22,7 @@ $data = getExamData($examId);
 		$out = "<li><div class=\"question-div\">";
 		$type = $value['type'];
 		$data = getQuestionData($value['question_id'], $type);
-		$view = getEditView($type);
+		$view = getQuestionEditView($type);
 		if ($type == MULTIPLE_CHOICE_QUESTION) {
 			$out .= multipleChoiceQuestionHTML($data);
 		} elseif ($type == TRUE_OR_FALSE_QUESTION) {

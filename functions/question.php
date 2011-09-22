@@ -154,14 +154,13 @@ function getQuestionData($id, $type = null)
 		$sql .= "INNER JOIN true_or_false AS t2 ";
 	} elseif ($type == OBJECTIVE_QUESTION) {
 		$sql .= "INNER JOIN objective AS t2 ";
-	} elseif ($type == ESSAY_QUESTION) {
+	} else {
 		$join = false;
 	}
 	if ($join) {
 		$sql .= "ON t1.question_id = t2.question_id ";
 	}
 	$sql .= "WHERE t1.question_id=:questionId";
-	
 	$parameters = array(':questionId' => $id);
 	$result = queryDatabase($sql, $parameters);
 	return array_shift($result);

@@ -21,7 +21,7 @@
 		foreach ($result as $question) {
 			$id = $question['question_id'];
 			$type = $question['type'];
-			$editView = getEditView($type);
+			$editView = getQuestionEditView($type);
 			echo "<tr><td>{$counter}</td><td>";
 			echo "<form method=\"get\">";
 			echo escapeOutput($question['question']);
