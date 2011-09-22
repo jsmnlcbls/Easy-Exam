@@ -23,15 +23,7 @@ $data = getExamData($examId);
 		$type = $value['type'];
 		$data = getQuestionData($value['question_id'], $type);
 		$view = getQuestionEditView($type);
-		if ($type == MULTIPLE_CHOICE_QUESTION) {
-			$out .= multipleChoiceQuestionHTML($data);
-		} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-			$out .= trueOrFalseQuestionHTML($data);
-		} elseif ($type == OBJECTIVE_QUESTION) {
-			$out .= objectiveQuestionHTML($data);
-		} elseif ($type == ESSAY_QUESTION) {
-			$out .= essayQuestionHTML($data);
-		}
+		$out .= questionHTML($type, $data);
 		
 		$parameters = array('view' => $view, 'questionId' => $value['question_id'],
 							'examId' => $examId);
