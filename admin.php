@@ -46,7 +46,13 @@ function _addCategoryAction($data)
 function _addQuestionAction($data)
 {
 	include '/functions/question.php';
-	return addQuestion($data);
+	$type = $data['type'];
+	$options = array('TYPE' => $type);
+	$mainTableColumns = getQuestionTableColumns();
+	$secondaryTableColumns = getQuestionTableColumns($options);
+	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
+	$questionData = getArrayValues($data, $columns);
+	return addQuestion($type, $questionData);
 }
 
 function _addUserAction($data)
@@ -77,9 +83,16 @@ function _editCategoryAction($data)
 
 function _editQuestionAction($data)
 {
-	$id = $data['question_id'];
 	include '/functions/question.php';
-	$result = updateQuestion($id, $data);
+	$id = $data['question_id'];
+	$type = $data['type'];
+	$options = array('TYPE' => $type);
+	$mainTableColumns = getQuestionTableColumns();
+	$secondaryTableColumns = getQuestionTableColumns($options);
+	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
+	$questionData = getArrayValues($data, $columns);
+	
+	$result = updateQuestion($id, $questionData);
 	$examId = intval(getPOST('examId', ''));
 	if (empty($examId)) {
 		_displayResultNotification($result);

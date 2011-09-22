@@ -392,14 +392,6 @@ function getChoicesLetterColumns()
 	return $choices;
 }
 
-function getSecondaryQuestionTables()
-{
-	return array(MULTIPLE_CHOICE_QUESTION => 'multiple_choice',
-				 TRUE_OR_FALSE_QUESTION => 'true_or_false',
-				 OBJECTIVE_QUESTION => 'objective'
-				);
-}
-
 function _getViewFile($view)
 {
 	$viewFileHierarchy = explode ('-', $view);
