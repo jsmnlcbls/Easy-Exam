@@ -39,8 +39,8 @@ if ($requestMethod == "GET") {
 function _addCategoryAction($data)
 {
 	$categoryData = getArrayValues($data, array('name', 'parent'));
-	include '/functions/category.php';
-	return addCategory($categoryData);
+	include '/functions/question.php';
+	return addQuestionCategory($categoryData);
 }
 
 function _addQuestionAction($data)
@@ -77,8 +77,8 @@ function _editCategoryAction($data)
 	$categoryId = $data["categoryId"];
 	$categoryData = getArrayValues($data, array('name', 'parent'));
 	
-	include '/functions/category.php';
-	return editCategory($categoryId, $categoryData); 
+	include '/functions/question.php';
+	return editQuestionCategory($categoryId, $categoryData); 
 }
 
 function _editQuestionAction($data)
