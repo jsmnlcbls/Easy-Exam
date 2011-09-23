@@ -7,7 +7,7 @@
 				<td>
 				<?php
 					echo "<input type = \"hidden\" name = \"categoryId\" value = \"{$data['category_id']}\">";
-					echo "<input type = \"text\" name = \"categoryName\" value = \"{$data['name']}\"/>";
+					echo "<input type = \"text\" name = \"name\" value = \"{$data['name']}\"/>";
 				?>
 				</td>
 			</tr>
@@ -15,7 +15,7 @@
 				<td>New Parent Category</td>
 				<td>
 					<?php
-					$attributes = array('name' => 'parentCategory', 'selected' => $data['parent_category']);
+					$attributes = array('name' => 'parent', 'selected' => $data['parent_category']);
 					echo questionCategorySelectHTML($attributes); 
 					?>
 				</td>

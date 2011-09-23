@@ -10,7 +10,7 @@ $data = escapeOutput(getExamData(intval(filterGET("examId"))));
 		<table>
 			<tr>
 				<td>Exam Name</td>
-				<td><input type = "text" name = "examName" value="<?php echo $data['name']?>"/></td>
+				<td><input type = "text" name = "name" value="<?php echo $data['name']?>"/></td>
 			</tr>
 			<tr>
 				<td>Get Questions From</td>

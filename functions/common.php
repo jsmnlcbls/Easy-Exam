@@ -392,14 +392,6 @@ function getChoicesLetterColumns()
 	return $choices;
 }
 
-function getSecondaryQuestionTables()
-{
-	return array(MULTIPLE_CHOICE_QUESTION => 'multiple_choice',
-				 TRUE_OR_FALSE_QUESTION => 'true_or_false',
-				 OBJECTIVE_QUESTION => 'objective'
-				);
-}
-
 function _getViewFile($view)
 {
 	$viewFileHierarchy = explode ('-', $view);
@@ -413,12 +405,12 @@ function _getViewFile($view)
 	return '';
 }
 
-function getEditView($type)
+function getQuestionEditView($type)
 {
 	if ($type == MULTIPLE_CHOICE_QUESTION) {
 		return "question-multiple-choice-edit";
 	} elseif ($type == ESSAY_QUESTION) {
-		return "question-essay-edit";
+		return "question-essay-edit-edit";
 	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
 		return "question-true-or-false-edit";
 	} elseif ($type == OBJECTIVE_QUESTION) {

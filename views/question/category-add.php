@@ -5,24 +5,14 @@
 		<table>
 			<tr>
 				<td>Category Name</td>
-				<td><input type = "text" name = "categoryName" /></td>
+				<td><input type = "text" name = "name" /></td>
 			</tr>
 			<tr>
 				<td>Parent Category</td>
 				<td>
-				<select name = "parentCategory">
-					<?php
-						$categories = (getAllCategories());
-						foreach ($categories as $category) {
-							$name = escapeOutput($category['name']);
-							if ($category['category_id'] == 0) {
-								echo '<option value = "0">None Selected</option>';
-							} else {
-								echo "<option value = \"{$category['category_id']}\">{$name}</option>";
-							}
-						}
-					?>
-				</select>
+				<?php
+				echo questionCategorySelectHTML(array('name' => 'parent'));
+				?>
 				</td>
 			</tr>
 			<tr>

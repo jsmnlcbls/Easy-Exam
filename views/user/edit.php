@@ -14,7 +14,7 @@ $data = getUserData($id);
 		<table>
 			<tr>
 				<td>User Name</td>
-				<td><input type = "text" name = "username" value = "<?php echo escapeOutput($data['name']);?>"/></td>
+				<td><input type = "text" name = "name" value = "<?php echo escapeOutput($data['name']);?>"/></td>
 			</tr>
 			<tr>
 				<td>Role</td>
