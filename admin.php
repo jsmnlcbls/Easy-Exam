@@ -58,7 +58,7 @@ function _addQuestionAction($data)
 function _addUserAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, array('name', 'password', 'role'));
+	$userData = getArrayValues($data, getAccountsTableColumns());
 	return addUser($userData);
 }
 
@@ -119,9 +119,9 @@ function _editExamAction($data)
 
 function _editUserAction($data)
 {
-	$userData = getArrayValues($data, array('name', 'password', 'role'));
-	$id = $data['id'];
 	include "functions/user.php";
+	$userData = getArrayValues($data, getAccountsTableColumns());
+	$id = $data['id'];
 	return updateUser($id, $userData);
 }
 
