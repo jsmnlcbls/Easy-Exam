@@ -1,205 +1,65 @@
 <?php
-$query = array();
 
-$query[] = "CREATE DATABASE " .getSettings('Database Name') . " DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;";
-$query[] = "USE " . getSettings("Database Name");
-
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `category` (
-  `category_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `parent_category` int(11) NOT NULL,
-  PRIMARY KEY (`category_id`),
-  KEY `parent_category` (`parent_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-QUERY;
-
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `exam` (
-  `exam_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `start_date_time` datetime NOT NULL,
-  `end_date_time` datetime NOT NULL,
-  `time_limit` tinyint(4) NOT NULL,
-  `passing_score` tinyint(4) NOT NULL,
-  `questions_category` int(11) NOT NULL,
-  PRIMARY KEY (`exam_id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `questions_category` (`questions_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `question_type` (
-  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
-  `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1; 
-QUERY;
-
-$query[] = <<<QUERY
-INSERT INTO `question_type` (`id`, `name`) VALUES
-(1, 'Multiple Choice'),
-(2, 'Essay'),
-(3, 'True Or False'),
-(4, 'Objective');
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `questions` (
-  `question_id` int(11) NOT NULL AUTO_INCREMENT,
-  `question` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `category` int(11) NOT NULL,
-  `type` tinyint(1) NOT NULL,
-  PRIMARY KEY (`question_id`),
-  KEY `category` (`category`),
-  KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `role` (
-  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
-  `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-QUERY;
-
-$query[] = <<<QUERY
-INSERT INTO `role` (`id`, `name`) VALUES
-(1, 'Examinee'),
-(2, 'Reviewer'),
-(4, 'Examiner');
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `accounts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `role` tinyint(4) NOT NULL,
-  `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `password` char(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `salt` char(16) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `role` (`role`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `multiple_choice` (
-  `question_id` int(11) NOT NULL,
-  `choiceA` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceB` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceC` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceD` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceE` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `answer` char(1) COLLATE utf8_unicode_ci NOT NULL,
-  `category` int(11) NOT NULL,
-  PRIMARY KEY (`question_id`),
-  KEY `category` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `true_or_false` (
-  `question_id` int(11) NOT NULL,
-  `answer` tinyint(1) NOT NULL,
-  `category` int(11) NOT NULL,
-  PRIMARY KEY (`question_id`),
-  KEY `category` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-QUERY;
-
-$query[] = <<<QUERY
-CREATE TABLE IF NOT EXISTS `objective` (
-  `question_id` int(11) NOT NULL,
-  `answer` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `category` int(11) NOT NULL,
-  PRIMARY KEY (`question_id`),
-  KEY `category` (`category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-QUERY;
-
-$query[] = <<<QUERY
-ALTER TABLE `category`
-  ADD CONSTRAINT `category_ibfk_1` FOREIGN KEY (`parent_category`) REFERENCES `category` (`category_id`);
-QUERY;
-
-//temporarily disable
-$query[] = "SET foreign_key_checks = 0;";
-
-$query[] = <<<QUERY
-INSERT INTO `category` (`category_id`, `name`, `parent_category`) 
-VALUES (0, '', 0);
-QUERY;
-
-//because mysql does not follow the category_id value set above and insist on it being 1
-$query[] = <<<QUERY
-UPDATE `category` SET category_id = 0;
-QUERY;
-
-$query[] = "SET foreign_key_checks = 1;";
-
-$query[] = <<<QUERY
-ALTER TABLE `exam`
-  ADD CONSTRAINT `exam_ibfk_1` FOREIGN KEY (`questions_category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE;
-QUERY;
-
-$query[] = <<<QUERY
-ALTER TABLE `questions`
-  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `question_type` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE;
-QUERY;
-
-$query[] = <<<QUERY
-ALTER TABLE `multiple_choice`
-  ADD CONSTRAINT `multiple_choice_ibfk_2` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `multiple_choice_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-QUERY;
-
-$query[] = <<<QUERY
-ALTER TABLE `true_or_false`
-  ADD CONSTRAINT `true_or_false_ibfk_2` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `true_or_false_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-QUERY;
-
-$query[] = <<<QUERY
-ALTER TABLE `objective`
-  ADD CONSTRAINT `objective_ibfk_2` FOREIGN KEY (`category`) REFERENCES `category` (`category_id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `objective_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-QUERY;
-
-function installDatabase($host, $dbUser, $dbPassword)
+function installDatabase($parameters)
 {
-	global $query;
-	$database = _connectDb($host, $dbUser, $dbPassword);
-	$database->query("START TRANSACTION");
-	
-	foreach ($query as $value) {
-		$result = $database->query($value);
-		if ($result === false) {
-			$database->query("ROLLBACK");
-			return $database->errorInfo();
-		}
-	}
-	$database->query("COMMIT");
+	$database = $parameters['dsnPrefix'];
+	_writeConfigurationToFile($parameters);
+	getDatabase();
+	executeDatabase("START TRANSACTION");
+	_installDatabaseStructure($database);
+	executeDatabase("SET FOREIGN_KEY_CHECKS=0");
+	_installInitialData();
+	executeDatabase("SET FOREIGN_KEY_CHECKS=1");
+	executeDatabase("COMMIT");
 	return true;
+	
 }
 
-function _connectDb($host, $user, $password)
+function _writeConfigurationToFile($parameters)
 {
-	$dataSourceName = "mysql:host=$host";
-	$database = null;
-	try {
-		$database = new PDO($dataSourceName, 
-							getSettings('Database User'), 
-							getSettings('Database Password'));
-	} catch (PDOException $exception) {
-		echo "Database Error: " . $exception->getMessage();
-		die();
+	$out = array();
+	$out[] = '<?php';
+	$out[] = '$settings["Data Source Name Prefix"] = "' . $parameters['dsnPrefix'] . '";';
+	$out[] = '$settings["Database Host"] = "' . $parameters['host'] . '";';
+	$out[] = '$settings["Database Name"] = "' . $parameters['database'] . '";';
+	$out[] = '$settings["Database User"] = "' . $parameters['user'] . '";';
+	$out[] = '$settings["Database Password"] = "' . $parameters['password'] . '";';
+	$out[] = '$settings["Time Zone"] = "Asia/Manila";';
+	$out[] = '$settings["Login Page"] = "login.php";';
+	$out[] = '$settings["User Page"] = "index.php";';
+	
+	$data = implode(PHP_EOL, $out);
+	$result = file_put_contents("config/settings.php", $data);
+	if (false === $result) {
+		die('Unable to write settings to file.');
 	}
-	return $database;
+}
+
+function _installDatabaseStructure($database)
+{	
+	$file = '';
+	if ($database == "mysql") {
+		$file = "config/mysql-structure.sql";
+	} else {
+		die ('Unsupported database: ' . $database);
+	}
+	_executeSqlFile($file);
+}
+
+function _installInitialData()
+{
+	_executeSqlFile("config/initial-data.sql");
+}
+
+function _executeSqlFile($file)
+{
+	$fileContents = file_get_contents($file);
+	$sqlStatements = explode(PHP_EOL . PHP_EOL, $fileContents);
+	
+	foreach ($sqlStatements as $statement) {
+		$result = executeDatabase($statement);
+		if (false === $result) {
+			die('Error: ' . getDatabaseError('ERROR_MESSAGE'));
+		}
+	}
 }

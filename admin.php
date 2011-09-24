@@ -146,10 +146,7 @@ function _deleteUserAction($data)
 function _installAction($data)
 {
 	include "functions/install.php";
-	$username = $data["databaseUser"];
-	$password = $data['databasePassword'];
-	$host = $data["databaseHost"];
-	return installDatabase($host, $username, $password);
+	return installDatabase($data);
 }
 
 function _displayResultNotification($success)
