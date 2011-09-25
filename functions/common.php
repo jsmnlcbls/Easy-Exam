@@ -4,28 +4,30 @@ const ESSAY_QUESTION = 2;
 const TRUE_OR_FALSE_QUESTION = 3;
 const OBJECTIVE_QUESTION = 4;
 
-function getSettings($key = null) {
-	static $settings = 
-	array('Data Source Name Prefix' => 'mysql',
-		  'Database Name' => 'easy_exam',
-		  'Database Host' => 'localhost',
-		  'Database User' => 'root',
-		  'Database Password' => '',
-		  'Time Zone' => "Asia/Manila",
-		  'Login Page' => 'login.php',
-		  'User Page' => 'index.php'
-	);
-	if ($key == null) {
-		return $settings;
-	} elseif (isset($settings[$key])) {
-		return $settings[$key];
+function getSettings($key = null, $default = null) {
+	static $config = null;
+	
+	if (null === $config) {
+		@include "config/settings.php";
+		if (isset($settings) && is_array($settings)) {
+			$config = $settings;
+		}
 	}
+	if ($key == null) {
+		return $config;
+	} elseif (isset($config[$key])) {
+		return $config[$key];
+	}
+	return $default;
 }
 
 function initialize()
 {
 	session_start();
-	date_default_timezone_set (getSettings('Time Zone'));	
+	$timeZone = getSettings('Time Zone', null);
+	if (null != $timeZone) {
+		date_default_timezone_set($timeZone);
+	}
 }
 
 /**
@@ -239,21 +241,15 @@ function getAvailableExams()
 
 function getCategoryData($id)
 {
-	$sql = "SELECT * FROM category WHERE category_id = :id";
+	$sql = "SELECT * FROM question_category WHERE category_id = :id";
 	$parameters = array(':id' => $id);
 	$result = queryDatabase($sql, $parameters);
 	return array_shift($result);
 }
 
-function getAllMenuCategories()
-{
-	$sql = "SELECT * FROM category WHERE menu_visibility = 1 ORDER BY name";
-	return queryDatabase($sql, null, 'category_id');
-}
-
 function getAllCategories()
 {
-	$sql = "SELECT * FROM category ORDER BY name";
+	$sql = "SELECT * FROM question_category ORDER BY name";
 	return queryDatabase($sql);
 }
 

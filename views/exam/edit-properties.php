@@ -1,12 +1,13 @@
 <?php
 include "functions/exam.php";
-$data = escapeOutput(getExamData(intval(filterGET("examId"))));
+$examId = sanitizeExamData(getQuery("examId"), 'exam_id');
+$data = escapeOutput(getExamData($examId));
 ?>
 <div id = "add-exam-panel">
 	<span class = "panel-title">Modify An Exam</span>
 	<form method = "post" action = "admin.php" id = "add-exam-form">
 		<input type = "hidden" name = "action" value = "editExam" />
-		<input type = "hidden" name = "examId" value = "<?php echo $data['exam_id']; ?>" />
+		<input type = "hidden" name = "exam_id" value = "<?php echo $data['exam_id']; ?>" />
 		<table>
 			<tr>
 				<td>Exam Name</td>
@@ -15,7 +16,7 @@ $data = escapeOutput(getExamData(intval(filterGET("examId"))));
 			<tr>
 				<td>Get Questions From</td>
 				<td>
-				<select name = "category">
+				<select name = "questions_category">
 					<?php
 						$categories = getAllCategories();
 						foreach ($categories as $category) {
@@ -43,26 +44,26 @@ $data = escapeOutput(getExamData(intval(filterGET("examId"))));
 						$endDate = date_format($date, "Y-m-d");
 						$endTime = date_format($date, "H:i");
 					?>
-					Date <input value = "<?php echo $startDate; ?>" style="width:5em;text-align:center" type="text" name="startDate"/>
-					Time <input value = "<?php echo $startTime; ?>" style="width:3em;text-align:center" type="text" name="startTime"/>
+					Date <input value = "<?php echo $startDate; ?>" style="width:5em;text-align:center" type="text" name="start_date"/>
+					Time <input value = "<?php echo $startTime; ?>" style="width:3em;text-align:center" type="text" name="start_time"/>
 				</td>
 			</tr>
 			<tr>
 				<td>Exam Availability End</td>
 				<td>
-					Date <input value = "<?php echo $endDate; ?>" style="width:5em;text-align:center" type="text" name="endDate"/>
-					Time <input value = "<?php echo $endTime; ?>" style="width:3em;text-align:center" type="text" name="endTime"/>
+					Date <input value = "<?php echo $endDate; ?>" style="width:5em;text-align:center" type="text" name="end_date"/>
+					Time <input value = "<?php echo $endTime; ?>" style="width:3em;text-align:center" type="text" name="end_time"/>
 				</td>
 			</tr>
 			<tr>
 				<td>Time Limit In Hours</td>
 				<td>
-					<input value = "<?php echo $data['time_limit']; ?>" style="width:2em;text-align:center" type="text" name="timeLimit"/>
+					<input value = "<?php echo $data['time_limit']; ?>" style="width:2em;text-align:center" type="text" name="time_limit"/>
 				</td>
 			</tr>
 			<tr>
 				<td>Passing Score</td>
-				<td><input value ="<?php echo $data['passing_score']; ?>" type="text" name="passingScore" style="width:2em"/> %
+				<td><input value ="<?php echo $data['passing_score']; ?>" type="text" name="passing_score" style="width:2em"/> %
 				</td>
 			</tr>
 			<tr>
