@@ -11,7 +11,7 @@
 			<tr>
 				<td>Get Questions From</td>
 				<td>
-				<select name = "category">
+				<select name = "questions_category">
 					<?php
 						$categories = (getAllCategories());
 						foreach ($categories as $category) {
@@ -29,26 +29,26 @@
 			<tr>
 				<td>Exam Availability Start</td>
 				<td>
-					Date <input style="width:5em;text-align:center" type="text" name="startDate"/>
-					Time <input style="width:3em;text-align:center" type="text" name="startTime"/>
+					Date <input style="width:5em;text-align:center" type="text" name="start_date"/>
+					Time <input style="width:3em;text-align:center" type="text" name="start_time"/>
 				</td>
 			</tr>
 			<tr>
 				<td>Exam Availability End</td>
 				<td>
-					Date <input style="width:5em;text-align:center" type="text" name="endDate"/>
-					Time <input style="width:3em;text-align:center" type="text" name="endTime"/>
+					Date <input style="width:5em;text-align:center" type="text" name="end_date"/>
+					Time <input style="width:3em;text-align:center" type="text" name="end_time"/>
 				</td>
 			</tr>
 			<tr>
 				<td>Time Limit In Hours</td>
 				<td>
-					<input style="width:2em;text-align:center" type="text" name="timeLimit"/>
+					<input style="width:2em;text-align:center" type="text" name="time_limit"/>
 				</td>
 			</tr>
 			<tr>
 				<td>Passing Score</td>
-				<td><input type="text" name="passingScore" style="width:2em"/> %
+				<td><input type="text" name="passing_score" style="width:2em"/> %
 				</td>
 			</tr>
 			

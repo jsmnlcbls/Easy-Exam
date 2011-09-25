@@ -64,11 +64,11 @@ function _addUserAction($data)
 
 function _addExamAction($data)
 {
-	$examData = getArrayValues($data, array('name', 'category', 'timeLimit', 'passingScore'));
-	$examData['startDateTime'] = $data["startDate"] . " " . $data["startTime"];
-	$examData['endDateTime'] = $data["endDate"] . " " . $data["endTime"];
-	
 	include "functions/exam.php";
+	$examData = getArrayValues($data, getExamTableColumns());
+	$examData['start_date_time'] = $data["start_date"] . " " . $data["start_time"];
+	$examData['end_date_time'] = $data["end_date"] . " " . $data["end_time"];
+	
 	return addExam($examData);
 }
 
@@ -108,12 +108,12 @@ function _editQuestionAction($data)
 
 function _editExamAction($data)
 {
-	$examData = getArrayValues($data, array('name', 'category', 'timeLimit', 'passingScore'));
-	$examData['startDateTime'] = $data["startDate"] . " " . $data["startTime"];
-	$examData['endDateTime'] = $data["endDate"] . " " . $data["endTime"];
-	
 	include "functions/exam.php";
-	$id = $data["examId"];
+	$examData = getArrayValues($data, getExamTableColumns());
+	$examData['start_date_time'] = $data["start_date"] . " " . $data["start_time"];
+	$examData['end_date_time'] = $data["end_date"] . " " . $data["end_time"];
+	
+	$id = $data["exam_id"];
 	return updateExam($id, $examData);
 }
 
