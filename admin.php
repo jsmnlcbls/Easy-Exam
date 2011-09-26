@@ -171,11 +171,12 @@ function _displayResultNotification($result)
 	$notification = '';
 	if (is_string($result)) {
 		$message = json_decode($result, true);
+		$notification = '<h2>Error</h2>';
 		if (is_array($message) && isset($message['ERROR'])) {
 			$errorMessage = nl2br($message['ERROR']['text']);
-			$notification = '<h2>Error: '.$errorMessage . '</h2>';
+			$notification .= '<div>'.$errorMessage.'</div>';
 		} elseif (is_array($message) && isset($message['OK'])) {
-			$notification = '<h2>' . $message['ERROR']['text'] . '</h2>';
+			$notification .= '<div>' . $message['ERROR']['text'] . '</div>';
 		}
 	} elseif (is_bool($result)) {
 		if ($result === true) {
