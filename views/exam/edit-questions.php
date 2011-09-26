@@ -1,7 +1,7 @@
 <?php
 include "functions/exam.php";
 include "functions/question.php";
-$examId = intval(filterGET("examId"));
+$examId = getQuery("examId");
 $data = getExamData($examId);
 ?>
 <div id = "edit-category-panel">
