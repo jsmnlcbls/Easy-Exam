@@ -26,10 +26,8 @@ if ($requestMethod == "GET") {
 	$function = "_{$action}Action";
 	
 	if (_isInActionWhitelist($action) && function_exists($function)) {
-		$success = call_user_func($function, $_POST);
-		if (is_bool($success)) {
-			_displayResultNotification($success);
-		}
+		$result = call_user_func($function, $_POST);
+		_displayResultNotification($result);
 	} else {
 		_displayResultNotification(false);
 	}
@@ -149,13 +147,42 @@ function _installAction($data)
 	return installDatabase($data);
 }
 
-function _displayResultNotification($success)
+function _resultMessage($result, $message)
+{
+	$success = (bool) $result;
+	if ($success) {
+		return array('status' => 'ok', 'message' => $message);
+	} else {
+		return array('status' => 'error', 'message' => $message);
+	}
+}
+
+function _isValidationOk($validationResult)
+{
+	if ($validationResult === true) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function _displayResultNotification($result)
 {
 	$notification = '';
-	if ($success === true) {
+	if (is_string($result)) {
+		$message = json_decode($result, true);
+		if (is_array($message) && isset($message['ERROR'])) {
+			$errorMessage = nl2br($message['ERROR']['text']);
+			$notification = '<h2>Error: '.$errorMessage . '</h2>';
+		} elseif (is_array($message) && isset($message['OK'])) {
+			$notification = '<h2>' . $message['ERROR']['text'] . '</h2>';
+		}
+	} elseif (is_bool($result)) {
+		if ($result === true) {
 		$notification = "<h2>Success!</h2>";
-	} elseif ($success === false) {
-		$notification = "<h2>Error. Please try again.</h2>";
+		} elseif ($result === false) {
+			$notification = "<h2>Error. Please try again.</h2>";
+		}
 	}
 	$args = array('mainPanel' => $notification);
 	echo _renderAdminPage($args);

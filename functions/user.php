@@ -2,6 +2,7 @@
 const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
 
+
 function sanitizeAccountsData($rawData, $key = null)
 {
 	if (is_array($rawData)) {
@@ -36,6 +37,11 @@ function getAllUsers()
 
 function addUser($data)
 {
+	$result = _validateAccountsData($data);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
 	$data = sanitizeAccountsData($data);
 	$data['role'] = _deriveRole($data['role']);
 	$passwordData = _derivePassword($data['password']);
@@ -47,6 +53,11 @@ function addUser($data)
 
 function getUserData($id)
 {
+	$result = _validateAccountsData($id, 'id');
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
 	$id = sanitizeAccountsData($id, 'id');
 	$table = ACCOUNTS_TABLE;
 	$sql = "SELECT * FROM {$table} WHERE id = :id";
@@ -60,6 +71,15 @@ function getUserData($id)
 
 function updateUser($id, $data)
 {
+	$result = array();
+	$result[] = _validateAccountsData($id, 'id');
+	$result[] = _validateAccountsData($data);
+	foreach ($result as $value) {
+		if (isErrorMessage($value)) {
+			return $value;
+		}
+	}
+	
 	$id = sanitizeAccountsData($id, 'id');
 	$data = sanitizeAccountsData($data);
 	$data['role'] = _deriveRole($data['role']);
@@ -75,6 +95,11 @@ function updateUser($id, $data)
 
 function deleteUser($id)
 {
+	$result = _validateAccountsData($id, 'id');
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
 	$id = sanitizeAccountsData($id, 'id');
 	$table = ACCOUNTS_TABLE;
 	$sql = "DELETE FROM {$table} WHERE id = :id";
@@ -89,6 +114,64 @@ function getAccountsTableColumns($includePrimaryKeys = false)
 	} else {
 		return array('role', 'name', 'password');
 	}
+}
+
+function _validateAccountsData($rawData, $key = null)
+{
+	if (is_array($rawData)) {
+		$errorMessages = array();
+		foreach ($rawData as $key => $value) {
+			if (!_isValidAccountsValue($value, $key)) {
+				$errorMessages[] = _getValidateErrorMessage($key, $value);
+			}
+		}
+		if (empty($errorMessages)) {
+			return true;
+		} else {
+			return errorMessage(VALIDATION_ERROR, $errorMessages);
+		}
+	} elseif (is_string($key)) {
+		if (_isValidAccountsValue($rawData, $key)) {
+			return true;
+		}
+		$text = _getValidateErrorMessage($key, $rawData);
+		return errorMessage(VALIDATION_ERROR, $text);
+	}
+}
+
+
+function _isValidAccountsValue($value, $key)
+{
+	if ($key == 'id' && ctype_digit("$value")) {
+		return true;
+	} elseif ($key == 'role' && is_array($value)) {
+		foreach ($value as $role) {
+			if (!ctype_digit($role) || $role > 8) {
+				return false;
+			}
+		}
+		return true;
+	} elseif ($key == 'name' && "" != trim($value) && (strlen($value) < 64)) {
+		return true;
+	} elseif ($key == 'password') {
+		return true;
+	}
+	return false;
+}
+
+function _getValidateErrorMessage($key, $data)
+{
+	$message = "Invalid ";
+	if ($key == 'id') {
+		$message .= "account id: ";
+	} elseif ($key == 'role') {
+		$message .= "account role: ";
+	} elseif ($key == 'name') {
+		$message .= "account name: ";
+	} else {
+		$message .= "data: ";
+	}
+	return $message . "'$data'";
 }
 
 function _sanitizeAccountsData($rawData, $key)
