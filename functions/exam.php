@@ -4,19 +4,19 @@ const EXAM_TABLE = "exam";
 
 function addExam($data)
 {
-	$data = sanitizeExamData($data);
+	$data = _sanitizeExamData($data);
 	return insertIntoTable(EXAM_TABLE, $data);
 }
 
 function updateExam($examId, $data)
 {
-	$data = sanitizeExamData($data);
+	$data = _sanitizeExamData($data);
 	return updateTable(EXAM_TABLE, $data, "exam_id=:id", array(':id' => $examId));
 }
 
 function getExamData($id)
 {
-	$id = sanitizeExamData($id, 'exam_id');
+	$id = _sanitizeExamData($id, 'exam_id');
 	$sql = "SELECT * FROM exam WHERE exam_id=:id";
 	$parameters = array(':id' => $id);
 	$result = queryDatabase($sql, $parameters);
@@ -31,7 +31,7 @@ function getAllExams()
 
 function getExamQuestions($examId)
 {
-	$examId = sanitizeExamData($examId, 'exam_id');
+	$examId = _sanitizeExamData($examId, 'exam_id');
 	$data = getExamData($examId);
 	$category = $data['questions_category'];
 	$sql = "SElECT * FROM questions WHERE category=:category";
@@ -41,7 +41,7 @@ function getExamQuestions($examId)
 
 function deleteExam($id)
 {
-	$id = sanitizeExamData($id, 'exam_id');
+	$id = _sanitizeExamData($id, 'exam_id');
 	$sql = "DELETE FROM exam WHERE exam_id = :id";
 	$parameters = array(':id' => $id);
 	return executeDatabase($sql, $parameters);
@@ -53,20 +53,20 @@ function getExamTableColumns()
 				'passing_score', 'questions_category');
 }
 
-function sanitizeExamData($rawData, $key = null)
+function _sanitizeExamData($rawData, $key = null)
 {
 	if (is_array($rawData)) {
 		$sanitizedData = array();
 		foreach ($rawData as $key => $value) {
-			$sanitizedData[$key] = _sanitizeExamData($value, $key);
+			$sanitizedData[$key] = _sanitizeExamValue($value, $key);
 		}
 		return $sanitizedData;
 	} elseif (is_string($key)) {
-		return _sanitizeExamData($rawData, $key);
+		return _sanitizeExamValue($rawData, $key);
 	}
 }
 
-function _sanitizeExamData($rawData, $key)
+function _sanitizeExamValue($rawData, $key)
 {
 	switch ($key) {
 		case 'exam_id':

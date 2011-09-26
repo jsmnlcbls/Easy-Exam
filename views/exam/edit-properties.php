@@ -1,6 +1,6 @@
 <?php
 include "functions/exam.php";
-$examId = sanitizeExamData(getQuery("examId"), 'exam_id');
+$examId = getQuery("examId");
 $data = escapeOutput(getExamData($examId));
 ?>
 <div id = "add-exam-panel">
