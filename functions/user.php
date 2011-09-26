@@ -2,20 +2,6 @@
 const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
 
-
-function sanitizeAccountsData($rawData, $key = null)
-{
-	if (is_array($rawData)) {
-		$sanitizedData = array();
-		foreach ($rawData as $key => $value) {
-			$sanitizedData[$key] = _sanitizeAccountsData($value, $key);
-		}
-		return $sanitizedData;
-	} elseif (is_string($key)) {
-		return _sanitizeAccountsData($rawData, $key);
-	}
-}
-
 function getAllRoles()
 {
 	$sql = "SELECT * FROM " . ROLE_TABLE;
@@ -42,7 +28,7 @@ function addUser($data)
 		return $result;
 	}
 	
-	$data = sanitizeAccountsData($data);
+	$data = _sanitizeAccountsData($data);
 	$data['role'] = _deriveRole($data['role']);
 	$passwordData = _derivePassword($data['password']);
 	$data['password'] = $passwordData['hash'];
@@ -58,7 +44,7 @@ function getUserData($id)
 		return $result;
 	}
 	
-	$id = sanitizeAccountsData($id, 'id');
+	$id = _sanitizeAccountsData($id, 'id');
 	$table = ACCOUNTS_TABLE;
 	$sql = "SELECT * FROM {$table} WHERE id = :id";
 	$parameters = array(':id' => $id);
@@ -80,8 +66,8 @@ function updateUser($id, $data)
 		}
 	}
 	
-	$id = sanitizeAccountsData($id, 'id');
-	$data = sanitizeAccountsData($data);
+	$id = _sanitizeAccountsData($id, 'id');
+	$data = _sanitizeAccountsData($data);
 	$data['role'] = _deriveRole($data['role']);
 	if ($data['password'] != "") {
 		$passwordData = _derivePassword($data['password']);
@@ -100,7 +86,7 @@ function deleteUser($id)
 		return $result;
 	}
 	
-	$id = sanitizeAccountsData($id, 'id');
+	$id = _sanitizeAccountsData($id, 'id');
 	$table = ACCOUNTS_TABLE;
 	$sql = "DELETE FROM {$table} WHERE id = :id";
 	$parameters = array(':id' => $id);
@@ -174,7 +160,20 @@ function _getValidateErrorMessage($key, $data)
 	return $message . "'$data'";
 }
 
-function _sanitizeAccountsData($rawData, $key)
+function _sanitizeAccountsData($rawData, $key = null)
+{
+	if (is_array($rawData)) {
+		$sanitizedData = array();
+		foreach ($rawData as $key => $value) {
+			$sanitizedData[$key] = _sanitizeAccountsValue($value, $key);
+		}
+		return $sanitizedData;
+	} elseif (is_string($key)) {
+		return _sanitizeAccountsValue($rawData, $key);
+	}
+}
+
+function _sanitizeAccountsValue($rawData, $key)
 {
 	switch ($key) {
 		case 'id':
