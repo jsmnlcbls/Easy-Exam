@@ -1,4 +1,6 @@
 <?php
+const VALIDATION_ERROR = 1000;
+
 const MULTIPLE_CHOICE_QUESTION = 1;
 const ESSAY_QUESTION = 2;
 const TRUE_OR_FALSE_QUESTION = 3;
@@ -460,8 +462,75 @@ function getArrayValues($inputArray, $keys = null)
 	}
 }
 
-//------------------------Internal functions-----------------------------------
+/**
+ * Creates and returns an ERROR message in a "standard" format.
+ * @param int $code the error code
+ * @param String $text the error message
+ * @return String
+ */
+function errorMessage($code, $text)
+{
+	$errorText = '';
+	if (is_array($text)) {
+		$errorText = implode(PHP_EOL, $text);
+	}
+	$message = array('ERROR' => array('code' => $code, 'text' => $errorText));
+	return json_encode($message);
+}
 
+/**
+ * Creates and returns an OK message in a "standard" format.
+ * This signifies that no error occured during processing and that a task was
+ * successfully completed.
+ * @param String $text the message
+ * @return String
+ */
+function okMessage($text)
+{
+	$message = array('OK' => array('text' => $text));
+	return json_encode($message);
+}
+
+/**
+ * Returns true if argument is an ERROR message as created by the errorMessage
+ * function. False otherwise.
+ * @param String $message
+ * @return Boolean 
+ */
+function isErrorMessage($message)
+{
+	if (is_string($message)) {
+		$message = json_decode($message, true);
+		if (is_array($message) && 
+			isset($message['ERROR']) && 
+			isset($message['ERROR']['code']) &&
+			isset($message['ERROR']['text'])) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Returns true if argument is an OK message as created by the okMessage function. 
+ * False otherwise.
+ * @param String $message
+ * @return type 
+ */
+function isOkMessage($message) 
+{
+	if (is_string($message)) {
+		$message = json_decode($message, true);
+		if (is_array($message) && 
+			isset($message['OK']) && 
+			isset($message['OK']['text'])) {
+			return true;
+		}
+	}
+	return false;	
+}
+
+//------------------------Internal functions-----------------------------------
 
 function _viewIsInWhiteList($directory, $file)
 {
