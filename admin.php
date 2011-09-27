@@ -12,7 +12,7 @@ if ($requestMethod == "GET") {
 		$mainPanel = renderView('admin-install');
 		$args = array('mainPanel' => $mainPanel, 'menu' => '');
 	} else {
-		$view = filterGET('view', '');
+		$view = getUrlQuery('view', '');
 		if ('' != $view) {
 			$mainPanel = renderView($view);
 			$args = array('mainPanel' => $mainPanel);

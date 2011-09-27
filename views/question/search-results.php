@@ -3,7 +3,7 @@
 	<?php
 	include "functions/question.php";
 	
-	$data = getQuery(array('category', 'question', 'type'));
+	$data = getUrlQuery(array('category', 'question', 'type'));
 	$result = searchQuestions($data);
 	
 	$countResults = count($result);

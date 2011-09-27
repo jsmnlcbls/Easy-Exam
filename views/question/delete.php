@@ -1,8 +1,8 @@
 <?php
 include "functions/question.php";
 
-$questionId = getQuery("questionId");
-$type = getQuery('type');
+$questionId = getUrlQuery("questionId");
+$type = getUrlQuery('type');
 $data = escapeOutput(getQuestionData($questionId, $type));
 ?>
 <div id = "delete-question-panel">

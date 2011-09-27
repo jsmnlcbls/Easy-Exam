@@ -1,5 +1,5 @@
 <?php
-$categoryId = getQuery('category_id', '');
+$categoryId = getUrlQuery('category_id', '');
 ?>
 <div id = "select-category-to-edit-panel">
 	<span class = "panel-title">Edit Question Category</span>
