@@ -316,7 +316,7 @@ function getPOST($key = null, $default = null)
 	return _getRequestValues("post", $key, $default);
 }
 
-function getQuery($key = null, $default = null)
+function getUrlQuery($key = null, $default = null)
 {
 	return _getRequestValues("get", $key, $default);
 }
@@ -341,20 +341,6 @@ function filterPOST($key, $default = null)
 		return $filteredValues;
 	} elseif (is_string($key)) {
 		return filterString(getPost($key, $default));
-	} else {
-		return $default;
-	}
-}
-
-function filterGET($key, $default = null) 
-{
-	if (is_array($key)) {
-		$filteredValues = array();
-		foreach ((getQuery($key, $default)) as $key => $value) {
-			$filteredValues[$key] = filterString($value);
-		}
-	} elseif (is_string($key)) {
-		return filterString(getQuery($key, $default));
 	} else {
 		return $default;
 	}
@@ -408,7 +394,7 @@ function getQuestionEditView($type)
 	if ($type == MULTIPLE_CHOICE_QUESTION) {
 		return "question-multiple-choice-edit";
 	} elseif ($type == ESSAY_QUESTION) {
-		return "question-essay-edit-edit";
+		return "question-essay-edit";
 	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
 		return "question-true-or-false-edit";
 	} elseif ($type == OBJECTIVE_QUESTION) {
@@ -538,7 +524,7 @@ function _viewIsInWhiteList($directory, $file)
 	switch ($directory) {
 		case 'question':
 			$views = array('category-add', 'category-edit', 'category-delete',
-							'search', 'multiple-choice-add', 'esssay-add', 
+							'search', 'multiple-choice-add', 'essay-add', 
 							'objective-add', 'true-or-false-add', 'delete',
 							'search-results', 'multiple-choice-edit', 'essay-edit', 
 							'objective-edit', 'true-or-false-edit', 'category-update');
