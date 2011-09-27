@@ -108,7 +108,7 @@ function _validateAccountsData($rawData, $key = null)
 		$errorMessages = array();
 		foreach ($rawData as $key => $value) {
 			if (!_isValidAccountsValue($value, $key)) {
-				$errorMessages[] = _getValidateErrorMessage($key, $value);
+				$errorMessages[] = _getValidateAccountErrorMessage($key, $value);
 			}
 		}
 		if (empty($errorMessages)) {
@@ -120,7 +120,7 @@ function _validateAccountsData($rawData, $key = null)
 		if (_isValidAccountsValue($rawData, $key)) {
 			return true;
 		}
-		$text = _getValidateErrorMessage($key, $rawData);
+		$text = _getValidateAccountErrorMessage($key, $rawData);
 		return errorMessage(VALIDATION_ERROR, $text);
 	}
 }
@@ -145,7 +145,7 @@ function _isValidAccountsValue($value, $key)
 	return false;
 }
 
-function _getValidateErrorMessage($key, $data)
+function _getValidateAccountErrorMessage($key, $data)
 {
 	$message = "Invalid ";
 	if ($key == 'id') {

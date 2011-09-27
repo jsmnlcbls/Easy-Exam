@@ -88,7 +88,7 @@ function _validateExamData($data, $key = null)
 		$errorMessages = array();
 		foreach ($data as $key => $value) {
 			if(!_isValidExamValue($value, $key)) {
-				$errorMessages[] = _getValidateErrorMessage($key, $value);
+				$errorMessages[] = _getValidateExamErrorMessage($key, $value);
 			}
 		}
 		
@@ -111,7 +111,7 @@ function _validateExamData($data, $key = null)
 		return errorMessage(VALIDATION_ERROR, $errorMessages);
 	} elseif (is_string($key)) {
 		if (!_isValidExamValue($data, $key)) {
-			$text = _getValidateErrorMessage($key, $data);
+			$text = _getValidateExamErrorMessage($key, $data);
 			return errorMessage(VALIDATION_ERROR, $text);
 		}
 		return true;
@@ -155,7 +155,7 @@ function _isValidDateTime($value)
 	return true;
 }
 
-function _getValidateErrorMessage($key, $value)
+function _getValidateExamErrorMessage($key, $value)
 {
 	$message = 'Invalid exam ';
 	if ($key == 'name') {

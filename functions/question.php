@@ -326,7 +326,7 @@ function _validateQuestionCategoryData($rawData, $key = null)
 		$errorMessages = array();
 		foreach ($rawData as $key => $value) {
 			if (!_isValidQuestionCategoryData($value, $key)) {
-				$errorMessages[] = _getValidateErrorMessage($key, $value);
+				$errorMessages[] = _getValidateQuestionErrorMessage($key, $value);
 			}
 			if (empty($errorMessages)) {
 				return true;
@@ -337,7 +337,7 @@ function _validateQuestionCategoryData($rawData, $key = null)
 		if (_isValidQuestionCategoryData($rawData, $key)) {
 			return true;
 		}
-		$text = _getValidateErrorMessage($key, $rawData);
+		$text = _getValidateQuestionErrorMessage($key, $rawData);
 		return errorMessage(VALIDATE_ERROR, $text);
 	}
 }
@@ -353,7 +353,7 @@ function _isValidQuestionCategoryData($value, $key)
 	return false;
 }
 
-function _getValidateErrorMessage($key, $data)
+function _getValidateQuestionErrorMessage($key, $data)
 {
 	$message = 'Invalid ';
 	if ($key == 'category_id') {
