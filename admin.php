@@ -24,7 +24,6 @@ if ($requestMethod == "GET") {
 	$action = $_POST['action'];
 	unset($_POST['action']);
 	$function = "_{$action}Action";
-	
 	if (_isInActionWhitelist($action) && function_exists($function)) {
 		$result = call_user_func($function, $_POST);
 		_displayResultNotification($result);
@@ -34,10 +33,10 @@ if ($requestMethod == "GET") {
 	return;
 }
 
-function _addCategoryAction($data)
+function _addQuestionCategoryAction($data)
 {
-	$categoryData = getArrayValues($data, array('name', 'parent'));
 	include '/functions/question.php';
+	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
 	return addQuestionCategory($categoryData);
 }
 
@@ -70,12 +69,12 @@ function _addExamAction($data)
 	return addExam($examData);
 }
 
-function _editCategoryAction($data)
+function _editQuestionCategoryAction($data)
 {
-	$categoryId = $data["categoryId"];
-	$categoryData = getArrayValues($data, array('name', 'parent'));
-	
 	include '/functions/question.php';
+	$categoryId = $data["category_id"];
+	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
+	
 	return editQuestionCategory($categoryId, $categoryData); 
 }
 
@@ -177,8 +176,8 @@ function _renderAdminPage($args)
 
 function _isInActionWhitelist($action)
 {
-	$list = array('addCategory', 'addQuestion', 'addUser', 'addExam',
-				'editCategory', 'editQuestion', 'editUser', 'editExam',
+	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
+				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
 				'deleteCategory', 'deleteQuestion', 'deleteUser', 'deleteExam', 'install');
 	
 	if (in_array($action, $list)) {

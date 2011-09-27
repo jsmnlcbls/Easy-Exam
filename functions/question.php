@@ -1,40 +1,34 @@
 <?php
-
-function sanitizeQuestionData($rawData, $key = null, $type = null)
-{
-	if (is_array($rawData) && $key == null) {
-		if (isset($rawData['type'])) {
-			$type = _sanitizeQuestionValue($rawData['type'], 'type');
-		}
-		$sanitized = array();
-		foreach ($rawData as $key => $value) {
-			$sanitized[$key] = _sanitizeQuestionValue($value, $key, $type);
-		}
-		return $sanitized;
-	} else if (is_string($key)) {
-		return _sanitizeQuestionValue($rawData, $key, $type); 
-	}
-}
+const QUESTION_TABLE = 'question';
+const QUESTION_CATEGORY_TABLE = 'question_category';
 
 function addQuestionCategory($data)
 {
-	$sql = "INSERT INTO question_category (name, parent_category) VALUES (:name, :parent);";
-	$parameters = array(':name' => $data['name'], ':parent' => $data['parent']);
-	return executeDatabase($sql, $parameters);
+	$result = _validateQuestionCategoryData($data);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$data = _sanitizeQuestionCategoryData($data);
+	return insertIntoTable(QUESTION_CATEGORY_TABLE, $data);
 }
 
 function editQuestionCategory($id, $data)
 {
-	$sql = "UPDATE question_category SET name=:name, parent_category=:parentCategory WHERE category_id=:id;";
-	$parameters = array(':name' => $data['name'], 
-						':parentCategory' => $data['parent'],
-						':id' => $id);
-	return executeDatabase($sql, $parameters);
+	$input = array_merge(array('category_id' => $id), $data);
+	$result = _validateQuestionCategoryData($input);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$id = _sanitizeQuestionCategoryData($id, 'category_id');
+	$data = _sanitizeQuestionCategoryData($data);
+	return updateTable(QUESTION_CATEGORY_TABLE, $data, 'category_id = :id', array(':id' => $id));
 }
 
 function getCategoryQuestions($category, $includeSubcategories = true)
 {
-	$category = sanitizeQuestionData($category, 'category');
+	$category = _sanitizeQuestionData($category, 'category');
 	$questions = getQuestions($category);
 	
 	if ($includeSubcategories) {
@@ -50,7 +44,7 @@ function getCategoryQuestions($category, $includeSubcategories = true)
 
 function checkAnswersToQuestions($category, $userAnswers)
 {
-	$category = sanitizeQuestionData($category, 'category');
+	$category = _sanitizeQuestionData($category, 'category');
 	$answers = getAnswersToQuestions($category);
 	$total = count($answers);
 	$correctAnswers = 0;
@@ -64,7 +58,7 @@ function checkAnswersToQuestions($category, $userAnswers)
 
 function getAnswersToQuestions($category)
 {
-	$category = sanitizeQuestionData($category, 'category');
+	$category = _sanitizeQuestionData($category, 'category');
 	$joins = array();
 	foreach (getSecondaryQuestionTables() as $table) {
 		$joins[] = "SELECT q.question_id, t.answer, q.type FROM questions as q INNER JOIN $table AS t "
@@ -78,7 +72,7 @@ function getAnswersToQuestions($category)
 
 function getQuestions($category)
 {
-	$category = sanitizeQuestionData($category, 'category');
+	$category = _sanitizeQuestionData($category, 'category');
 	$sql = "SELECT * FROM questions WHERE category = :category";
 	$parameters = array(':category' => $category);
 	return queryDatabase($sql, $parameters);
@@ -86,8 +80,8 @@ function getQuestions($category)
 
 function addQuestion($type, $rawData)
 {
-	$type = sanitizeQuestionData($type, 'type');
-	$questionData = sanitizeQuestionData($rawData);
+	$type = _sanitizeQuestionData($type, 'type');
+	$questionData = _sanitizeQuestionData($rawData);
 	$result = false;
 	switch (intval($type)) {
 		case MULTIPLE_CHOICE_QUESTION:
@@ -162,9 +156,9 @@ function searchQuestions($data)
 
 function getQuestionData($id, $type = null)
 {
-	$id = sanitizeQuestionData($id, 'question_id');
+	$id = _sanitizeQuestionData($id, 'question_id');
 	if ($type != null) {
-		$type = sanitizeQuestionData($type, 'type');
+		$type = _sanitizeQuestionData($type, 'type');
 	}
 	$sql = "SELECT * FROM questions AS t1 ";
 	$join = true;
@@ -188,9 +182,9 @@ function getQuestionData($id, $type = null)
 
 function updateQuestion($id, $rawData)
 {
-	$id = sanitizeQuestionData($id, 'question_id');
-	$type = sanitizeQuestionData($rawData['type'], 'type');
-	$questionData = sanitizeQuestionData($rawData);
+	$id = _sanitizeQuestionData($id, 'question_id');
+	$type = _sanitizeQuestionData($rawData['type'], 'type');
+	$questionData = _sanitizeQuestionData($rawData);
 	$result = false;
 	switch ($type) {
 		case MULTIPLE_CHOICE_QUESTION:
@@ -211,10 +205,15 @@ function updateQuestion($id, $rawData)
 
 function deleteQuestion($id)
 {
-	$id = sanitizeQuestionData($id, 'question_id');
+	$id = _sanitizeQuestionData($id, 'question_id');
 	$sql = "DELETE FROM questions WHERE question_id=:id";
 	$parameters = array(':id' => $id);
 	return executeDatabase($sql, $parameters);
+}
+
+function getQuestionCategoryTableColumns()
+{
+	return array('name', 'parent_category');
 }
 
 function getQuestionTableColumns($options = array())
@@ -224,7 +223,7 @@ function getQuestionTableColumns($options = array())
 			  $options['INCLUDE_PRIMARY_KEYS']) {
 		$includePrimaryKeys = true;
 	}
-	$type = isset($options['TYPE']) ? sanitizeQuestionData($options['TYPE'], 'type') : null;
+	$type = isset($options['TYPE']) ? _sanitizeQuestionData($options['TYPE'], 'type') : null;
 	
 	$columns = array();
 	if ($type == MULTIPLE_CHOICE_QUESTION && $includePrimaryKeys) {
@@ -319,6 +318,91 @@ function _updateQuestion($id, $data)
 	$condition = "question_id = :question_id";
 	$conditionParameters = array(':question_id' => $id);
 	return updateTable('questions', $data, $condition, $conditionParameters);
+}
+
+function _validateQuestionCategoryData($rawData, $key = null)
+{
+	if (is_array($rawData)) {
+		$errorMessages = array();
+		foreach ($rawData as $key => $value) {
+			if (!_isValidQuestionCategoryData($value, $key)) {
+				$errorMessages[] = _getValidateErrorMessage($key, $value);
+			}
+			if (empty($errorMessages)) {
+				return true;
+			}
+			return errorMessage(VALIDATE_ERROR, $errorMessages);
+		}
+	} elseif (is_string($key)) {
+		if (_isValidQuestionCategoryData($rawData, $key)) {
+			return true;
+		}
+		$text = _getValidateErrorMessage($key, $rawData);
+		return errorMessage(VALIDATE_ERROR, $text);
+	}
+}
+
+function _isValidQuestionCategoryData($value, $key)
+{
+	if ($key == 'category_id' || $key == 'parent_category' && ctype_digit("$value")) {
+		return true;
+	} elseif ($key == 'name' && is_string($value) && 
+			  !empty($value) && strlen($value) < 65) {
+		return true;
+	}
+	return false;
+}
+
+function _getValidateErrorMessage($key, $data)
+{
+	$message = 'Invalid ';
+	if ($key == 'category_id') {
+		$message .= 'category id';
+	} elseif ($key == 'parent_category') {
+		$message .= 'parent category';
+	} elseif ($key == 'name') {
+		$message .= 'category name';
+	}
+	$message .= ": '$data'";
+	return $message;
+}
+
+function _sanitizeQuestionCategoryData($rawData, $key = null) 
+{
+	if (is_array($rawData)) {
+		$sanitizedData = array();
+		foreach ($rawData as $key => $value) {
+			$sanitizedData[$key] = _sanitizeQuestionCategoryValue($value, $key);
+		}
+		return $sanitizedData;
+	} elseif (is_string($key)) {
+		return _sanitizeQuestionCategoryValue($rawData, $key);
+	}
+}
+
+function _sanitizeQuestionCategoryValue($value, $key)
+{
+	if ($key == 'category_id' || $key == 'parent_category') {
+		return intval($value);
+	} elseif ($key == 'name') {
+		return trim($value);
+	}
+}
+
+function _sanitizeQuestionData($rawData, $key = null, $type = null)
+{
+	if (is_array($rawData) && $key == null) {
+		if (isset($rawData['type'])) {
+			$type = _sanitizeQuestionValue($rawData['type'], 'type');
+		}
+		$sanitized = array();
+		foreach ($rawData as $key => $value) {
+			$sanitized[$key] = _sanitizeQuestionValue($value, $key, $type);
+		}
+		return $sanitized;
+	} else if (is_string($key)) {
+		return _sanitizeQuestionValue($rawData, $key, $type); 
+	}
 }
 
 function _sanitizeQuestionValue($value, $key, $type = null)
