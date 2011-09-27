@@ -90,18 +90,7 @@ function _editQuestionAction($data)
 	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
 	$questionData = getArrayValues($data, $columns);
 	
-	$result = updateQuestion($id, $questionData);
-	$examId = intval(getPOST('examId', ''));
-	if (empty($examId)) {
-		_displayResultNotification($result);
-	} else {
-		//this does not seem to work
-		//$location = array('view' => 'editExam', 'examId' => $examId, 'examView' => 'questions');
-		//redirect($_SERVER['REQUEST_URI'] . "?" . http_build_query($location));
-
-		//workaround
-		redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExamQuestions&examId=$examId");
-	} 
+	return updateQuestion($id, $questionData);
 }
 
 function _editExamAction($data)
