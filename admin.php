@@ -136,16 +136,6 @@ function _installAction($data)
 	return installDatabase($data);
 }
 
-function _resultMessage($result, $message)
-{
-	$success = (bool) $result;
-	if ($success) {
-		return array('status' => 'ok', 'message' => $message);
-	} else {
-		return array('status' => 'error', 'message' => $message);
-	}
-}
-
 function _isValidationOk($validationResult)
 {
 	if ($validationResult === true) {
