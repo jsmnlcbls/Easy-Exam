@@ -311,7 +311,7 @@ function getSubCategories($parent)
 	}
 }
 
-function getPOST($key = null, $default = null)
+function getPost($key = null, $default = null)
 {
 	return _getRequestValues("post", $key, $default);
 }
@@ -319,31 +319,6 @@ function getPOST($key = null, $default = null)
 function getUrlQuery($key = null, $default = null)
 {
 	return _getRequestValues("get", $key, $default);
-}
-
-/**
- * Filters string using the built in PHP function
- * @param String $string
- * @return String
- */
-function filterString($string)
-{
-	return filter_var($string, FILTER_SANITIZE_STRING);
-}
-
-function filterPOST($key, $default = null)
-{
-	if (is_array($key)) {
-		$filteredValues = array();
-		foreach ((getPOST($key, $default)) as $key => $value) {
-			$filteredValues[$key] = filterString($value);
-		}
-		return $filteredValues;
-	} elseif (is_string($key)) {
-		return filterString(getPost($key, $default));
-	} else {
-		return $default;
-	}
 }
 
 function renderView($view, $arguments = array(), $escapeString = false)

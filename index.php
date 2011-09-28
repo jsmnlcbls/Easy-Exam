@@ -16,10 +16,9 @@ if ($requestMethod == "GET") {
 	}
 	echo renderView('user-index', $viewArgs);
 } else if ($requestMethod == "POST") {
-	$action = filterPOST("action");
 	$viewArgs = array();
 	include '/functions/question.php';
-	$category = filterPOST("category");
+	$category = getPost("category");
 	$score = 0;
 	$score = checkAnswersToQuestions($category, $_POST);
 	$score = round($score, 2);

@@ -21,11 +21,12 @@ if ($requestMethod == "GET") {
 	echo _renderAdminPage($args);
 	return;
 } else if ($requestMethod == "POST") {
-	$action = $_POST['action'];
-	unset($_POST['action']);
+	$postData = getPost();
+	$action = $postData['action'];
+	unset($postData['action']);
 	$function = "_{$action}Action";
 	if (_isInActionWhitelist($action) && function_exists($function)) {
-		$result = call_user_func($function, $_POST);
+		$result = call_user_func($function, $postData);
 		_displayResultNotification($result);
 	} else {
 		_displayResultNotification(false);
