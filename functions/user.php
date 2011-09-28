@@ -102,27 +102,22 @@ function getAccountsTableColumns($includePrimaryKeys = false)
 	}
 }
 
-function _validateAccountsData($rawData, $key = null)
+function _validateAccountsData($value, $key = null)
 {
-	if (is_array($rawData)) {
-		$errorMessages = array();
-		foreach ($rawData as $key => $value) {
-			if (!_isValidAccountsValue($value, $key)) {
-				$errorMessages[] = _getValidateErrorMessage($key, $value);
-			}
-		}
-		if (empty($errorMessages)) {
-			return true;
-		} else {
-			return errorMessage(VALIDATION_ERROR, $errorMessages);
-		}
-	} elseif (is_string($key)) {
-		if (_isValidAccountsValue($rawData, $key)) {
-			return true;
-		}
-		$text = _getValidateErrorMessage($key, $rawData);
-		return errorMessage(VALIDATION_ERROR, $text);
+	$validatorFunction = function ($value, $key) {
+		return _isValidAccountsValue($value, $key);
+	};
+	
+	$errorMessageFunction = function ($key, $value) {
+		return _getValidateAccountErrorMessage($key, $value);
+	};
+	
+	$inputData = $value;
+	if (!is_array($value) && is_string($key)) {
+		$inputData = array($key => $value);
 	}
+	
+	return validateData($inputData, $validatorFunction, $errorMessageFunction);
 }
 
 
@@ -145,7 +140,7 @@ function _isValidAccountsValue($value, $key)
 	return false;
 }
 
-function _getValidateErrorMessage($key, $data)
+function _getValidateAccountErrorMessage($key, $data)
 {
 	$message = "Invalid ";
 	if ($key == 'id') {

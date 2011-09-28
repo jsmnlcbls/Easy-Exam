@@ -12,7 +12,7 @@ if ($requestMethod == "GET") {
 		$mainPanel = renderView('admin-install');
 		$args = array('mainPanel' => $mainPanel, 'menu' => '');
 	} else {
-		$view = filterGET('view', '');
+		$view = getUrlQuery('view', '');
 		if ('' != $view) {
 			$mainPanel = renderView($view);
 			$args = array('mainPanel' => $mainPanel);
@@ -24,7 +24,6 @@ if ($requestMethod == "GET") {
 	$action = $_POST['action'];
 	unset($_POST['action']);
 	$function = "_{$action}Action";
-	
 	if (_isInActionWhitelist($action) && function_exists($function)) {
 		$result = call_user_func($function, $_POST);
 		_displayResultNotification($result);
@@ -34,10 +33,10 @@ if ($requestMethod == "GET") {
 	return;
 }
 
-function _addCategoryAction($data)
+function _addQuestionCategoryAction($data)
 {
-	$categoryData = getArrayValues($data, array('name', 'parent'));
 	include '/functions/question.php';
+	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
 	return addQuestionCategory($categoryData);
 }
 
@@ -70,12 +69,12 @@ function _addExamAction($data)
 	return addExam($examData);
 }
 
-function _editCategoryAction($data)
+function _editQuestionCategoryAction($data)
 {
-	$categoryId = $data["categoryId"];
-	$categoryData = getArrayValues($data, array('name', 'parent'));
-	
 	include '/functions/question.php';
+	$categoryId = $data["category_id"];
+	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
+	
 	return editQuestionCategory($categoryId, $categoryData); 
 }
 
@@ -90,18 +89,7 @@ function _editQuestionAction($data)
 	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
 	$questionData = getArrayValues($data, $columns);
 	
-	$result = updateQuestion($id, $questionData);
-	$examId = intval(getPOST('examId', ''));
-	if (empty($examId)) {
-		_displayResultNotification($result);
-	} else {
-		//this does not seem to work
-		//$location = array('view' => 'editExam', 'examId' => $examId, 'examView' => 'questions');
-		//redirect($_SERVER['REQUEST_URI'] . "?" . http_build_query($location));
-
-		//workaround
-		redirect($_SERVER['REQUEST_URI'] . "?" . "view=editExamQuestions&examId=$examId");
-	} 
+	return updateQuestion($id, $questionData);
 }
 
 function _editExamAction($data)
@@ -147,16 +135,6 @@ function _installAction($data)
 	return installDatabase($data);
 }
 
-function _resultMessage($result, $message)
-{
-	$success = (bool) $result;
-	if ($success) {
-		return array('status' => 'ok', 'message' => $message);
-	} else {
-		return array('status' => 'error', 'message' => $message);
-	}
-}
-
 function _isValidationOk($validationResult)
 {
 	if ($validationResult === true) {
@@ -198,8 +176,8 @@ function _renderAdminPage($args)
 
 function _isInActionWhitelist($action)
 {
-	$list = array('addCategory', 'addQuestion', 'addUser', 'addExam',
-				'editCategory', 'editQuestion', 'editUser', 'editExam',
+	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
+				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
 				'deleteCategory', 'deleteQuestion', 'deleteUser', 'deleteExam', 'install');
 	
 	if (in_array($action, $list)) {

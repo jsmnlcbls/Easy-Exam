@@ -1,7 +1,7 @@
 <?php
 include "functions/user.php";
 
-$id = intval(filterGET('id'));
+$id = getUrlQuery('id');
 $data = getUserData($id);
 ?>
 <div id = "delete-user-panel">

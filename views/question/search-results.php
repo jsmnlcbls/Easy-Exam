@@ -3,8 +3,7 @@
 	<?php
 	include "functions/question.php";
 	
-	$rawData = getQuery(array('category', 'question', 'type'));
-	$data = sanitizeQuestionData($rawData);
+	$data = getUrlQuery(array('category', 'question', 'type'));
 	$result = searchQuestions($data);
 	
 	$countResults = count($result);
