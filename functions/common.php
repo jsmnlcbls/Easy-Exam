@@ -449,6 +449,33 @@ function getArrayValues($inputArray, $keys = null)
 }
 
 /**
+ * Validate a given data using supplied validator and error message function.
+ * Returns true on success or an error message in failure.
+ * The validator function should accept a value and key as arguments and return
+ * true on success or false on validation failure.
+ * The error message function should accept a key and value as arguments and 
+ * return a corresponding message for the validation failure on that given key.
+ * @param Array $data the data to be validated
+ * @param Closure $validatorFunction
+ * @param Closure $errorMessageFunction
+ * @return Mixed
+ */
+function validateData($data, $validatorFunction, $errorMessageFunction)
+{
+	$errorMessages = array();
+	foreach ($data as $key => $value) {
+		if (!$validatorFunction($value, $key)) {
+			$errorMessages[] = $errorMessageFunction($key, $value);
+		}
+	}
+	if (empty($errorMessages)) {
+		return true;
+	} else {
+		return errorMessage(VALIDATION_ERROR, $errorMessages);
+	}
+}
+
+/**
  * Creates and returns an ERROR message in a "standard" format.
  * @param int $code the error code
  * @param String $text the error message

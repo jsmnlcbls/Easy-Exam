@@ -82,40 +82,33 @@ function getExamTableColumns()
 				'passing_score', 'questions_category');
 }
 
-function _validateExamData($data, $key = null)
+function _validateExamData($value, $key = null)
 {
-	if (is_array($data)) {
-		$errorMessages = array();
-		foreach ($data as $key => $value) {
-			if(!_isValidExamValue($value, $key)) {
-				$errorMessages[] = _getValidateExamErrorMessage($key, $value);
-			}
-		}
-		
-		if (_isValidDateTime($data['start_date_time']) &&
-			_isValidDateTime($data['end_date_time'])) {
-			if (isset($data['start_date_time']) && isset($data['end_date_time'])) {
-				$startDateTime = date_create($data['start_date_time']);
-				$endDateTime = date_create($data['end_date_time']);
-				if ($startDateTime > $endDateTime) {
-					$errorMessages[] = 'Exam ending time is before the start.';
-				} elseif ($startDateTime === $endDateTime) {
-					$errorMessages[] = 'Exam ending time is also the start';
-				}
-			}
-		}
-		
-		if (empty($errorMessages)) {
-			return true;
-		}
-		return errorMessage(VALIDATION_ERROR, $errorMessages);
-	} elseif (is_string($key)) {
-		if (!_isValidExamValue($data, $key)) {
-			$text = _getValidateExamErrorMessage($key, $data);
-			return errorMessage(VALIDATION_ERROR, $text);
-		}
-		return true;
+	//validate also if a given exam start and end time interval is valid
+	if (is_array($value) && 
+		isset($value['start_date_time'])&& 
+		isset($value['end_date_time']) &&
+		_isValidExamValue($value['start_date_time'], 'start_date_time') &&
+		_isValidExamValue($value['end_date_time'], 'end_date_time')) {
+	
+		$value['exam_interval'] = array('start' => $value['start_date_time'],
+										'end' => $value['end_date_time']);
 	}
+	
+	$validatorFunction = function ($value, $key) {
+		return _isValidExamValue($value, $key);
+	};
+	
+	$errorMessageFunction = function ($key, $value) {
+		return _getValidateExamErrorMessage($key, $value);
+	};
+	
+	$inputData = $value;
+	if (!is_array($value) && is_string($key)) {
+		$inputData = array($key => $value);
+	}
+	
+	return validateData($inputData, $validatorFunction, $errorMessageFunction);	
 }
 
 function _isValidExamValue($value, $key)
@@ -132,6 +125,13 @@ function _isValidExamValue($value, $key)
 		return true;
 	} elseif ($key == 'questions_category' && ctype_digit("$value")) {
 		return true;
+	} elseif ($key == 'exam_interval') {
+		$startDateTime = date_create($value['start']);
+		$endDateTime = date_create($value['end']);
+		if ($startDateTime < $endDateTime) {
+			return true;
+		}
+		return false;
 	}
 }
 
@@ -170,6 +170,9 @@ function _getValidateExamErrorMessage($key, $value)
 		$message .= 'passing score';
 	} elseif ($key == 'questions_category') {
 		$message .= 'category for questions';
+	} elseif ($key == 'exam_interval') {
+		$message .= 'time interval for start and end of the exam';
+		$value = $value['start'] . ' to ' . $value['end'];
 	}
 	$message .= " '$value'.";
 	return $message;

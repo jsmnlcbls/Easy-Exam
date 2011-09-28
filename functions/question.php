@@ -320,29 +320,25 @@ function _updateQuestion($id, $data)
 	return updateTable('questions', $data, $condition, $conditionParameters);
 }
 
-function _validateQuestionCategoryData($rawData, $key = null)
+function _validateQuestionCategoryData($value, $key = null)
 {
-	if (is_array($rawData)) {
-		$errorMessages = array();
-		foreach ($rawData as $key => $value) {
-			if (!_isValidQuestionCategoryData($value, $key)) {
-				$errorMessages[] = _getValidateQuestionErrorMessage($key, $value);
-			}
-			if (empty($errorMessages)) {
-				return true;
-			}
-			return errorMessage(VALIDATE_ERROR, $errorMessages);
-		}
-	} elseif (is_string($key)) {
-		if (_isValidQuestionCategoryData($rawData, $key)) {
-			return true;
-		}
-		$text = _getValidateQuestionErrorMessage($key, $rawData);
-		return errorMessage(VALIDATE_ERROR, $text);
+	$validatorFunction = function ($value, $key) {
+		return _isValidQuestionCategoryValue($value, $key);
+	};
+	
+	$errorMessageFunction = function ($key, $value) {
+		return _getValidateQuestionErrorMessage($key, $value);
+	};
+	
+	$inputData = $value;
+	if (!is_array($value) && is_string($key)) {
+		$inputData = array($key => $value);
 	}
+	
+	return validateData($inputData, $validatorFunction, $errorMessageFunction);
 }
 
-function _isValidQuestionCategoryData($value, $key)
+function _isValidQuestionCategoryValue($value, $key)
 {
 	if ($key == 'category_id' || $key == 'parent_category' && ctype_digit("$value")) {
 		return true;
