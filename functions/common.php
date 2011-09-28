@@ -233,83 +233,12 @@ function rollbackTransaction()
 	return getDatabase()->rollBack();
 }
 
-function getAvailableExams()
-{
-	$localDateTime = date("Y-m-d H:s");
-	$sql = "SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name";
-	$parameters = array(':dateTime' => $localDateTime);
-	return queryDatabase($sql, $parameters);
-}
-
-function getCategoryData($id)
-{
-	$sql = "SELECT * FROM question_category WHERE category_id = :id";
-	$parameters = array(':id' => $id);
-	$result = queryDatabase($sql, $parameters);
-	return array_shift($result);
-}
-
-function getAllCategories()
+function getAllQuestionCategories()
 {
 	$sql = "SELECT * FROM question_category ORDER BY name";
 	return queryDatabase($sql);
 }
 
-function getAllQuestionTypes()
-{
-	$sql = "SELECT id, name FROM question_type ORDER BY id";
-	return queryDatabase($sql);
-}
-
-function getCategoryHierarchy($parent = 0)
-{
-	function createTree(&$categories, $parent)
-	{
-		$tree = array();
-		foreach ($categories as $key => $value) {
-			if ($parent == $value['parent_category'] &&
-				"" != $value['name']) {
-				$categoryId = $value['category_id'];
-				$tree[$categoryId] = createTree($categories, $categoryId);
-				unset($categories[$key]);
-			}
-		}
-		if (!empty($tree)) {
-			return $tree;	
-		}
-	}
-	
-	$categories = getAllCategories();
-	
-	return createTree($categories, $parent);
-}
-
-function getSubCategories($parent)
-{
-	function searchSubCategories($hierarchy)
-	{
-		$subCategories = array();
-		foreach ($hierarchy as $key => $value) {
-			if (is_array($value)) {
-				$subCategories[] = $key;
-				$result = searchSubCategories($value);
-				if (!empty($result)) {
-					$subCategories = array_merge($result, $subCategories);
-				}
-			} else if (empty($value)) {
-				$subCategories[] = $key;
-			}
-		}
-		return $subCategories;
-	}
-	
-	$hierarchy = getCategoryHierarchy($parent);
-	if (!empty($hierarchy)) {
-		return searchSubCategories($hierarchy);
-	} else {
-		return array();
-	}
-}
 
 function getPost($key = null, $default = null)
 {
@@ -362,19 +291,6 @@ function _getViewFile($view)
 		return $viewFile;
 	}
 	return '';
-}
-
-function getQuestionEditView($type)
-{
-	if ($type == MULTIPLE_CHOICE_QUESTION) {
-		return "question-multiple-choice-edit";
-	} elseif ($type == ESSAY_QUESTION) {
-		return "question-essay-edit";
-	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-		return "question-true-or-false-edit";
-	} elseif ($type == OBJECTIVE_QUESTION) {
-		return "question-objective-edit";
-	}
 }
 
 function escapeOutput($output)

@@ -16,8 +16,9 @@ $categoryId = getUrlQuery('category_id', '');
 	<hr/>
 		<?php
 		if (!empty($categoryId)) {
+			include "functions/question.php";
 			$arguments = array();
-			$arguments['data'] = getCategoryData($categoryId);
+			$arguments['data'] = getQuestionCategoryData($categoryId);
 			echo renderView('question-category-update', $arguments);
 		}
 		?>

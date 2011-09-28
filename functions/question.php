@@ -26,6 +26,20 @@ function editQuestionCategory($id, $data)
 	return updateTable(QUESTION_CATEGORY_TABLE, $data, 'category_id = :id', array(':id' => $id));
 }
 
+function getAllQuestionTypes()
+{
+	$sql = "SELECT id, name FROM question_type ORDER BY id";
+	return queryDatabase($sql);
+}
+
+function getQuestionCategoryData($id)
+{
+	$sql = "SELECT * FROM question_category WHERE category_id = :id";
+	$parameters = array(':id' => $id);
+	$result = queryDatabase($sql, $parameters);
+	return array_shift($result);
+}
+
 function getCategoryQuestions($category, $includeSubcategories = true)
 {
 	$result = _validateQuestionData($category, 'category');
@@ -37,7 +51,7 @@ function getCategoryQuestions($category, $includeSubcategories = true)
 	$questions = _getQuestions($category);
 	
 	if ($includeSubcategories) {
-		$subCategories = getSubCategories($category);
+		$subCategories = _getSubCategories($category);
 		if (count($subCategories) > 0) {
 			foreach ($subCategories as $value) {
 				$questions += _getQuestions($value);
@@ -265,6 +279,20 @@ function getQuestionTableColumns($options = array())
 	}
 	return $columns;
 }
+
+function getQuestionEditView($type)
+{
+	if ($type == MULTIPLE_CHOICE_QUESTION) {
+		return "question-multiple-choice-edit";
+	} elseif ($type == ESSAY_QUESTION) {
+		return "question-essay-edit";
+	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+		return "question-true-or-false-edit";
+	} elseif ($type == OBJECTIVE_QUESTION) {
+		return "question-objective-edit";
+	}
+}
+
 
 function _insertAndSyncQuestion($type, $data)
 {
@@ -552,3 +580,52 @@ function _getSecondaryQuestionTableName($type)
 	return null;
 }
 
+function _getSubCategories($parent)
+{
+	function _searchSubCategories($hierarchy)
+	{
+		$subCategories = array();
+		foreach ($hierarchy as $key => $value) {
+			if (is_array($value)) {
+				$subCategories[] = $key;
+				$result = _searchSubCategories($value);
+				if (!empty($result)) {
+					$subCategories = array_merge($result, $subCategories);
+				}
+			} else if (empty($value)) {
+				$subCategories[] = $key;
+			}
+		}
+		return $subCategories;
+	}
+	
+	$hierarchy = _getCategoryHierarchy($parent);
+	if (!empty($hierarchy)) {
+		return _searchSubCategories($hierarchy);
+	} else {
+		return array();
+	}
+}
+
+function _getCategoryHierarchy($parent = 0)
+{
+	function _createTree(&$categories, $parent)
+	{
+		$tree = array();
+		foreach ($categories as $key => $value) {
+			if ($parent == $value['parent_category'] &&
+				"" != $value['name']) {
+				$categoryId = $value['category_id'];
+				$tree[$categoryId] = _createTree($categories, $categoryId);
+				unset($categories[$key]);
+			}
+		}
+		if (!empty($tree)) {
+			return $tree;	
+		}
+	}
+	
+	$categories = getAllQuestionCategories();
+	
+	return _createTree($categories, $parent);
+}

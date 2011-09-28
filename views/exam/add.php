@@ -13,7 +13,7 @@
 				<td>
 				<select name = "questions_category">
 					<?php
-						$categories = (getAllCategories());
+						$categories = (getAllQuestionCategories());
 						foreach ($categories as $category) {
 							$name = escapeOutput($category['name']);
 							if ($category['category_id'] == 0) {

@@ -18,7 +18,7 @@ $data = escapeOutput(getExamData($examId));
 				<td>
 				<select name = "questions_category">
 					<?php
-						$categories = getAllCategories();
+						$categories = getAllQuestionCategories();
 						foreach ($categories as $category) {
 							$name = escapeOutput($category['name']);
 							$id = $category['category_id'];

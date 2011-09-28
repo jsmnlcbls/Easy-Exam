@@ -1,3 +1,6 @@
+<?php
+include "functions/question.php";
+?>
 <div id = "search-question-panel">
 	<span class = "panel-title">Search Database For Questions</span>
 	<form method = "get" action = "admin.php">
@@ -22,7 +25,7 @@
 			<td>
 				<select name = "category">
 				<?php
-					$categories = getAllCategories();
+					$categories = getAllQuestionCategories();
 					foreach ($categories as $category) {
 						if ($category['category_id'] == 0) {
 							echo '<option value = "">None Selected</option>';

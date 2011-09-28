@@ -48,6 +48,15 @@ function getAllExams()
 	return queryDatabase($sql);
 }
 
+function getAvailableExams()
+{
+	$localDateTime = date("Y-m-d H:s");
+	$sql = "SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name";
+	$parameters = array(':dateTime' => $localDateTime);
+	return queryDatabase($sql, $parameters);
+}
+
+
 function getExamQuestions($examId)
 {
 	$result = _validateExamData($examId, 'exam_id');

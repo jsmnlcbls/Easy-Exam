@@ -66,7 +66,7 @@ function questionCategorySelectHTML($attributes = array())
 	if (!isset($attributes['name'])) {
 		$attributes['name'] = 'category';
 	}
-	$categories = getAllCategories();
+	$categories = getAllQuestionCategories();
 	$input = array();
 	foreach ($categories as $value) {
 		if (!empty($value['name'])) {

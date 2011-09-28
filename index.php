@@ -7,9 +7,9 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 if ($requestMethod == "GET") {
 	include "functions/views.php";
+	include "functions/exam.php";
 	$viewArgs = array();
 	if (($examId = getUrlQuery("exam", null)) != null) {
-		include "functions/exam.php";
 		$examData = getExamData($examId);
 		$viewArgs = array('innerView' => 'examQuestions',
 							'examData' => $examData);
