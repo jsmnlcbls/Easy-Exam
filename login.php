@@ -6,7 +6,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
 	echo renderView('user-login');
 } else if ($requestMethod == "POST") {
-	$action = filterPOST("action");
+	$action = getPost("action");
 	if ($action == "login") {
 		$result = authenticateUser($_POST['username'], $_POST['password']);
 		if (false !== $result) {
