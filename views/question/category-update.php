@@ -15,8 +15,10 @@
 				<td>New Parent Category</td>
 				<td>
 					<?php
-					$attributes = array('name' => 'parent_category', 'selected' => $data['parent_category']);
-					echo questionCategorySelectHTML($attributes); 
+					$attributes = array('name' => 'parent_category', 
+										'selected' => $data['parent_category'],
+										'blankOption' => false);
+					echo questionCategorySelectHTML($attributes, true); 
 					?>
 				</td>
 			</tr>

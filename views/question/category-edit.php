@@ -7,9 +7,12 @@ $categoryId = getUrlQuery('category_id', '');
 		<input type = "hidden" name = "view" value = "question-category-edit"/>
 		<div>
 			Category Name 
-			<?php 
-			echo questionCategorySelectHTML(array('name' => 'category_id', 'selected' => $categoryId)); 
-			?> 
+			<?php
+			$attributes = array('name' => 'category_id', 
+								'selected' => $categoryId,
+								'blankOption' => true);
+			echo questionCategorySelectHTML($attributes); 
+			?>
 			<button>Edit</button>
 		</div>
 	</form>

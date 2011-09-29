@@ -233,12 +233,14 @@ function rollbackTransaction()
 	return getDatabase()->rollBack();
 }
 
-function getAllQuestionCategories()
+function getAllQuestionCategories($includeRootCategory = false)
 {
-	$sql = "SELECT * FROM question_category ORDER BY name";
+	$sql = "SELECT * FROM question_category WHERE category_id <> 0 ORDER BY name;";
+	if ($includeRootCategory) {
+		$sql = "SELECT * FROM question_category ORDER BY name";
+	}
 	return queryDatabase($sql);
 }
-
 
 function getPost($key = null, $default = null)
 {

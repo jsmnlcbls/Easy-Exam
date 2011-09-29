@@ -61,17 +61,15 @@ function objectiveQuestionHTML($data)
 	return _questionTemplate($contents);
 }
 
-function questionCategorySelectHTML($attributes = array())
+function questionCategorySelectHTML($attributes = array(), $includeRootCategory = false)
 {
 	if (!isset($attributes['name'])) {
 		$attributes['name'] = 'category';
 	}
-	$categories = getAllQuestionCategories();
+	$categories = getAllQuestionCategories($includeRootCategory);
 	$input = array();
 	foreach ($categories as $value) {
-		if (!empty($value['name'])) {
-			$input[$value['category_id']] = $value['name'];
-		}
+		$input[$value['category_id']] = $value['name'];
 	}
 	return _generateSelectHTML($input, $attributes);
 }
@@ -141,11 +139,13 @@ function _generateSelectHTML($input, $attributes = array())
 {
 	$name = isset($attributes['name']) ? $attributes['name'] : '';
 	$selected = isset($attributes['selected']) ? $attributes['selected'] : null;
+	$blankOption = isset($attributes['blankOption']) ? $attributes['blankOption'] : true;
+	
 	$out = array();
 	$out[] = "<select name = \"{$name}\">";
-	if ($selected === null) {
+	if ($selected === null && !$blankOption) {
 		$out[] = "<option selected = \"selected\" value = \"\"></option>";
-	} else {
+	} elseif ($blankOption) {
 		$out[] = "<option value = \"\"></option>";
 	}
 	foreach ($input as $key => $value) {

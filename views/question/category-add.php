@@ -12,7 +12,10 @@
 				<td>Parent Category</td>
 				<td>
 				<?php
-				echo questionCategorySelectHTML(array('name' => 'parent_category'));
+				$attributes = array('name' => 'parent_category', 
+									'blankOption' => false,
+									'selected' => 0);
+				echo questionCategorySelectHTML($attributes, true);
 				?>
 				</td>
 			</tr>
