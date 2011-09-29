@@ -9,5 +9,4 @@ INSERT INTO `question_type` (`id`, `name`) VALUES
 
 INSERT INTO `role` (`id`, `name`) VALUES
 (1, 'Examinee'),
-(2, 'Reviewer'),
-(4, 'Examiner');
+(2, 'Examiner');
