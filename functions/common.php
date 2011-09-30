@@ -376,7 +376,7 @@ function validateData($data, $validatorFunction, $errorMessageFunction)
  */
 function errorMessage($code, $text)
 {
-	$errorText = '';
+	$errorText = $text;
 	if (is_array($text)) {
 		$errorText = implode(PHP_EOL, $text);
 	}
@@ -434,6 +434,14 @@ function isOkMessage($message)
 		}
 	}
 	return false;	
+}
+
+function isInstalled()
+{
+	if (file_exists("config/settings.php")) {
+		return true;
+	}
+	return false;
 }
 
 //------------------------Internal functions-----------------------------------
