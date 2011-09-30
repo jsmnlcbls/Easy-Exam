@@ -6,6 +6,14 @@ const ESSAY_QUESTION = 2;
 const TRUE_OR_FALSE_QUESTION = 3;
 const OBJECTIVE_QUESTION = 4;
 
+/**
+ * Returns all settings in an associative array or a specific setting if key is
+ * specified. 
+ * @staticvar string $config
+ * @param String $key
+ * @param Mixed $default the default value to be returned if key is not found
+ * @return Mixed
+ */
 function getSettings($key = null, $default = null) {
 	static $config = null;
 	
@@ -23,6 +31,10 @@ function getSettings($key = null, $default = null) {
 	return $default;
 }
 
+/**
+ * Start session and initializes some PHP settings
+ * @return void
+ */
 function initialize()
 {
 	session_start();
@@ -206,6 +218,7 @@ function commitTransaction()
  * Inserts a new row into a table
  * @param String $tableName the tablename to insert to
  * @param Array $columnValues key value pairs of column names and values
+ * @return boolean
  */
 function insertIntoTable($tableName, $columnValues)
 {
@@ -216,6 +229,14 @@ function insertIntoTable($tableName, $columnValues)
 	return executeDatabase($sql, $parameters);
 }
 
+/**
+ * Update table row(s)
+ * @param String $tableName
+ * @param Array $columnValues key value pairs of column names and values
+ * @param String $condition sql condition clause
+ * @param Array $conditionParameters key value pairs of condition parameter names and values
+ * @return boolean 
+ */
 function updateTable($tableName, $columnValues, $condition, $conditionParameters = array())
 {
 	$setString = _createUpdateSqlSetString(array_keys($columnValues));
@@ -233,6 +254,11 @@ function rollbackTransaction()
 	return getDatabase()->rollBack();
 }
 
+/**
+ * Returns all categories for questions.
+ * @param boolean $includeRootCategory
+ * @return Array 
+ */
 function getAllQuestionCategories($includeRootCategory = false)
 {
 	$sql = "SELECT * FROM question_category WHERE category_id <> 0 ORDER BY name;";
@@ -242,35 +268,41 @@ function getAllQuestionCategories($includeRootCategory = false)
 	return queryDatabase($sql);
 }
 
+/**
+ * Get POST values
+ * @param String $key
+ * @param Mixed $default the default value to return if key is not found
+ * @return Mixed 
+ */
 function getPost($key = null, $default = null)
 {
 	return _getRequestValues("post", $key, $default);
 }
 
+/**
+ * Get the values for the query portion of the URL
+ * @param String $key
+ * @param Mixed $default the default value to return if key is not found
+ * @return Mixed
+ */
 function getUrlQuery($key = null, $default = null)
 {
 	return _getRequestValues("get", $key, $default);
 }
 
+/**
+ * Returns the results of PHP evaluation of a given view.
+ * @param String $view the name of the view
+ * @param Array $arguments associative array of key values pairs that will be
+ * extracted as local variables for PHP evaluation
+ * @param boolean $escapeString flag on whether or not the $arguments given will
+ * be sanitized for HTML output
+ * @return String
+ */
 function renderView($view, $arguments = array(), $escapeString = false)
 {
 	$viewFile = _getViewFile($view);
-	return renderViewFile($viewFile, $arguments, $escapeString);
-}
-
-function renderViewFile($filename, $arguments = array(), $escapeStrings = false)
-{
-	ob_start();
-	if (count($arguments) > 0) {
-		if ($escapeStrings) {
-			$arguments = escapeOutput($arguments);
-		}
-		extract($arguments);
-	}
-	include $filename;
-	$render = ob_get_contents();
-	ob_end_clean();
-	return $render;
+	return _renderViewFile($viewFile, $arguments, $escapeString);
 }
 
 function getChoicesLetterColumns()
@@ -282,19 +314,11 @@ function getChoicesLetterColumns()
 	return $choices;
 }
 
-function _getViewFile($view)
-{
-	$viewFileHierarchy = explode ('-', $view);
-	$directory = array_shift($viewFileHierarchy);
-	$file = implode('-', $viewFileHierarchy);
-	if (_viewIsInWhiteList($directory, $file)) {
-		$viewFile = 'views' . DIRECTORY_SEPARATOR . $directory 
-							. DIRECTORY_SEPARATOR . $file . '.php'; 
-		return $viewFile;
-	}
-	return '';
-}
-
+/**
+ * Sanitize data so that it is safe for output in HTML
+ * @param Array|String $output
+ * @return Mixed
+ */
 function escapeOutput($output)
 {
 	if (is_string($output)) {
@@ -308,22 +332,42 @@ function escapeOutput($output)
 	}
 }
 
+/**
+ * Issue a redirect header at a location
+ * @param String $location 
+ */
 function redirect($location)
 {
 	header("Location: $location");
 }
 
+/**
+ * Set some data about the current user.
+ * @param int $id
+ * @param int $role
+ * @param String $name 
+ */
 function setLoggedInUser($id, $role, $name = '')
 {
 	$_SESSION['user'] = array('id' => $id, 'role' => $role, 'name' => $name);
 }
 
+/**
+ * Logout the user from the system
+ */
 function logoutUser()
 {
 	unset($_SESSION['user']);
 	session_destroy();
 }
 
+/**
+ * Returns the values from an input array that matches the keys given in
+ * another array or returns all the array values if keys is null.
+ * @param Array $inputArray
+ * @param Array $keys
+ * @return Array
+ */
 function getArrayValues($inputArray, $keys = null)
 {
 	if ($keys == null) {
@@ -461,6 +505,10 @@ function parseErrorMessage($message, $part = null)
 	return null;
 }
 
+/**
+ * A very simple check if easy exam is installed.
+ * @return boolean
+ */
 function isInstalled()
 {
 	if (file_exists("config/settings.php")) {
@@ -470,6 +518,34 @@ function isInstalled()
 }
 
 //------------------------Internal functions-----------------------------------
+
+function _renderViewFile($filename, $arguments = array(), $escapeStrings = false)
+{
+	ob_start();
+	if (count($arguments) > 0) {
+		if ($escapeStrings) {
+			$arguments = escapeOutput($arguments);
+		}
+		extract($arguments);
+	}
+	include $filename;
+	$render = ob_get_contents();
+	ob_end_clean();
+	return $render;
+}
+
+function _getViewFile($view)
+{
+	$viewFileHierarchy = explode ('-', $view);
+	$directory = array_shift($viewFileHierarchy);
+	$file = implode('-', $viewFileHierarchy);
+	if (_viewIsInWhiteList($directory, $file)) {
+		$viewFile = 'views' . DIRECTORY_SEPARATOR . $directory 
+							. DIRECTORY_SEPARATOR . $file . '.php'; 
+		return $viewFile;
+	}
+	return '';
+}
 
 function _viewIsInWhiteList($directory, $file)
 {
