@@ -128,14 +128,24 @@ function _isValidAccountsValue($value, $key)
 		return true;
 	} elseif ($key == 'role' && is_array($value)) {
 		foreach ($value as $role) {
-			if (!ctype_digit($role) || $role > 8) {
+			if (!_isValidAccountRole($role)) {
 				return false;
 			}
 		}
 		return true;
+	} elseif ($key == 'role') {
+		return _isValidAccountRole($value);
 	} elseif ($key == 'name' && "" != trim($value) && (strlen($value) < 64)) {
 		return true;
 	} elseif ($key == 'password') {
+		return true;
+	}
+	return false;
+}
+
+function _isValidAccountRole($value) 
+{
+	if (ctype_digit("$value") && $value < 4 && $value > 0) {
 		return true;
 	}
 	return false;
@@ -147,13 +157,17 @@ function _getValidateAccountErrorMessage($key, $data)
 	if ($key == 'id') {
 		$message .= "account id: ";
 	} elseif ($key == 'role') {
-		$message .= "account role: ";
+		$message .= "account role";
 	} elseif ($key == 'name') {
 		$message .= "account name: ";
 	} else {
 		$message .= "data: ";
 	}
-	return $message . "'$data'";
+	if ($key != 'role' || is_array($key)) {
+		return $message . "'$data'";
+	} else {
+		return $message;
+	}
 }
 
 function _sanitizeAccountsData($rawData, $key = null)
