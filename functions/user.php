@@ -75,6 +75,7 @@ function updateUser($id, $data)
 		$data['salt'] = $passwordData['salt'];
 		return updateTable(ACCOUNTS_TABLE, $data, "id = :id", array(':id' => $id));
 	} else {
+		unset ($data['password']);
 		return updateTable(ACCOUNTS_TABLE, $data, "id = :id", array(':id' => $id));
 	}
 }
