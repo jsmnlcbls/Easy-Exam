@@ -1,10 +1,14 @@
 <?php
+const ADMINISTRATOR_ROLE = 0;
+const EXAMINEE_ROLE = 1;
+const EXAMINER_ROLE = 2;
+
 const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
 
 function getAllRoles()
 {
-	$sql = "SELECT * FROM " . ROLE_TABLE;
+	$sql = 'SELECT * FROM ' . ROLE_TABLE . ' WHERE id <> 0';
 	$database = getDatabase();
 	$source = $database->query($sql);
 	$data = array();
@@ -78,6 +82,24 @@ function updateUser($id, $data)
 		unset ($data['password']);
 		return updateTable(ACCOUNTS_TABLE, $data, "id = :id", array(':id' => $id));
 	}
+}
+
+function updateAdminCredentials($name, $password)
+{
+	$result = _validateAccountsData($name, 'name');
+	$name = _sanitizeAccountsData($name, 'name');
+	
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$passwordData = _derivePassword($password);
+	$data = array();
+	$data['password'] = $passwordData['hash'];
+	$data['salt'] = $passwordData['salt'];
+	$data['name'] = $name;
+	
+	return updateTable(ACCOUNTS_TABLE, $data, "id = 0");
 }
 
 function deleteUser($id)

@@ -10,9 +10,16 @@ if ($requestMethod == "GET") {
 	if ($action == "login") {
 		$result = authenticateUser($_POST['username'], $_POST['password']);
 		if (false !== $result) {
+			include "functions/user.php";
 			$id = intval($result);
-			setLoggedInUser($id);
-			redirect(getSettings('User Page'));
+			$userData = getArrayValues(getUserData($id), array('id', 'role', 'name'));
+			setLoggedInUser($userData);
+			$role = $userData['role'];
+			if ($role == EXAMINEE_ROLE) {
+				redirect(getSettings('User Page'));
+			} elseif ($role == EXAMINER_ROLE || $role == ADMINISTRATOR_ROLE) {
+				redirect(getSettings('Admin Page'));
+			}
 		} else {
 			sleep(3);
 			echo renderView('user-login', array('loginFailed' => true));
@@ -21,4 +28,4 @@ if ($requestMethod == "GET") {
 		logoutUser();
 		echo renderView('user-login', array('logout' => true));
 	}
-} 
+}

@@ -489,7 +489,7 @@ function _viewIsInWhiteList($directory, $file)
 			$views = array('add', 'list', 'delete', 'edit', 'index', 'login', 'questions');
 			break;
 		case 'admin':
-			$views = array('main', 'menu', 'install');
+			$views = array('main', 'menu', 'install', 'install-success');
 			break;
 		default:
 			break;

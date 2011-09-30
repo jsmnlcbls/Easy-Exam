@@ -26,3 +26,13 @@
 	<li><a href="?view=user-add">Add</a></li>
 	<li><a href="?view=user-list">List</a></li>
 </ul>
+<br/>
+<span class="submenu-title">My Account</span>
+<ul>
+	<li>
+		<form action = "login.php" method ="post" class="hidden-form">
+			<input type = "hidden" name ="action" value ="logout"/>
+			<button id ="logout-button">Logout</button>
+		</form>
+	</li>
+</ul>
