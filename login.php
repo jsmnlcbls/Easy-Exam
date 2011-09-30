@@ -12,9 +12,9 @@ if ($requestMethod == "GET") {
 		if (false !== $result) {
 			include "functions/user.php";
 			$id = intval($result);
-			$userData = getArrayValues(getUserData($id), array('id', 'role', 'name'));
-			setLoggedInUser($userData);
-			$role = $userData['role'];
+			$user = getArrayValues(getUserData($id), array('id', 'role', 'name'));
+			setLoggedInUser($user['id'], $user['role'], $user['name']);
+			$role = $user['role'];
 			if ($role == EXAMINEE_ROLE) {
 				redirect(getSettings('User Page'));
 			} elseif ($role == EXAMINER_ROLE || $role == ADMINISTRATOR_ROLE) {

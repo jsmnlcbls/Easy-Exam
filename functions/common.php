@@ -313,9 +313,9 @@ function redirect($location)
 	header("Location: $location");
 }
 
-function setLoggedInUser($id)
+function setLoggedInUser($id, $role, $name = '')
 {
-	$_SESSION['user'] = array('id' => $id);
+	$_SESSION['user'] = array('id' => $id, 'role' => $role, 'name' => $name);
 }
 
 function logoutUser()

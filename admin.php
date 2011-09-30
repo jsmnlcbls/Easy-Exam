@@ -151,7 +151,11 @@ function _deleteUserAction($data)
 function _installAction($data)
 {
 	include "functions/install.php";
-	return installDatabase($data);
+	$result = installDatabase($data);
+	if (!isErrorMessage($result)) {
+		setLoggedInUser(0, 0);
+	}
+	return $result;
 }
 
 function _isValidationOk($validationResult)
