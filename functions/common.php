@@ -436,6 +436,31 @@ function isOkMessage($message)
 	return false;	
 }
 
+/**
+ * Parse the error message into its component parts and returns either:
+ * An associative array containing all message parts if part argument is null.
+ * The error code if called with argument part as 'code'.
+ * The text of the error if called with argument part as 'text'.
+ * @param String $message the error message
+ * @param String $part
+ * @return Mixed 
+ */
+function parseErrorMessage($message, $part = null)
+{
+	if (isErrorMessage($message)) {
+		$message = json_decode($message, true);
+		if (null == $part) {
+			return $message['ERROR'];
+		} elseif (isset($message['ERROR'][$part])) {
+			if ($part == 'code') {
+				return intval($message['ERROR'][$part]);
+			}
+			return $message['ERROR'][$part];
+		}
+	}
+	return null;
+}
+
 function isInstalled()
 {
 	if (file_exists("config/settings.php")) {
