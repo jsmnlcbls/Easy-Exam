@@ -4,7 +4,18 @@ function installDatabase($parameters)
 {
 	$database = $parameters['dsnPrefix'];
 	_writeConfigurationToFile($parameters);
-	getDatabase();
+	@getDatabase();
+	$error = getDatabaseError();
+	if (!empty($error)) {
+		_deleteSettingsFile();
+		$errorMessage = 'Database Error: ' . $error['ERROR_MESSAGE'];
+		$helpMessage = "Possible Solution: Please check that the database 
+						already exists, and that the username and password 
+						used to connect are valid.";
+		$message = errorMessage($error['SQL_STATE'], array($errorMessage, '', $helpMessage));
+		return $message;
+	}
+	
 	executeDatabase("START TRANSACTION");
 	_installDatabaseStructure($database);
 	executeDatabase("SET FOREIGN_KEY_CHECKS=0");
@@ -17,22 +28,40 @@ function installDatabase($parameters)
 
 function _writeConfigurationToFile($parameters)
 {
-	$out = array();
-	$out[] = '<?php';
-	$out[] = '$settings["Data Source Name Prefix"] = "' . $parameters['dsnPrefix'] . '";';
-	$out[] = '$settings["Database Host"] = "' . $parameters['host'] . '";';
-	$out[] = '$settings["Database Name"] = "' . $parameters['database'] . '";';
-	$out[] = '$settings["Database User"] = "' . $parameters['user'] . '";';
-	$out[] = '$settings["Database Password"] = "' . $parameters['password'] . '";';
-	$out[] = '$settings["Time Zone"] = "Asia/Manila";';
-	$out[] = '$settings["Login Page"] = "login.php";';
-	$out[] = '$settings["User Page"] = "index.php";';
+	$iniValues = parse_ini_file("config/initial-settings.ini");
+	$settings = array('Data Source Name Prefix' => $parameters['dsnPrefix'],
+					  'Database Host' => $parameters['host'],
+					  'Database Name' => $parameters['database'],
+					  'Database User' => $parameters['user'],
+					  'Database Password' => $parameters['password'],
+					  'Time Zone' => $iniValues['timeZone'],
+					  'Login Page' => $iniValues['loginPage'],
+					  'User Page' => $iniValues['userPage'],
+					  'Admin Page' => $iniValues['adminPage']
+					);
 	
-	$data = implode(PHP_EOL, $out);
+	$data = _createSettingsInPhpCode($settings);
 	$result = file_put_contents("config/settings.php", $data);
 	if (false === $result) {
 		die('Unable to write settings to file.');
 	}
+}
+
+function _createSettingsInPhpCode($settings)
+{
+	$out = array();
+	$out[] = '<?php';
+	foreach ($settings as $key => $value) {
+		$out[] = '$settings["' . $key . '"] = "' . $value . '";';
+	}
+	$out[] = '?>';
+	return implode(PHP_EOL, $out);
+}
+
+function _deleteSettingsFile()
+{
+	rename("config/settings.php", "config/must-be-gone.php");
+	unlink("config/must-be-gone.php");
 }
 
 function _installDatabaseStructure($database)
