@@ -40,8 +40,13 @@ function _writeConfigurationToFile($parameters)
 					  'Admin Page' => $iniValues['adminPage']
 					);
 	
-	$data = _createSettingsInPhpCode($settings);
-	$result = file_put_contents("config/settings.php", $data);
+	$data = array();
+	$data[] = '<?php';
+	$data[] = _createSettingsInPhpCode($settings);
+	$data[] = '';
+	$data[] = _createViewWhitelistInPhpCode();
+	$fileContents = implode(PHP_EOL, $data);
+	$result = file_put_contents("config/settings.php", $fileContents);
 	if (false === $result) {
 		die('Unable to write settings to file.');
 	}
@@ -50,11 +55,28 @@ function _writeConfigurationToFile($parameters)
 function _createSettingsInPhpCode($settings)
 {
 	$out = array();
-	$out[] = '<?php';
+	$out[] = '$settings = array();';
 	foreach ($settings as $key => $value) {
 		$out[] = '$settings["' . $key . '"] = "' . $value . '";';
 	}
-	$out[] = '?>';
+	return implode(PHP_EOL, $out);
+}
+
+function _createViewWhitelistInPhpCode()
+{
+	$dir = new RecursiveDirectoryIterator("views");
+	$files = new RecursiveIteratorIterator($dir);
+	$out = array();
+	$values = array();
+	$out[] = '$viewWhitelist = array(';
+	foreach ($files as $value) {
+		$view = str_replace("views" . DIRECTORY_SEPARATOR, "", $value);
+		$view = str_replace(DIRECTORY_SEPARATOR, '-', $view);
+		$view = str_replace('.php', '', $view);
+		$values[] = "'$view'";
+	}
+	$out[] = implode(',' . PHP_EOL, $values);
+	$out[] = ');';
 	return implode(PHP_EOL, $out);
 }
 

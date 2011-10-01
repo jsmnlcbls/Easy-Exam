@@ -22,6 +22,9 @@ function getSettings($key = null, $default = null) {
 		if (isset($settings) && is_array($settings)) {
 			$config = $settings;
 		}
+		if (isset($viewWhitelist) && is_array($viewWhitelist)) {
+			$config['View Whitelist'] = $viewWhitelist;
+		}
 	}
 	if ($key == null) {
 		return $config;
@@ -539,7 +542,7 @@ function _getViewFile($view)
 	$viewFileHierarchy = explode ('-', $view);
 	$directory = array_shift($viewFileHierarchy);
 	$file = implode('-', $viewFileHierarchy);
-	if (_viewIsInWhiteList($directory, $file)) {
+	if (_viewIsInWhiteList($view)) {
 		$viewFile = 'views' . DIRECTORY_SEPARATOR . $directory 
 							. DIRECTORY_SEPARATOR . $file . '.php'; 
 		return $viewFile;
@@ -547,33 +550,18 @@ function _getViewFile($view)
 	return '';
 }
 
-function _viewIsInWhiteList($directory, $file)
+function _viewIsInWhiteList($view)
 {
-	$views = array();
-	switch ($directory) {
-		case 'question':
-			$views = array('category-add', 'category-edit', 'category-delete',
-							'search', 'multiple-choice-add', 'essay-add', 
-							'objective-add', 'true-or-false-add', 'delete',
-							'search-results', 'multiple-choice-edit', 'essay-edit', 
-							'objective-edit', 'true-or-false-edit', 'category-update');
-			break;
-		case 'exam':
-			$views = array('add', 'edit', 'delete', 'edit-properties', 'edit-questions');
-			break;
-		case 'user':
-			$views = array('add', 'list', 'delete', 'edit', 'index', 'login', 'questions');
-			break;
-		case 'admin':
-			$views = array('main', 'menu', 'install', 'install-success');
-			break;
-		default:
-			break;
-	}
-	if (in_array($file, $views)) {
+	$whitelist = getSettings('View Whitelist', array());
+	if (in_array($view, $whitelist)) {
 		return true;
+	} else {
+		$initial = array('admin-main', 'admin-menu', 'admin-install');
+		if (in_array($view, $initial)) {
+			return true;
+		}
+		return false;
 	}
-	return false;
 }
 
 function _fetchData(&$source, $index = '')
