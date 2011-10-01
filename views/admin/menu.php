@@ -23,8 +23,10 @@
 <br/>
 <span class="submenu-title">User</span>
 <ul class = "sub-menu">
-	<li><a href="?view=user-add">Add</a></li>
-	<li><a href="?view=user-list">List</a></li>
+	<li><a href="?view=user-add">Add User</a></li>
+	<li><a href="?view=user-group-add">Add Group</a></li
+	<li><a href="?view=user-list">List Users</a></li>
+	<li><a href="?view=user-group-list">List Groups</a></li>
 </ul>
 <br/>
 <span class="submenu-title">My Account</span>

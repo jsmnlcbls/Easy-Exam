@@ -5,6 +5,7 @@ const EXAMINER_ROLE = 2;
 
 const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
+const ACCOUNT_GROUP_TABLE = 'account_group';
 
 function getAllRoles()
 {
@@ -25,6 +26,13 @@ function getAllUsers()
 	return queryDatabase($sql);
 }
 
+function getAllUserGroups()
+{
+	$table = ACCOUNT_GROUP_TABLE;
+	$sql = "SELECT group_id, name FROM {$table} ORDER BY name ASC";
+	return queryDatabase($sql);
+}
+
 function addUser($data)
 {
 	$result = _validateAccountsData($data);
@@ -41,6 +49,17 @@ function addUser($data)
 	return insertIntoTable(ACCOUNTS_TABLE, $data);
 }
 
+function addUserGroup($data)
+{
+	$result = _validateAccountGroupData($data);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$data = _sanitizeAccountGroupData($data);
+	return insertIntoTable(ACCOUNT_GROUP_TABLE, $data);
+}
+
 function getUserData($id)
 {
 	$result = _validateAccountsData($id, 'id');
@@ -53,6 +72,25 @@ function getUserData($id)
 	$sql = "SELECT * FROM {$table} WHERE id = :id";
 	$parameters = array(':id' => $id);
 	$result = queryDatabase($sql, $parameters);
+	if (is_array($result)) {
+		return array_shift($result);
+	}
+	return false;
+}
+
+function getUserGroupData($id)
+{
+	$result = _validateAccountGroupData($id, 'group_id');
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+
+
+	
+	$id = _sanitizeAccountGroupData($id, 'group_id');
+	$table = ACCOUNT_GROUP_TABLE;
+	$sql = "SELECT group_id, name FROM $table WHERE group_id = :id";
+	$result = queryDatabase($sql, array(':id' => $id));
 	if (is_array($result)) {
 		return array_shift($result);
 	}
@@ -82,6 +120,18 @@ function updateUser($id, $data)
 		unset ($data['password']);
 		return updateTable(ACCOUNTS_TABLE, $data, "id = :id", array(':id' => $id));
 	}
+}
+
+function updateUserGroup($id, $data)
+{
+	$groupData = array_merge($data, array('group_id' => $id));
+	$result = _validateAccountGroupData($groupData);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$data = _sanitizeAccountGroupData($data);
+	return updateTable(ACCOUNT_GROUP_TABLE, $data, 'group_id = :id', array(':id' => $id));
 }
 
 function updateAdminCredentials($name, $password)
@@ -116,6 +166,20 @@ function deleteUser($id)
 	return executeDatabase($sql, $parameters);
 }
 
+function deleteUserGroup($id)
+{
+	$result = _validateAccountGroupData($id, 'group_id');
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$id = _sanitizeAccountGroupData($id, 'group_id');
+	$table = ACCOUNT_GROUP_TABLE;
+	$sql = "DELETE FROM $table WHERE group_id = :id";
+	return executeDatabase($sql, array(':id' => $id));
+	print_r(getDatabaseError());
+}
+
 function getAccountsTableColumns($includePrimaryKeys = false)
 {	
 	if ($includePrimaryKeys) {
@@ -123,6 +187,46 @@ function getAccountsTableColumns($includePrimaryKeys = false)
 	} else {
 		return array('role', 'name', 'password');
 	}
+}
+
+function _validateAccountGroupData($value, $key = null)
+{
+	$validatorFunction = function ($value, $key) {
+		return _isValidAccountGroupValue($value, $key);
+	};
+	
+	$errorMessageFunction = function ($key, $value) {
+		return _getValidateAccountGroupErrorMessage($key, $value);
+	};
+	
+	$inputData = $value;
+	if (!is_array($value) && is_string($key)) {
+		$inputData = array($key => $value);
+	}
+	
+	return validateData($inputData, $validatorFunction, $errorMessageFunction);
+}
+
+function _isValidAccountGroupValue($value, $key)
+{
+	if ($key == 'group_id' && ctype_digit("$value") && $value > 0) {
+		return true;
+	} elseif ($key == 'name' && '' != trim($value)) {
+		return true;
+	}
+	return false;
+}
+
+function _getValidateAccountGroupErrorMessage($key, $value)
+{
+	$message = 'Invalid ';
+	if ($key == 'group_id') {
+		$message .= 'group id';
+	} elseif ($key == 'name') {
+		$message .= 'group name';
+	}
+	$message .= " '$value'";
+	return $message;
 }
 
 function _validateAccountsData($value, $key = null)
@@ -189,6 +293,28 @@ function _getValidateAccountErrorMessage($key, $data)
 		return $message . "'$data'";
 	} else {
 		return $message;
+	}
+}
+
+function _sanitizeAccountGroupData($rawData, $key = null)
+{
+	if (is_array($rawData)) {
+		$sanitizedData = array();
+		foreach ($rawData as $key => $value) {
+			$sanitizedData[$key] = _sanitizeAccountGroupValue($value, $key);
+		}
+		return $sanitizedData;
+	} elseif (is_string($key)) {
+		return _sanitizeAccountGroupValue($rawData, $key);
+	}
+}
+
+function _sanitizeAccountGroupValue($rawData, $key)
+{
+	if ($key == 'group_id') {
+		return intval($rawData);
+	} elseif ($key == 'name') {
+		return trim($rawData);
 	}
 }
 
