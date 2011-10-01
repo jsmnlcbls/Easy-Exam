@@ -17,6 +17,13 @@ CREATE TABLE `accounts` (
   KEY `role` (`role`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+CREATE TABLE `account_group` (
+  `group_id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL,
+  PRIMARY KEY (`group_id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
 CREATE TABLE `exam` (
   `exam_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
@@ -28,7 +35,7 @@ CREATE TABLE `exam` (
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `multiple_choice` (
   `question_id` int(11) NOT NULL,
@@ -59,7 +66,7 @@ CREATE TABLE `questions` (
   PRIMARY KEY (`question_id`),
   KEY `category` (`category`),
   KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_category` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -67,7 +74,7 @@ CREATE TABLE `question_category` (
   `parent_category` int(11) NOT NULL,
   PRIMARY KEY (`category_id`),
   KEY `parent_category` (`parent_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_type` (
   `id` tinyint(4) NOT NULL AUTO_INCREMENT,

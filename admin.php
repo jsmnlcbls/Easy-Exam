@@ -63,6 +63,13 @@ function _addUserAction($data)
 	return addUser($userData);
 }
 
+function _addUserGroupAction($data)
+{
+	include "functions/user.php";
+	$userData = getArrayValues($data, array('name'));
+	return addUserGroup($userData);
+}
+
 function _addExamAction($data)
 {
 	include "functions/exam.php";
@@ -115,6 +122,14 @@ function _editUserAction($data)
 	return updateUser($id, $userData);
 }
 
+function _editUserGroupAction($data)
+{
+	include "functions/user.php";
+	$groupData = getArrayValues($data, array('name'));
+	$id = $data['group_id'];
+	return updateUserGroup($id, $groupData);
+}
+
 function _editAdminCredentialsAction($data)
 {
 	include "functions/user.php";
@@ -145,6 +160,12 @@ function _deleteUserAction($data)
 {
 	include "functions/user.php";
 	return deleteUser($data['id']);
+}
+
+function _deleteUserGroupAction($data)
+{
+	include "functions/user.php";
+	return deleteUserGroup($data['group_id']);
 }
 
 function _installAction($data)
@@ -215,7 +236,8 @@ function _isInActionWhitelist($action)
 	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
 				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
 				'deleteCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
-				'install', 'editAdminCredentials');
+				'install', 'editAdminCredentials', 
+				'addUserGroup', 'editUserGroup', 'deleteUserGroup');
 	
 	if (in_array($action, $list)) {
 		return true;
