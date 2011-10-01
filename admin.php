@@ -2,7 +2,6 @@
 include "functions/common.php";
 initialize();
 allowLoggedInUserOnly();
-
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 if ($requestMethod == "GET") {
@@ -124,7 +123,7 @@ function _editAdminCredentialsAction($data)
 	if ($userData['password1'] != $userData['password2']) {
 		return errorMessage(VALIDATION_ERROR, 'Passwords do not match.');
 	}
-	if ($userId !== 0) {
+	if ($userId != 0) {
 		return errorMessage(VALIDATION_ERROR, 'Administrator only.');
 	}
 	return updateAdminCredentials($data['name'], $data['password1']);
