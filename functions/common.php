@@ -92,7 +92,7 @@ function getLoggedInUser($key = null)
 }
 
 /**
- * Returns the database connection or false on error.
+ * Returns the database connection or null on error.
  * @staticvar string $_database
  * @return Mixed
  */
@@ -225,7 +225,10 @@ function commitTransaction()
  */
 function insertIntoTable($tableName, $columnValues)
 {
-	$columns = implode(", ", array_keys($columnValues));
+	$tableName = _escapeSqlIdentifier($tableName);
+	$columns = _escapeSqlIdentifier(array_keys($columnValues));
+	$columns = implode(", ", $columns);
+	
 	$parameters = _createParameterValues($columnValues);
 	$values = implode(", ", array_keys($parameters));
 	$sql = "INSERT INTO $tableName ($columns) VALUES ($values)";
@@ -242,6 +245,8 @@ function insertIntoTable($tableName, $columnValues)
  */
 function updateTable($tableName, $columnValues, $condition, $conditionParameters = array())
 {
+	$tableName = _escapeSqlIdentifier($tableName);
+	
 	$setString = _createUpdateSqlSetString(array_keys($columnValues));
 	$parameters = array_merge(_createParameterValues($columnValues), $conditionParameters);
 	$sql = "UPDATE $tableName SET $setString WHERE $condition";
@@ -639,7 +644,28 @@ function _createUpdateSqlSetString($columns)
 {
 	$output = array();
 	foreach ($columns as $name) {
-		$output[] = "$name = :$name";
+		$output[] = _escapeSqlIdentifier($name) . " = :$name";
 	}
 	return implode(", ", $output);
+}
+
+function _escapeSqlIdentifier($identifier)
+{
+	$dsnPrefix = getSettings('Data Source Name Prefix');
+	if ($dsnPrefix == 'mysql') {
+		return _escapeMysqlIdentifier($identifier);
+	}
+	return $identifier;
+}
+
+function _escapeMysqlIdentifier($identifier)
+{
+	if (is_array($identifier)) {
+		array_walk($identifier, function(&$identifier){
+					$identifier = "`$identifier`";
+				});
+		return $identifier;
+	} elseif (is_string($identifier)) {
+		return "`$identifier`";
+	}
 }
