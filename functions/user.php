@@ -165,10 +165,7 @@ function deleteUser($id)
 	}
 	
 	$id = _sanitizeAccountsData($id, 'id');
-	$table = ACCOUNTS_TABLE;
-	$sql = "DELETE FROM {$table} WHERE id = :id";
-	$parameters = array(':id' => $id);
-	return executeDatabase($sql, $parameters);
+	return deleteFromTable(ACCOUNTS_TABLE, 'id=:id', array(':id' => $id));
 }
 
 function deleteUserGroup($id)
@@ -179,10 +176,7 @@ function deleteUserGroup($id)
 	}
 	
 	$id = _sanitizeAccountGroupData($id, 'group_id');
-	$table = ACCOUNT_GROUP_TABLE;
-	$sql = "DELETE FROM $table WHERE group_id = :id";
-	return executeDatabase($sql, array(':id' => $id));
-	print_r(getDatabaseError());
+	return deleteFromTable(ACCOUNT_GROUP_TABLE, 'group_id=:id', array(':id' => $id));
 }
 
 function getAccountsTableColumns($includePrimaryKeys = false)

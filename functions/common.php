@@ -254,6 +254,20 @@ function updateTable($tableName, $columnValues, $condition, $conditionParameters
 }
 
 /**
+ * Delete row(s) from a database table
+ * @param String $tableName
+ * @param String $whereCondition
+ * @param Array $whereParameterValues key value pairs of parameter names and values
+ * @return boolean 
+ */
+function deleteFromTable($tableName, $whereCondition, $whereParameterValues = null)
+{
+	$tableName = _escapeSqlIdentifier($tableName);
+	$sql = "DELETE FROM {$tableName} WHERE $whereCondition";
+	return executeDatabase($sql, $whereParameterValues);
+}
+
+/**
  * Rollbacks the current database transaction
  * @return boolean
  */
