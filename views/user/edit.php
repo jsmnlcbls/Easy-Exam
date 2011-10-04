@@ -13,6 +13,31 @@ $data = getUserData($id);
 		?>
 		<table>
 			<tr>
+				<td>Group</td>
+				<td id="user-group-container">
+					<?php
+					$count = 0;
+					foreach ($data['group'] as $groupId) {
+						$button = '';
+						$attributes = array();
+						if ($count == 0) {
+							$attributes = array('name' => 'group[]', 'selected' => $groupId, 'id' => 'initial-user-group');
+							$button = '<img src ="images/add_group.png" id ="add-more-group-button"></img>'; 
+						} else {
+							$attributes = array('name' => 'group[]', 'selected' => $groupId);
+							$button = '<img class = "delete-group-button" src = "images/delete_group.png"></img>';
+						}
+						echo '<div class="user-group-div">';
+						echo userGroupSelectHTML($attributes);
+						echo "\n";
+						echo $button;
+						echo '<div>';
+						$count++;
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
 				<td>User Name</td>
 				<td><input type = "text" name = "name" value = "<?php echo escapeOutput($data['name']);?>"/></td>
 			</tr>
@@ -48,4 +73,19 @@ $data = getUserData($id);
 		</table>
 	</form>
 </div>
+<script>
+	$(function(){
+		$("#add-more-group-button").click(function(){
+			var select = $('#initial-user-group').clone().removeAttr('id');
+			select.children().removeAttr('selected');
+			var container = $('#user-group-container').append('<div class = "user-group-div">');
+			var button = '<img class = "delete-group-button" src = "images/delete_group.png"></img>';
+			container.children().last().append(select).append("\n").append(button);
+		});
+		
+		$(".delete-group-button").live('click', function(){
+			$(this).parent('.user-group-div').remove();
+		});
+	});
+</script>
 		

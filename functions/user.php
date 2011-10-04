@@ -28,9 +28,14 @@ function getAllUsers()
 
 function getAllUserGroups()
 {
-	$table = ACCOUNT_GROUP_TABLE;
-	$sql = "SELECT group_id, name FROM {$table} ORDER BY name ASC";
-	return queryDatabase($sql);
+	static $cache = null;
+	
+	if (null === $cache) {
+		$table = ACCOUNT_GROUP_TABLE;
+		$sql = "SELECT group_id, name FROM {$table} ORDER BY name ASC";
+		$cache = queryDatabase($sql, null, 'group_id');
+	}
+	return $cache;
 }
 
 function addUser($data)
@@ -45,7 +50,7 @@ function addUser($data)
 	$passwordData = _derivePassword($data['password']);
 	$data['password'] = $passwordData['hash'];
 	$data['salt'] = $passwordData['salt'];
-	
+	$data['group'] = _encodeGroup($data['group']);
 	return insertIntoTable(ACCOUNTS_TABLE, $data);
 }
 
@@ -73,7 +78,9 @@ function getUserData($id)
 	$parameters = array(':id' => $id);
 	$result = queryDatabase($sql, $parameters);
 	if (is_array($result)) {
-		return array_shift($result);
+		$data = array_shift($result);
+		$data['group'] = _decodeGroup($data['group']);
+		return $data;
 	}
 	return false;
 }
@@ -99,18 +106,16 @@ function getUserGroupData($id)
 
 function updateUser($id, $data)
 {
-	$result = array();
-	$result[] = _validateAccountsData($id, 'id');
-	$result[] = _validateAccountsData($data);
-	foreach ($result as $value) {
-		if (isErrorMessage($value)) {
-			return $value;
-		}
+	$userData = array_merge(array('id' => $id), $data);
+	$result = _validateAccountsData($userData);
+	if (isErrorMessage($result)) {
+		return $result;
 	}
 	
 	$id = _sanitizeAccountsData($id, 'id');
 	$data = _sanitizeAccountsData($data);
 	$data['role'] = _deriveRole($data['role']);
+	$data['group'] = _encodeGroup($data['group']);
 	if ($data['password'] != "") {
 		$passwordData = _derivePassword($data['password']);
 		$data['password'] = $passwordData['hash'];
@@ -183,9 +188,9 @@ function deleteUserGroup($id)
 function getAccountsTableColumns($includePrimaryKeys = false)
 {	
 	if ($includePrimaryKeys) {
-		return array('id', 'role', 'name', 'password');
+		return array('id', 'role', 'name', 'password', 'group');
 	} else {
-		return array('role', 'name', 'password');
+		return array('role', 'name', 'password', 'group');
 	}
 }
 
@@ -265,13 +270,31 @@ function _isValidAccountsValue($value, $key)
 		return true;
 	} elseif ($key == 'password') {
 		return true;
-	}
+	} elseif ($key == 'group' && is_array($value)) {
+		foreach ($value as $group) {
+			if (!_isValidAccountGroup($group)) {
+				return false;
+			}
+		}
+		return true;
+	} elseif ($key == 'group') {
+		return _isValidAccountGroup($value);
+	} 
 	return false;
 }
 
 function _isValidAccountRole($value) 
 {
 	if (ctype_digit("$value") && $value < 4 && $value > 0) {
+		return true;
+	}
+	return false;
+}
+
+function _isValidAccountGroup($value)
+{
+	$userGroups = getAllUserGroups();
+	if (isset($userGroups[$value])) {
 		return true;
 	}
 	return false;
@@ -286,10 +309,12 @@ function _getValidateAccountErrorMessage($key, $data)
 		$message .= "account role";
 	} elseif ($key == 'name') {
 		$message .= "account name: ";
+	} elseif ($key == 'group') {
+		$message .= "account group ";
 	} else {
 		$message .= "data: ";
 	}
-	if ($key != 'role' || is_array($key)) {
+	if ($key != 'role' && $key != 'group') {
 		return $message . "'$data'";
 	} else {
 		return $message;
@@ -337,6 +362,7 @@ function _sanitizeAccountsValue($rawData, $key)
 		case 'id':
 			return intval($rawData);
 		case 'role':
+		case 'group':
 			if (is_array($rawData)) {
 				$sanitized = array();
 				foreach ($rawData as $value) {
@@ -369,4 +395,18 @@ function _derivePassword($plainText)
 	$salt = substr(md5($rand), 0, 16);
 	$password = _hashPassword($plainText, $salt);
 	return array('hash' => $password, 'salt' => $salt);
+}
+
+function _encodeGroup($groupArray)
+{
+	$group = implode ('|', array_unique($groupArray));
+	return '|' . $group . '|';
+}
+
+function _decodeGroup($group)
+{
+	$groupArray = explode('|', $group);
+	array_shift($groupArray);
+	array_pop($groupArray);
+	return $groupArray;
 }

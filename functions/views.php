@@ -1,5 +1,16 @@
 <?php
 
+function userGroupSelectHTML($attributes = array())
+{
+	$attributes['name'] = isset($attributes['name']) ? $attributes['name'] : 'group_id';
+	$groups = getAllUserGroups();
+	$input = array();
+	foreach ($groups as $value) {
+		$input[$value['group_id']] = $value['name'];
+	}
+	return _generateSelectHTML($input, $attributes);
+}
+
 function questionHTML($type, $data)
 {
 	if ($type == MULTIPLE_CHOICE_QUESTION) {
@@ -138,11 +149,13 @@ function _questionTemplate($contents)
 function _generateSelectHTML($input, $attributes = array())
 {
 	$name = isset($attributes['name']) ? $attributes['name'] : '';
+	$id = isset($attributes['id']) ? " id = \"{$attributes['id']}\" " : '';
+	$class = isset($attributes['class']) ? " class = \"{$attributes['class']}\" ": '';
 	$selected = isset($attributes['selected']) ? $attributes['selected'] : null;
 	$blankOption = isset($attributes['blankOption']) ? $attributes['blankOption'] : true;
 	
 	$out = array();
-	$out[] = "<select name = \"{$name}\">";
+	$out[] = "<select name = \"{$name}\"{$id}{$class}>";
 	if ($selected === null && !$blankOption) {
 		$out[] = "<option selected = \"selected\" value = \"\"></option>";
 	} elseif ($blankOption) {
