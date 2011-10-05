@@ -1,21 +1,19 @@
 <?php
 include "functions/common.php";
+
+allowOnlyIfInstalled();
+
 initialize();
 allowLoggedInUserOnly();
-$requestMethod = $_SERVER['REQUEST_METHOD'];
 
+$requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
 	include "functions/views.php";
-	$args = array();
-	if (!isInstalled()) {
-		$mainPanel = renderView('admin-install');
-		$args = array('mainPanel' => $mainPanel, 'menu' => '');
-	} else {
-		$view = getUrlQuery('view', '');
-		if ('' != $view) {
-			$mainPanel = renderView($view);
-			$args = array('mainPanel' => $mainPanel);
-		}
+	$args = array();	
+	$view = getUrlQuery('view', '');
+	if ('' != $view) {
+		$mainPanel = renderView($view);
+		$args = array('mainPanel' => $mainPanel);
 	}
 	echo _renderAdminPage($args);
 	return;
@@ -26,11 +24,7 @@ if ($requestMethod == "GET") {
 	$function = "_{$action}Action";
 	if (_isInActionWhitelist($action) && function_exists($function)) {
 		$result = call_user_func($function, $postData);
-		if ($action == 'install') {
-			_displayInstallNotification($result);
-		} else {
-			_displayResultNotification($result);
-		}
+		_displayResultNotification($result);
 	} else {
 		_displayResultNotification(false);
 	}
@@ -130,20 +124,6 @@ function _editUserGroupAction($data)
 	return updateUserGroup($id, $groupData);
 }
 
-function _editAdminCredentialsAction($data)
-{
-	include "functions/user.php";
-	$userData = getArrayValues($data, array('name', 'password1', 'password2'));
-	$userId = getLoggedInUser('id');
-	if ($userData['password1'] != $userData['password2']) {
-		return errorMessage(VALIDATION_ERROR, 'Passwords do not match.');
-	}
-	if ($userId != 0) {
-		return errorMessage(VALIDATION_ERROR, 'Administrator only.');
-	}
-	return updateAdminCredentials($data['name'], $data['password1']);
-}
-
 function _deleteQuestionAction($data)
 {
 	include "functions/question.php";
@@ -166,25 +146,6 @@ function _deleteUserGroupAction($data)
 {
 	include "functions/user.php";
 	return deleteUserGroup($data['group_id']);
-}
-
-function _installAction($data)
-{
-	include "functions/install.php";
-	$result = installDatabase($data);
-	if (!isErrorMessage($result)) {
-		setLoggedInUser(0, 0);
-	}
-	return $result;
-}
-
-function _isValidationOk($validationResult)
-{
-	if ($validationResult === true) {
-		return true;
-	} else {
-		return false;
-	}
 }
 
 function _displayResultNotification($result)
@@ -211,19 +172,6 @@ function _displayResultNotification($result)
 	echo _renderAdminPage($args);
 }
 
-function _displayInstallNotification($result)
-{
-	$notification = '';
-	if (isErrorMessage($result)) {
-		$notification .= '<h2>Error</h2>';
-		$notification .= nl2br(parseErrorMessage($result, 'text'));
-	} else {
-		redirect('?view=admin-install-success');
-	}
-	$args = array('mainPanel' => $notification, 'menu' => '');
-	echo _renderAdminPage($args);
-}
-
 function _renderAdminPage($args)
 {
 	$menu = renderView('admin-menu');
@@ -236,7 +184,7 @@ function _isInActionWhitelist($action)
 	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
 				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
 				'deleteCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
-				'install', 'editAdminCredentials', 
+				'editAdminCredentials', 
 				'addUserGroup', 'editUserGroup', 'deleteUserGroup');
 	
 	if (in_array($action, $list)) {

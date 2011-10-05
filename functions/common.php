@@ -81,6 +81,18 @@ function allowLoggedInUserOnly()
 	die();
 }
 
+/**
+ * Issues a redirect to install page if not yet installed.
+ * @return void
+ */
+function allowOnlyIfInstalled()
+{
+	if (!isInstalled()) {
+		redirect("install.php");
+		die();
+	}
+}
+
 function getLoggedInUser($key = null)
 {
 	if (null == $key && isset($_SESSION['user'])) {
@@ -152,7 +164,7 @@ function queryDatabase($sql, $parameters = null, $index = "")
  * @param String $sql the sql statement
  * @param Array $parameters an array with key-value pair corresponding to the
  * parameter names and values respectively
- * @return Mixed
+ * @return boolean
  */
 function executeDatabase($sql, $parameters = null)
 {
