@@ -236,9 +236,7 @@ function deleteQuestion($id)
 	}
 	
 	$id = _sanitizeQuestionData($id, 'question_id');
-	$sql = "DELETE FROM questions WHERE question_id=:id";
-	$parameters = array(':id' => $id);
-	return executeDatabase($sql, $parameters);
+	return deleteFromTable(QUESTIONS_TABLE, 'question_id=:id', array(':id' => $id));
 }
 
 function getQuestionCategoryTableColumns()

@@ -1,29 +1,142 @@
 <?php
+const INSTALLATION_ERROR = 100;
 
-function installDatabase($parameters)
+function install($configuration, $credentials)
 {
+	$steps = array();
+	$steps[] = function() use ($configuration) {
+					return _writeConfigurationToFile($configuration);
+			   };
+	$steps[] = function() {
+					return _checkDatabaseConnection();
+				};
+	$steps[] = function() use ($configuration) {
+					return _installDatabaseStructure($configuration);
+				};
+	$steps[] = function() {
+					return _installInitialData();
+				};
+	$steps[] = function() use ($credentials) {
+					return _setAdminCredentials($credentials);
+				};
+	
+	foreach ($steps as $function) {
+		$result = $function();
+		if (isErrorMessage($result)) {
+			return $result;
+		}
+	}
+	return true;
+}
+
+function _setAdminCredentials($credentials)
+{
+	if ($credentials['adminPassword'] != $credentials['adminPasswordConfirmation']) {
+		return errorMessage(INSTALLATION_ERROR, 'Passwords do not match.');
+	}
+	include "functions/user.php";	
+	
+	return updateAdminCredentials($credentials['adminUsername'], $credentials['adminPassword']);
+}
+
+function _installDatabaseStructure($parameters)
+{
+	$result = _validateParameters($parameters);
+	if (is_array($result) && !empty($result)) {
+		return errorMessage(INSTALLATION_ERROR, $result);
+	}
+
 	$database = $parameters['dsnPrefix'];
-	_writeConfigurationToFile($parameters);
+	$file = "config/{$database}-structure.sql";
+	beginTransaction();
+	$result = _executeSqlFile($file);
+	if (!isErrorMessage($result)) {
+		commitTransaction();
+		return true;
+	}
+	rollbackTransaction();
+	return $result;
+}
+
+function _installInitialData()
+{
+	$database = getSettings('Data Source Name Prefix');
+	$result = array();
+	
+	$result[] = beginTransaction();
+	
+	$data = array('id' => 0, 'role' => 0, 'name' => 'Admin', 'password' => '', 'salt' => '');
+	$result[] = insertIntoTable('accounts', $data);
+	
+	$data = array('category_id' => 0, 'name' => '', 'parent_category' => 0);
+	if ($database == 'mysql') {
+		$result[] = executeDatabase('SET FOREIGN_KEY_CHECKS = 0;');
+		$result[] = insertIntoTable('question_category', $data);
+		$result[] = executeDatabase('SET FOREIGN_KEY_CHECKS = 1;');
+	}
+	
+	$data = array();
+	$data[] = array('id' => 1, 'name' => 'Multiple Choice');
+	$data[] = array('id' => 2, 'name' => 'Essay');
+	$data[] = array('id' => 3, 'name' => 'True Or False');
+	$data[] = array('id' => 4, 'name' => 'Objective');
+	foreach ($data as $row) {
+		$result[] = insertIntoTable('question_type', $row);
+	}
+	
+	$data = array();
+	$data[] = array('id' => 0, 'name' => 'Administrator');
+	$data[] = array('id' => 1, 'name' => 'Examinee');
+	$data[] = array('id' => 2, 'name' => 'Examiner');
+	foreach ($data as $row) {
+		$result[] = insertIntoTable('role', $row);
+	}
+	
+	foreach ($result as $value) {
+		if (!$value) {
+			rollbackTransaction();
+			return errorMessage(INSTALLATION_ERROR, 'Failed to populate database.');
+		}
+	}
+	commitTransaction();
+	return true;
+}
+
+function _validateParameters($parameters)
+{
+	$errors = array();
+	if ($parameters['dsnPrefix'] != 'mysql') {
+		$errors[] = 'Invalid database software.';
+	}
+	if (empty($parameters['host'])) {
+		$errors[] = 'No database host specified.';
+	}
+	if (empty($parameters['database'])) {
+		$errors[] = 'No database name specified.';
+	}
+	if (empty($parameters['user'])) {
+		$errors[] = 'No database user specified.';
+	}
+	if (empty($errors)) {
+		return true;
+	}
+	return $errors;
+}
+
+function _checkDatabaseConnection()
+{
 	@getDatabase();
 	$error = getDatabaseError();
 	if (!empty($error)) {
 		_deleteSettingsFile();
 		$errorMessage = 'Database Error: ' . $error['ERROR_MESSAGE'];
-		$helpMessage = "Possible Solution: Please check that the database 
-						already exists, and that the username and password 
-						used to connect are valid.";
-		$message = errorMessage($error['SQL_STATE'], array($errorMessage, '', $helpMessage));
+		$helpMessage =	"Possible Solution: Please check that the database "
+					 .	"already exists, and that the username and password "
+					 .	"used to connect are valid.";
+		$message = errorMessage(INSTALLATION_ERROR, array($errorMessage, '', $helpMessage));
 		return $message;
 	}
-	
-	executeDatabase("START TRANSACTION");
-	_installDatabaseStructure($database);
-	executeDatabase("SET FOREIGN_KEY_CHECKS=0");
-	_installInitialData();
-	executeDatabase("SET FOREIGN_KEY_CHECKS=1");
-	executeDatabase("COMMIT");
 	return true;
-	
 }
 
 function _writeConfigurationToFile($parameters)
@@ -48,8 +161,9 @@ function _writeConfigurationToFile($parameters)
 	$fileContents = implode(PHP_EOL, $data);
 	$result = file_put_contents("config/settings.php", $fileContents);
 	if (false === $result) {
-		die('Unable to write settings to file.');
+		return errorMessage(INSTALLATION_ERROR, 'Unable to write settings to file.');
 	}
+	return true;
 }
 
 function _createSettingsInPhpCode($settings)
@@ -86,22 +200,6 @@ function _deleteSettingsFile()
 	unlink("config/must-be-gone.php");
 }
 
-function _installDatabaseStructure($database)
-{	
-	$file = '';
-	if ($database == "mysql") {
-		$file = "config/mysql-structure.sql";
-	} else {
-		die ('Unsupported database: ' . $database);
-	}
-	_executeSqlFile($file);
-}
-
-function _installInitialData()
-{
-	_executeSqlFile("config/initial-data.sql");
-}
-
 function _executeSqlFile($file)
 {
 	$fileContents = file_get_contents($file);
@@ -110,7 +208,8 @@ function _executeSqlFile($file)
 	foreach ($sqlStatements as $statement) {
 		$result = executeDatabase($statement);
 		if (false === $result) {
-			die('Error: ' . getDatabaseError('ERROR_MESSAGE'));
+			$message = 'Error: ' . getDatabaseError('ERROR_MESSAGE');
+			return errorMessage(INSTALLATION_ERROR, $message);
 		}
 	}
 }

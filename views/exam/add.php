@@ -11,19 +11,10 @@
 			<tr>
 				<td>Get Questions From</td>
 				<td>
-				<select name = "questions_category">
-					<?php
-						$categories = (getAllQuestionCategories());
-						foreach ($categories as $category) {
-							$name = escapeOutput($category['name']);
-							if ($category['category_id'] == 0) {
-								echo '<option value = "0">None Selected</option>';
-							} else {
-								echo "<option value = \"{$category['category_id']}\">{$name}</option>";
-							}
-						}
-					?>
-				</select>
+				<?php 
+				$attributes = array('name' => 'questions_category');
+				echo questionCategorySelectHTML($attributes);
+				?>
 				</td>
 			</tr>
 			<tr>

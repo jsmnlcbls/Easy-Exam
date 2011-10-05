@@ -16,20 +16,11 @@ $data = escapeOutput(getExamData($examId));
 			<tr>
 				<td>Get Questions From</td>
 				<td>
-				<select name = "questions_category">
-					<?php
-						$categories = getAllQuestionCategories();
-						foreach ($categories as $category) {
-							$name = escapeOutput($category['name']);
-							$id = $category['category_id'];
-							if ($id == $data['questions_category']) {
-								echo "<option selected = \"selected\" value = \"{$id}\">{$name}</option>";
-							} else {
-								echo "<option value = \"{$id}\">{$name}</option>";
-							}
-						}
+					<?php 
+					$attributes = array('name' => 'questions_category', 
+										'selected' => $data['questions_category']);
+					echo questionCategorySelectHTML($attributes);
 					?>
-				</select>
 				</td>
 			</tr>
 			<tr>

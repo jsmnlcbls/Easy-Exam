@@ -74,15 +74,13 @@ function getExamQuestions($examId)
 
 function deleteExam($id)
 {
-	$result = _validateExamData($id);
+	$result = _validateExamData($id, 'exam_id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
 	$id = _sanitizeExamData($id, 'exam_id');
-	$sql = "DELETE FROM exam WHERE exam_id = :id";
-	$parameters = array(':id' => $id);
-	return executeDatabase($sql, $parameters);
+	return deleteFromTable(EXAM_TABLE, 'exam_id=:id', array(':id' => $id));
 }
 
 function getExamTableColumns()
