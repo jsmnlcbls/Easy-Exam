@@ -5,10 +5,9 @@ _allowOnlyIfNotYetInstalled();
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
-
-	$mainPanel = renderView('admin-install');
+	$mainPanel = renderViewFile('admin/install.php');
 	$args = array('mainPanel' => $mainPanel);
-	echo renderView('admin-main', $args);
+	echo renderViewFile('admin/main.php', $args);
 } elseif ($requestMethod == 'POST' && 'install' == getPost('action')) {
 	$post = getPost();
 	$configurationKeys = array('dsnPrefix', 'host', 'database', 'user', 'password');
@@ -27,7 +26,7 @@ if ($requestMethod == "GET") {
 		$notification .= nl2br(parseErrorMessage($result, 'text'));
 		$args = array('mainPanel' => $notification);
 	}
-	echo renderView('admin-main', $args);
+	echo renderViewFile('admin/main.php', $args);
 }
 
 function _allowOnlyIfNotYetInstalled()

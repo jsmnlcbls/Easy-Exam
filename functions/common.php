@@ -325,18 +325,48 @@ function getUrlQuery($key = null, $default = null)
 }
 
 /**
- * Returns the results of PHP evaluation of a given view.
+ * Returns the results of PHP evaluation of a given view. The view will be 
+ * checked first against a whitelist to ensure that it exists in the views 
+ * directory where it will be loaded from. If it is not found, an empty string is
+ * returned.
  * @param String $view the name of the view
  * @param Array $arguments associative array of key values pairs that will be
  * extracted as local variables for PHP evaluation
- * @param boolean $escapeString flag on whether or not the $arguments given will
- * be sanitized for HTML output
  * @return String
  */
-function renderView($view, $arguments = array(), $escapeString = false)
+function renderView($view, $arguments = array())
 {
-	$viewFile = _getViewFile($view);
-	return _renderViewFile($viewFile, $arguments, $escapeString);
+	if (_viewIsInWhiteList($view)) {
+		$viewFile = _getViewFile($view);
+		return renderViewFile($viewFile, $arguments);
+	}
+	return '';
+}
+
+/**
+ * Returns the results of PHP evaluation of a given view file under the views 
+ * directory. The only allowed characters in filepath are:
+ *	lowercase letters a-z
+ *  '/' as the directory separator
+ *  '.php' as the required file extension in the end
+ * @param String $filepath
+ * @param String $arguments
+ * @return String 
+ */
+function renderViewFile($filepath, $arguments = array())
+{
+	ob_start();
+	if (count($arguments) > 0) {
+		extract($arguments);
+	}
+	
+	$pattern = '/^[a-z-\\/]+(.)php$/';
+	if (preg_match($pattern, $filepath)) {
+		include 'views/' . $filepath;
+	}
+	$render = ob_get_contents();
+	ob_end_clean();
+	return $render;
 }
 
 function getChoicesLetterColumns()
@@ -553,32 +583,14 @@ function isInstalled()
 
 //------------------------Internal functions-----------------------------------
 
-function _renderViewFile($filename, $arguments = array(), $escapeStrings = false)
-{
-	ob_start();
-	if (count($arguments) > 0) {
-		if ($escapeStrings) {
-			$arguments = escapeOutput($arguments);
-		}
-		extract($arguments);
-	}
-	include $filename;
-	$render = ob_get_contents();
-	ob_end_clean();
-	return $render;
-}
 
 function _getViewFile($view)
 {
 	$viewFileHierarchy = explode ('-', $view);
 	$directory = array_shift($viewFileHierarchy);
 	$file = implode('-', $viewFileHierarchy);
-	if (_viewIsInWhiteList($view)) {
-		$viewFile = 'views' . DIRECTORY_SEPARATOR . $directory 
-							. DIRECTORY_SEPARATOR . $file . '.php'; 
-		return $viewFile;
-	}
-	return '';
+
+	return "$directory/$file.php";
 }
 
 function _viewIsInWhiteList($view)
@@ -586,13 +598,9 @@ function _viewIsInWhiteList($view)
 	$whitelist = getSettings('View Whitelist', array());
 	if (in_array($view, $whitelist)) {
 		return true;
-	} else {
-		$initial = array('admin-main', 'admin-menu', 'admin-install');
-		if (in_array($view, $initial)) {
-			return true;
-		}
-		return false;
-	}
+	} 
+	
+	return false;
 }
 
 function _fetchData(&$source, $index = '')
