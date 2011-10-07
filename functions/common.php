@@ -388,11 +388,14 @@ function escapeOutput($output)
 	if (is_string($output)) {
 		return htmlentities($output, ENT_QUOTES);
 	} elseif (is_array($output)) {
-		$sanitizedValues = array();
-		foreach ($output as $key => $value) {
-			$sanitizedValues[$key] = htmlentities($value, ENT_QUOTES);
-		}
-		return $sanitizedValues;
+		$escapeFunction = function(&$value) {
+			if (is_string($value)) {
+				$value = htmlentities($value, ENT_QUOTES);
+			}
+		};
+		
+		array_walk_recursive($output, $escapeFunction);
+		return $output;
 	}
 }
 
