@@ -6,12 +6,13 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET NAMES utf8 */;
 
 
-CREATE TABLE `accounts` (
+CREATE TABLE IF NOT EXISTS `accounts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `role` tinyint(4) NOT NULL,
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `password` char(64) COLLATE utf8_unicode_ci NOT NULL,
   `salt` char(16) COLLATE utf8_unicode_ci NOT NULL,
+  `group` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `role` (`role`)
@@ -22,7 +23,7 @@ CREATE TABLE `account_group` (
   `name` varchar(64) NOT NULL,
   PRIMARY KEY (`group_id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `exam` (
   `exam_id` int(11) NOT NULL AUTO_INCREMENT,
