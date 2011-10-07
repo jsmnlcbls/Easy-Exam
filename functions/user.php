@@ -51,7 +51,8 @@ function addUser($data)
 	$data['password'] = $passwordData['hash'];
 	$data['salt'] = $passwordData['salt'];
 	$data['group'] = _encodeGroup($data['group']);
-	return insertIntoTable(ACCOUNTS_TABLE, $data);
+	insertIntoTable(ACCOUNTS_TABLE, $data);
+	print_r(getDatabaseError());
 }
 
 function addUserGroup($data)

@@ -5,8 +5,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
 
-
-CREATE TABLE IF NOT EXISTS `accounts` (
+CREATE TABLE `accounts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `role` tinyint(4) NOT NULL,
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
@@ -36,17 +35,14 @@ CREATE TABLE `exam` (
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `multiple_choice` (
   `question_id` int(11) NOT NULL,
-  `choiceA` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceB` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceC` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceD` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `choiceE` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `answer` char(1) COLLATE utf8_unicode_ci NOT NULL,
+  `answer` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `category` int(11) NOT NULL,
+  `choices` text COLLATE utf8_unicode_ci NOT NULL,
+  `randomize` tinyint(1) NOT NULL,
   PRIMARY KEY (`question_id`),
   KEY `category` (`category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -67,7 +63,7 @@ CREATE TABLE `questions` (
   PRIMARY KEY (`question_id`),
   KEY `category` (`category`),
   KEY `type` (`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_category` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -75,7 +71,7 @@ CREATE TABLE `question_category` (
   `parent_category` int(11) NOT NULL,
   PRIMARY KEY (`category_id`),
   KEY `parent_category` (`parent_category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_type` (
   `id` tinyint(4) NOT NULL AUTO_INCREMENT,

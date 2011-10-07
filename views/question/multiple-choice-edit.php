@@ -21,27 +21,35 @@
 			<td><textarea name = "question"><?php echo $data['question']; ?></textarea></td>
 		</tr>
 		<tr>
-			<td rowspan = "5">Choices</td>
-			<?php
-			$startRowTag = false;
-			$out = array();
-			foreach (getChoicesLetterColumns() as $letter => $column) {
-				if ($startRowTag) {
-					$out[] = '<tr>'; 
-				}
-				$out[] = '<td><span class = "letterChoice">' . $letter . '</span>';
-				$out[] = '<input class =  "question-choice" type = "text" '
-					   . 'value = "' . $data[$column] .'" name = "' . $column .'"/></td>';
-				$out[] = '</tr>';
-				$startRowTag = true;
-			}
-			echo implode ("\n", $out);
-			?>
-		<tr>
-			<td>Answer</td>
+			<td>Choices</td>
 			<td>
-				<?php echo questionLetterAnswerSelectHTML(array('selected' => $data['answer'])); ?>
+				<ul id="multiple-choices-list">
+				<?php
+				$out = array();
+				for ($a = 0; $a < 5; $a++) {
+					$value = isset($data['choices'][$a]) ? $data['choices'][$a] : '';
+					$checked = ' ';
+					if (in_array($a, $data['answer'])) {
+						$checked = ' checked="checked" ';
+					}
+					$out[] = '<li>';
+					$out[] = "<input value=\"$value\" class=\"question-choice\" type=\"text\" name =\"choices[]\"/>";
+					$out[] = "<input{$checked}type=\"checkbox\" name=\"answer[]\" value=\"{$a}\"/>";
+					$out[] = '</li>';
+				}
+				echo implode("\n", $out);
+				?>
+				</ul>
 			</td>
+		</tr>
+		<tr>
+			<td>Option</td>
+			<td>
+				<input type ="checkbox" name="randomize" value="1" 
+				<?php echo $data['randomize'] ? 'checked="checked"' : '';?>/>
+				Randomize order of choices at exam
+				</div>
+			</td>	
 		</tr>
 		<tr>
 			<td></td>
@@ -51,4 +59,3 @@
 	<input type = "hidden" name = "action" value = "editQuestion"/>
 	</form>
 </div>
-		

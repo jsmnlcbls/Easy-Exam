@@ -14,39 +14,43 @@
 			<td><textarea name = "question"></textarea></td>
 		</tr>
 		<tr>
-			<td rowspan = "5">Choices</td>
-			<?php
-			$startRowTag = false;
-			$out = array();
-			foreach (getChoicesLetterColumns() as $letter => $column) {
-				if ($startRowTag) {
-					$out[] = '<tr>'; 
-				}
-				$out[] = '<td><span class = "letterChoice">' . $letter . '</span>';
-				$out[] = '<input class =  "question-choice" type = "text" name = "' . $column .'"/></td>';
-				$out[] = '</tr>';
-				$startRowTag = true;
-			}
-			echo implode ("\n", $out);
-			?>
-		<tr>
-			<td>Answer</td>
+			<td>Choices</td>
 			<td>
-				<select name = "answer">
-					<option value = ""></option>
-					<?php
-					foreach (getChoicesLetterColumns() as $letter => $value) {
-						echo "<option value = \"$letter\">$letter</option>";
-					}
-					?>
-				</select></td>
+				<ul id="multiple-choices-list">
+				<?php
+				$out = array();
+				for ($a = 0; $a < 5; $a++) {
+					$out[] = '<li>';
+					$out[] = "<input class=\"question-choice\" type=\"text\" name =\"choices[]\"/>";
+					$out[] = "<input type=\"checkbox\" name=\"answer[]\" value=\"{$a}\"/>";
+					$out[] = '</li>';
+				}
+				echo implode("\n", $out);
+				?>
+				</ul>
+			</td>
+		<tr>
+			<td>Option</td>
+			<td>
+				<input type ="checkbox" name="randomize" value="1" checked="checked"/>
+				Randomize order of choices at exam
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2"><hr/></td>
 		</tr>
 		<tr>
 			<td></td>
 			<td><input type ="submit" value ="Add Question"/></td>
 		</tr>
+		<tr>
+			<td colspan="2" class="note">
+				<br/>
+				To mark a choice as an answer, select the checkbox beside it.<br/>
+				One or more choices may be marked as the answer.
+			</td>
+		</tr>
 	</table>
 	<input type = "hidden" name = "action" value = "addQuestion"/>
 	</form>
 </div>
-		
