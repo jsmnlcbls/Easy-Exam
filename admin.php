@@ -68,8 +68,6 @@ function _addExamAction($data)
 {
 	include "functions/exam.php";
 	$examData = getArrayValues($data, getExamTableColumns());
-	$examData['start_date_time'] = $data["start_date"] . " " . $data["start_time"];
-	$examData['end_date_time'] = $data["end_date"] . " " . $data["end_time"];
 	
 	return addExam($examData);
 }
@@ -101,8 +99,6 @@ function _editExamAction($data)
 {
 	include "functions/exam.php";
 	$examData = getArrayValues($data, getExamTableColumns());
-	$examData['start_date_time'] = $data["start_date"] . " " . $data["start_time"];
-	$examData['end_date_time'] = $data["end_date"] . " " . $data["end_time"];
 	
 	$id = $data["exam_id"];
 	return updateExam($id, $examData);

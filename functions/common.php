@@ -479,6 +479,29 @@ function validateData($data, $validatorFunction, $errorMessageFunction)
 	}
 }
 
+function validateInputData($validatorFunction, $data, $key = null)
+{
+	$errorMessages = array();
+	if (is_array($data)) {
+		foreach ($data as $key => $value) {
+			$result = $validatorFunction($value, $key);
+			if (!empty($result)) {
+				$errorMessages = array_merge($errorMessages, $result);
+			}
+		}
+	} elseif (is_string($key)) {
+		$result = $validatorFunction($data, $key);
+		if (!empty($result)) {
+			$errorMessages = $result;
+		}
+	}
+	
+	if (empty($errorMessages)) {
+		return true;
+	}
+	return errorMessage(VALIDATION_ERROR, $errorMessages);
+}
+
 /**
  * Creates and returns an ERROR message in a "standard" format.
  * @param int $code the error code
@@ -582,6 +605,31 @@ function isInstalled()
 		return true;
 	}
 	return false;
+}
+
+/**
+ * Encodes an array for storage in database
+ * @param Array $array
+ * @return String
+ */
+function encodeArray($array)
+{
+	$array = array_unique($array);
+	$value = '|' . implode('|', $array) . '|';
+	return $value;
+}
+
+/**
+ * Decodes a given string (encoded by function encodeArray) as array
+ * @param String $value
+ * @return array
+ */
+function decodeArray($value)
+{
+	$array = explode('|', $value);
+	array_pop($array);
+	array_shift($array);
+	return $array;
 }
 
 //------------------------Internal functions-----------------------------------

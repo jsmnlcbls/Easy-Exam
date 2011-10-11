@@ -5,6 +5,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
 
+
 CREATE TABLE `accounts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `role` tinyint(4) NOT NULL,
@@ -25,13 +26,21 @@ CREATE TABLE `account_group` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `exam` (
-  `exam_id` int(11) NOT NULL AUTO_INCREMENT,
+  `exam_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `group` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `max_questions` tinyint(3) unsigned NOT NULL,
   `start_date_time` datetime NOT NULL,
   `end_date_time` datetime NOT NULL,
-  `time_limit` tinyint(4) NOT NULL,
-  `passing_score` tinyint(4) NOT NULL,
+  `time_limit` decimal(4,2) NOT NULL,
   `questions_category` int(11) NOT NULL,
+  `default_points` tinyint(4) NOT NULL,
+  `passing_score` tinyint(3) unsigned NOT NULL,
+  `question_display` tinyint(3) unsigned NOT NULL,
+  `recorded` tinyint(1) NOT NULL,
+  `randomize` tinyint(1) NOT NULL,
+  `max_take` tinyint(4) NOT NULL,
+  `score_is_percentage` tinyint(1) NOT NULL,
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
