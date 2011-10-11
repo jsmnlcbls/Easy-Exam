@@ -23,19 +23,9 @@ include "functions/question.php";
 			</tr>
 			<td>In Category</td>
 			<td>
-				<select name = "category">
 				<?php
-					$categories = getAllQuestionCategories();
-					foreach ($categories as $category) {
-						if ($category['category_id'] == 0) {
-							echo '<option value = "">None Selected</option>';
-						} else {
-							$name = escapeOutput($category['name']);
-							echo "<option value = \"{$category['category_id']}\">{$name}</option>";
-						}
-					}
+				echo questionCategorySelectHTML();
 				?>
-				</select>
 			</td>
 		</tr>
 		<tr>
@@ -53,7 +43,7 @@ include "functions/question.php";
 		"_" will match just one character<br/>
 		Examples: <br/>
 		calculate% will find any question that begins with "calculate".<br/>
-		"%average% will find any question containing the string "average"
+		"%average%" will find any question containing the string "average
 	</div>
 	</form>
 </div>
