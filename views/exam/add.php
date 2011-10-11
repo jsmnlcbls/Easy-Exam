@@ -33,7 +33,7 @@ include "functions/user.php";
 			</tr>
 			<tr>
 				<td>Total Questions</td>
-				<td><input type="text" name="max_questions" style="width:2em"/>
+				<td><input type="text" name="total_questions" style="width:2em"/>
 				</td>
 			</tr>
 			<tr>

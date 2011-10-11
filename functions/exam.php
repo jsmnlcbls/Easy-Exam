@@ -70,7 +70,7 @@ function getExamQuestions($examId)
 		return $result;
 	}
 	
-	$examId = _processExamData($examId, 'exam_id');
+	_processExamData($examId, 'exam_id');
 	$data = getExamData($examId);
 	$category = $data['questions_category'];
 	$sql = "SElECT * FROM questions WHERE category=:category";
@@ -93,7 +93,7 @@ function getExamTableColumns()
 {
 	return array('name', 'group', 'start_date_time', 'end_date_time', 'time_limit', 
 				 'questions_category', 'default_points', 'passing_score',
-				 'question_display', 'recorded', 'randomize', 'max_take', 'max_questions');
+				 'question_display', 'recorded', 'randomize', 'max_take', 'total_questions');
 }
 
 function _validateExamData($data, $key = null)
@@ -139,9 +139,9 @@ function _validateExamValue($value, $key)
 		if (!ctype_digit("$value")) {
 			$errors[] = 'Invalid question category';
 		}
-	} elseif ($key == 'max_questions') {
+	} elseif ($key == 'total_questions') {
 		if (!ctype_digit("$value") || $value == 0) {
-			$errors[] = 'Invalid max questions count.';
+			$errors[] = 'Invalid total questions count.';
 		}
 	} elseif ($key == 'start_date_time') {
 		if (is_array($value)) {
@@ -230,7 +230,7 @@ function _validateExamValue($value, $key)
 		} else {
 			$errors = array_merge($result[0], $result[1]);
 		}
-	}
+	} elseif ($key == '_total_category_questions')
 	return $errors;
 }
 
@@ -292,7 +292,7 @@ function _processExamValue(&$value, $key)
 		$key == 'questions_category' || 
 		$key == 'default_points' ||
 		$key == 'passing_score' ||
-		$key == 'max_questions') {
+		$key == 'total_questions') {
 		filter_var($value, FILTER_SANITIZE_NUMBER_INT);
 	} elseif ($key == 'name') {
 		$value = trim($value);

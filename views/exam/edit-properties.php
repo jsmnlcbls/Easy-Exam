@@ -50,7 +50,7 @@ $data = escapeOutput(getExamData($examId));
 			</tr>
 			<tr>
 				<td>Total Questions</td>
-				<td><input type="text" name="max_questions" value="<?php echo $data['max_questions'];?>"style="width:2em"/>
+				<td><input type="text" name="total_questions" value="<?php echo $data['total_questions'];?>"style="width:2em"/>
 				</td>
 			</tr>
 			<tr>
