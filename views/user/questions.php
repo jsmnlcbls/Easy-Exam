@@ -26,27 +26,11 @@
 	$questionNumber = 0;
 	echo "<ol>";
 	foreach ($questions as $value) {
-		$question = $value['question'];
 		$questionId = $value['question_id'];
 		$type = $value['type'];
 		$data = getQuestionData($questionId, $type);
-		unset($data['type']);
-		unset($data['answer']);
 		echo "<li>";
-		$attributes = array('name' => $questionId);
-		if ($type == MULTIPLE_CHOICE_QUESTION) {
-			echo multipleChoiceQuestionHTML($data);
-			echo 'Answer: ' . multipleChoiceAnswerSelectHTML($attributes);
-		} elseif ($type == ESSAY_QUESTION) {
-			echo essayQuestionHTML($data);
-			echo 'Answer: ' . essayQuestionAnswerInputHTML($attributes);
-		} elseif ($type == OBJECTIVE_QUESTION) {
-			echo objectiveQuestionHTML($data);
-			echo 'Answer: ' . objectiveQuestionAnswerInputHTML($attributes);
-		} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-			echo trueOrFalseQuestionHTML($data);
-			echo 'Answer: ' . trueOrFalseAnswerSelectHTML(array('name' => $questionId, 'selected' => null));
-		}
+		echo examQuestionHTML($type, $data);
 		echo "<hr/>";
 		echo "</li>";
 		$questionNumber++;

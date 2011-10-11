@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<script src = "jquery-1.5.1.js"></script>
+		<script src = "admin.js"></script>
 		<link type="text/css" href="style.css" rel="stylesheet" />
 		<title>Administration</title>
 	</head>

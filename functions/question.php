@@ -92,7 +92,8 @@ function addQuestion($type, $rawData)
 	$result = false;
 	switch (intval($type)) {
 		case MULTIPLE_CHOICE_QUESTION:
-			//cascade intentional
+			$questionData['choices'] = _encodeMultipleChoices($questionData['choices']);
+			$questionData['answer'] = _encodeMultipleChoiceAnswer($questionData['answer']);
 		case TRUE_OR_FALSE_QUESTION:
 			//cascade intentional
 		case OBJECTIVE_QUESTION:
@@ -191,7 +192,13 @@ function getQuestionData($id, $type = null)
 	$sql .= "WHERE t1.question_id=:questionId";
 	$parameters = array(':questionId' => $id);
 	$result = queryDatabase($sql, $parameters);
-	return array_shift($result);
+	$result = array_shift($result);
+	
+	if ($type == MULTIPLE_CHOICE_QUESTION) {
+		$result['choices'] = _decodeMultipleChoices($result['choices']);
+		$result['answer'] = _decodeMultipleChoiceAnswer($result['answer']);
+	}
+	return $result;
 }
 
 function updateQuestion($id, $rawData)
@@ -213,7 +220,8 @@ function updateQuestion($id, $rawData)
 	$result = false;
 	switch ($type) {
 		case MULTIPLE_CHOICE_QUESTION:
-			//cascade intentional
+			$questionData['choices'] = _encodeMultipleChoices($questionData['choices']);
+			$questionData['answer'] = _encodeMultipleChoiceAnswer($questionData['answer']);
 		case TRUE_OR_FALSE_QUESTION:
 			//cascade intentional
 		case OBJECTIVE_QUESTION:
@@ -255,11 +263,9 @@ function getQuestionTableColumns($options = array())
 	
 	$columns = array();
 	if ($type == MULTIPLE_CHOICE_QUESTION && $includePrimaryKeys) {
-		$choices = array_values(getChoicesLetterColumns());
-		$columns = array_merge(array('question_id', 'answer', 'category'), $choices);
+		$columns = array('question_id', 'answer', 'category', 'choices', 'randomize');
 	} elseif ($type == MULTIPLE_CHOICE_QUESTION) {
-		$choices = array_values(getChoicesLetterColumns());
-		$columns = array_merge(array('answer', 'category'), $choices);
+		$columns = array('answer', 'category', 'choices', 'randomize');
 	} elseif ($type == TRUE_OR_FALSE_QUESTION && $includePrimaryKeys) {
 		$columns = array('question_id', 'answer', 'category');
 	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
@@ -428,11 +434,26 @@ function _isValidQuestionValue($value, $key, $type = null)
 
 function _isValidMultipleChoiceValue($value, $key)
 {
-	if ($key == 'answer' && strlen($value) == 1 && ctype_alpha($value)) {
+	if ($key == 'answer' && is_array($value)) {
+		foreach ($value as $choice => $isAnswer) {
+			if (!ctype_digit("$choice") || !ctype_digit("$isAnswer")) {
+				return false;
+			}
+		}
+		
 		return true;
-	} elseif ($key == 'choiceA' || $key == 'choiceB' || $key == 'choiceC' || 
-			  $key == 'choiceD' || $key == 'choiceE') {
+	} elseif ($key == 'randomize' && ($value == 1 || $value == 0)) {
 		return true;
+	} elseif ($key == 'choices' && is_array($value)) {
+		$nonEmpty = 0;
+		foreach ($value as $choice) {
+			if (trim($choice) != '') {
+				$nonEmpty++;
+			}
+		}
+		if ($nonEmpty > 1) {
+			return true;
+		}
 	}
 	return false;
 }
@@ -466,9 +487,8 @@ function _getValidateQuestionErrorMessage($key, $value)
 		$message .= 'question';
 	} elseif ($key == 'answer') {
 		$message .= 'answer';
-	} elseif ($key == 'choiceA' || $key == 'choiceB' || 
-			  $key == 'choiceC' || $key == 'choiceD' || $key == 'choiceE') {
-		$message .= 'question choice';
+	} else {
+		return 'Invalid data for key: '.$key;
 	}
 	return $message .= ": '$value'"; 
 }
@@ -521,9 +541,7 @@ function _sanitizeQuestionValue($value, $key, $type = null)
 		case 'type':
 			return intval($value);
 		case 'answer':
-			if ($type == MULTIPLE_CHOICE_QUESTION) { 
-				return substr($value, 0, 1);
-			} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+			if ($type == TRUE_OR_FALSE_QUESTION) {
 				return (bool) $value;
 			} else {
 				return $value;
@@ -626,4 +644,29 @@ function _getCategoryHierarchy($parent = 0)
 	$categories = getAllQuestionCategories();
 	
 	return _createTree($categories, $parent);
+}
+
+function _encodeMultipleChoices($choices)
+{
+	foreach ($choices as $key => $value) {
+		if (trim($value) == '') {
+			unset($choices[$key]);
+		}
+	}
+	return json_encode($choices);
+}
+
+function _decodeMultipleChoices($choices)
+{
+	return json_decode($choices);
+}
+
+function _encodeMultipleChoiceAnswer($answer)
+{
+	return json_encode($answer);
+}
+
+function _decodeMultipleChoiceAnswer($answer)
+{
+	return json_decode($answer);
 }

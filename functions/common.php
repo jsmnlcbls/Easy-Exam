@@ -388,11 +388,14 @@ function escapeOutput($output)
 	if (is_string($output)) {
 		return htmlentities($output, ENT_QUOTES);
 	} elseif (is_array($output)) {
-		$sanitizedValues = array();
-		foreach ($output as $key => $value) {
-			$sanitizedValues[$key] = htmlentities($value, ENT_QUOTES);
-		}
-		return $sanitizedValues;
+		$escapeFunction = function(&$value) {
+			if (is_string($value)) {
+				$value = htmlentities($value, ENT_QUOTES);
+			}
+		};
+		
+		array_walk_recursive($output, $escapeFunction);
+		return $output;
 	}
 }
 
@@ -474,6 +477,29 @@ function validateData($data, $validatorFunction, $errorMessageFunction)
 	} else {
 		return errorMessage(VALIDATION_ERROR, $errorMessages);
 	}
+}
+
+function validateInputData($validatorFunction, $data, $key = null)
+{
+	$errorMessages = array();
+	if (is_array($data)) {
+		foreach ($data as $key => $value) {
+			$result = $validatorFunction($value, $key);
+			if (!empty($result)) {
+				$errorMessages = array_merge($errorMessages, $result);
+			}
+		}
+	} elseif (is_string($key)) {
+		$result = $validatorFunction($data, $key);
+		if (!empty($result)) {
+			$errorMessages = $result;
+		}
+	}
+	
+	if (empty($errorMessages)) {
+		return true;
+	}
+	return errorMessage(VALIDATION_ERROR, $errorMessages);
 }
 
 /**
@@ -579,6 +605,31 @@ function isInstalled()
 		return true;
 	}
 	return false;
+}
+
+/**
+ * Encodes an array for storage in database
+ * @param Array $array
+ * @return String
+ */
+function encodeArray($array)
+{
+	$array = array_unique($array);
+	$value = '|' . implode('|', $array) . '|';
+	return $value;
+}
+
+/**
+ * Decodes a given string (encoded by function encodeArray) as array
+ * @param String $value
+ * @return array
+ */
+function decodeArray($value)
+{
+	$array = explode('|', $value);
+	array_pop($array);
+	array_shift($array);
+	return $array;
 }
 
 //------------------------Internal functions-----------------------------------
