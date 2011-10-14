@@ -29,7 +29,7 @@
 			select.after('<img src ="images/delete_group.png" style="margin-left: 5px;"></img>');
 			select.next().click(function(){methods.remove(select.parent())});
 		}
-	}
+	};
 	
 	$.fn.userGroupChoice = function() {
 		var first = true;
@@ -41,6 +41,5 @@
 				methods.wrapRemove($(this));
 			}
 		});
-		//return methods.init(this);
 	};
 })(jQuery);
