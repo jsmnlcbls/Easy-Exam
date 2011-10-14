@@ -134,13 +134,12 @@ function _multipleChoiceExamAnswerInputHTML($choices, $questionId, $multipleAnsw
 	$list = '<ul class="exam-multiple-choices">';
 	$options = array();
 	foreach ($choices as $key => $value) {
-		$name = 'answer_' . escapeOutput($questionId);
-		$value = escapeOutput($value);
+		$name = _generateAnswerInputName($questionId, $multipleAnswers);
 		$type = 'radio';
 		if ($multipleAnswers) {
 			$type = 'checkbox';
 		}
-		$options[] = "<li><input type=\"$type\" value=\"{$key}\" name=\"{$name}[]\"> {$value}</li>";
+		$options[] = "<li><input type=\"$type\" value=\"{$key}\" name=\"{$name}\"> {$value}</li>";
 	}
 	if ($randomize) {
 		shuffle($options);
@@ -177,7 +176,6 @@ function _examQuestionTemplate($question, $answerInput, $points = '')
 		$points = ($points > 1) ? "($points pts)" : '(1 pt)';
 		$points = '<span class="question-exam-points">' . $points . '</span>';	
 	}
-	$question = escapeOutput($question);
 	$output = array();
 	$output[] = '<div class = "exam-question-div">';
 	$output[] = "<div>{$question}{$points}</div>";
@@ -221,7 +219,6 @@ function _generateListHTML($input, $ordered = false, $attributes = array())
 	$out = array();
 	$out[] = $listStartMarkup;
 	foreach ($input as $value) {
-		$value = escapeOutput($value);
 		$out[] = "<li>$value</li>";
 	}
 	$out[] = $listEndMarkup;
@@ -244,7 +241,10 @@ function _getQuestionTypeAbbreviation($type)
 	}
 }
 
-function _generateAnswerInputName($questionId)
+function _generateAnswerInputName($questionId, $multipleAnswers = false)
 {
-	return "answer_{$questionId}[]";
+	if ($multipleAnswers) {
+		return "{$questionId}[]";
+	}
+	return "{$questionId}";
 }
