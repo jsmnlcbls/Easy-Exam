@@ -150,3 +150,12 @@ body {
 	text-decoration: underline;
 	cursor: default;
 }
+
+.question-exam-points {
+	font-size: 80%;
+	float: right;
+}
+
+#questions-list li{
+	margin-bottom: 7px;
+}
