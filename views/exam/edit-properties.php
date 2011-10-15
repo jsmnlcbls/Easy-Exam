@@ -103,16 +103,7 @@ $data = escapeOutput(getExamData($examId));
 			<tr>
 				<td>Points Per Question</td>
 				<td>
-					<select name ="default_points">
-					<?php
-					for ($a = 1; $a <= 10; $a++) {
-						if ($a == $data['default_points']) {
-							echo "<option selected=\"selected\" value =\"{$a}\">$a</option>";
-						} else {
-							echo "<option value =\"{$a}\">$a</option>";
-						}
-					}
-					?>
+					<input type="text" name="default_points" value="<?php echo $data['default_points']; ?>" style="width:1.5em" maxlength="2"/>
 					</select>
 				</td>
 			</tr>
