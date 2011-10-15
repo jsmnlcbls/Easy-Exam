@@ -1,11 +1,1 @@
-printf("Farewell Dennis Ritchie\n");
-
-Quotes around the net:
-"His pointer has been cast to void *; his process has terminated with exit code 0."
-"If you seek his monument, log in."
-"He made things, that made things."
-
-This program is written in a language that heavily borrows from C, the language created by Dennis Ritchie.
-This program will also run in a clone or a descendant of Unix, the operating system of which he was a key developer. 
-
-This is a very sad week indeed. :(
+A web application for computer based assessment. Construction In Progress. 
