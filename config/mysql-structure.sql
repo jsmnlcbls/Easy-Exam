@@ -41,10 +41,24 @@ CREATE TABLE `exam` (
   `randomize` tinyint(1) NOT NULL,
   `max_take` tinyint(4) NOT NULL,
   `score_is_percentage` tinyint(1) NOT NULL,
+  `revision` int(11) NOT NULL DEFAULT '0',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE `exam_archives` (
+  `exam_id` int(11) NOT NULL,
+  `revision` int(11) NOT NULL DEFAULT '0',
+  `properties` text NOT NULL,
+  `questions` mediumtext NOT NULL,
+  `is_taken` tinyint(1) NOT NULL DEFAULT '0',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`exam_id`,`revision`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `multiple_choice` (
   `question_id` int(11) NOT NULL,

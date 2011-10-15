@@ -11,20 +11,19 @@ if ($requestMethod == "GET") {
 	$viewArgs = array();
 	if (($examId = getUrlQuery("exam", null)) != null) {
 		$examData = getExamData($examId);
-		$viewArgs = array('innerView' => 'examQuestions',
-							'examData' => $examData);
+		$view = renderView('user-questions', array('examData' => $examData));
+		$viewArgs = array('innerView' => $view);
 	}
-	echo renderView('user-index', $viewArgs);
+	output(renderView('user-index', $viewArgs));
 } else if ($requestMethod == "POST") {
-	/*
-	$viewArgs = array();
-	include '/functions/question.php';
-	$category = getPost("category");
-	$score = 0;
-	print_r($_POST);
-	$score = checkAnswersToQuestions($category, $_POST);
-	$score = round($score, 2);
-	$viewArgs = array('innerView' => 'results', 'score' => $score);
-	echo renderView('user-index', $viewArgs);
-	*/
+	$data = getPost();
+	$examId = $data['examId'];
+	$revision = $data['revision'];
+	$result = gradeExamAnswers($data, $examId, $revision);
+	
+	$view = '<h2>Exam Results</h2>';
+	$view .= "<h4>Correct Answers: {$result['correct_answers']}</h4>";
+	$view .= "<h4>Total Points: {$result['total_points']}</h4>";
+	$viewArgs = array('innerView' => $view);
+	output(renderView('user-index', $viewArgs));
 }

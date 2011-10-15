@@ -41,12 +41,8 @@
 	</div>
 	<div id = "main-panel">
 		<?php
-		if (isset($innerView) && !empty($innerView)) {
-			if ($innerView == "examQuestions" && isset($examData)) {
-				echo renderView('user-questions', array('examData' => $examData));
-			} else if ($innerView == "results" && isset($score)) {
-				echo "<h2>Your Score: $score %</h2>";
-			}
+		if (isset($innerView)) {
+			echo $innerView;
 		}
 		?>
 	</div>

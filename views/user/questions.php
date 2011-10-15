@@ -8,40 +8,38 @@
 		if ($timeLimit > 1) {
 			$out .= "s";
 		}
-		$out .= " | Passing Score: " . $examData['passing_score'] . "%"; 
+		$out .= " | Passing Score: " . $examData['passing_score'];
+		if ($examData['score_is_percentage']) {
+			$out .= '%';
+		} else {
+			$out .= ' pts';
+		}
 		$out .= "</div><br/>";
 		
 		echo $out;
 	}
 	?>
 	<form method = "post" action = "index.php">
-	<input type = "hidden" name = "action" value = "checkExam"/>
+	<input type="hidden" name="action" value="checkExam"/>
+	<input type="hidden" name="examId" value="<?php echo $examData['exam_id']; ?>" />
+	<input type="hidden" name="revision" value="<?php echo $examData['revision']; ?>" />
 	<?php
-	$questions = array();
-	include "functions/question.php";
+	$questions = getExamQuestions($examData['exam_id']);
 	
-	echo "<input type =\"hidden\" name = \"category\" value = \"{$examData['questions_category']}\">";
-	$questions = getCategoryQuestions($examData['questions_category'], true);
-	
-	$questionNumber = 0;
-	echo "<ol>";
-	foreach ($questions as $value) {
-		$questionId = $value['question_id'];
-		$type = $value['type'];
-		$data = getQuestionData($questionId, $type);
-		echo "<li>";
-		echo examQuestionHTML($type, $data);
-		echo "<hr/>";
-		echo "</li>";
-		$questionNumber++;
-	}
-	echo "</ol>";
-	if ($questionNumber > 0) {
+	if (!empty($questions)) {
+		echo "<ol>";
+		foreach ($questions as $value) {
+			$type = $value['type'];
+			echo "<li>";
+			echo examQuestionHTML($type, $value);
+			echo "<hr/>";
+			echo "</li>";
+		}
+		echo "</ol>";
 		echo "<input type = \"submit\" value = \"I'm Done\"/>";
 	} else {
 		echo "No Available Questions";
 	}
-	
 	?>
 	</form>
 </div>

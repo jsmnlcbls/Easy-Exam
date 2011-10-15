@@ -1,25 +1,26 @@
 <?php
-const EXAM_TABLE = "exam";
+const EXAM_TABLE = 'exam';
+const EXAM_ARCHIVES_TABLE = 'exam_archives';
 const QUESTION_DISPLAY_ALL_AT_ONCE = 0;
 const QUESTION_DISPLAY_ONE_BY_ONE = 1;
 const EXAM_UNLIMITED_REPEAT = 0;
 const EXAM_NO_REPEAT = 1;
 
-function addExam($data)
+function addExam($data, $step)
 {
-	$result = _validateExamData($data);
-	if (isErrorMessage($result)) {
-		return $result;
-	}
-	
-	_processExamData($data);
-	return insertIntoTable(EXAM_TABLE, $data);
+	if ($step == 1) {
+		return _addExamProperties($data);
+	} elseif ($step == 2) {
+		$examId = $data['examId'];
+		unset($data['examId']);
+		return _addExamQuestions($examId, $data);
+	}	
 }
 
 function updateExam($examId, $data)
 {
 	$data = array_merge(array('exam_id' => $examId), $data);
-	$result = _validateExamData($data);
+	$result = validateExamData($data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
@@ -30,7 +31,7 @@ function updateExam($examId, $data)
 
 function getExamData($id)
 {
-	$result = _validateExamData($id, 'exam_id');
+	$result = validateExamData($id, 'exam_id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
@@ -63,24 +64,19 @@ function getAvailableExams()
 	return queryDatabase($sql, $parameters);
 }
 
-function getExamQuestions($examId)
+function getExamQuestions($examId, $revision = 0)
 {
-	$result = _validateExamData($examId, 'exam_id');
-	if (isErrorMessage($result)) {
-		return $result;
-	}
-	
-	_processExamData($examId, 'exam_id');
-	$data = getExamData($examId);
-	$category = $data['questions_category'];
-	$sql = "SElECT * FROM questions WHERE category=:category";
-	$parameters = array(':category' => $category);
-	return queryDatabase($sql, $parameters);
+	return _getExamArchiveData($examId, $revision, 'questions');
+}
+
+function getExamProperties($examId, $revision = 0)
+{
+	return _getExamArchiveData($examId, $revision, 'properties');
 }
 
 function deleteExam($id)
 {
-	$result = _validateExamData($id, 'exam_id');
+	$result = validateExamData($id, 'exam_id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
@@ -96,7 +92,7 @@ function getExamTableColumns()
 				 'question_display', 'recorded', 'randomize', 'max_take', 'total_questions');
 }
 
-function _validateExamData($data, $key = null)
+function validateExamData($data, $key = null)
 {
 	$validator = function($data, $key) {return _validateExamValue($data, $key);};
 	
@@ -108,8 +104,101 @@ function _validateExamData($data, $key = null)
 			unset($data['start_date_time']);
 			unset($data['end_date_time']);
 		}
+		if (isset($data['total_questions']) && isset($data['questions_category'])) {
+			$data['_questions_count'] = array('minimum' => $data['total_questions'],
+											'category' => $data['questions_category']);
+		}
 	}
 	return validateInputData($validator, $data, $key);
+}
+
+function gradeExamAnswers($answers, $examId, $revision)
+{
+	$questions = getExamQuestions($examId, $revision);
+	$correctAnswers = 0;
+	$totalPoints = 0;
+	foreach ($answers as $id => $answer) {
+		if (!isset($questions[$id])) {
+			continue;
+		}
+		$correct = false;
+		$questionAnswer = $questions[$id]['answer'];
+		if (is_array($questionAnswer) && is_array($answer)) {
+			$diff = array_diff($questionAnswer, $answer);
+			if (empty($diff)) {
+				$correct = true;
+			}
+		} elseif (is_array($questionAnswer) && count($questionAnswer) == 1 && is_string($answer)) {
+			if (array_pop($questionAnswer) == $answer) {
+				$correct = true;
+			}
+		} elseif ($questionAnswer == $answer) {
+			$correct = true;
+		}
+		if ($correct) {
+			$correctAnswers++;
+			$totalPoints += $questions[$id]['points'];
+		}
+	}	
+	$properties = getExamProperties($examId, $revision);
+	$passingScore = $properties['passing_score'];
+	$isPercentage = $properties['score_is_percentage'];
+	
+	return array('correct_answers' => $correctAnswers, 'total_points' => $totalPoints);
+}
+
+//------------------------------------------------------------------------------
+
+function _addExamProperties($data)
+{
+	$result = validateExamData($data);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	_processExamData($data);
+	$data['revision'] = 0;
+	$data['created'] = date('Y-m-d H:i:s');
+	$data['modified'] = $data['created'];
+	beginTransaction();
+	$success = insertIntoTable(EXAM_TABLE, $data);
+	if ($success) {
+		$id = getLastInsertedId();
+		$properties = json_encode($data);
+		$archiveData = array('exam_id' => $id, 'revision' => 0, 
+							 'properties' => $properties,
+							 'created' => $data['created'],
+							 'modified' => $data['modified']);
+		$success = insertIntoTable(EXAM_ARCHIVES_TABLE, $archiveData);
+		if ($success) {
+			commitTransaction();
+			return $id;
+		}
+	}
+	rollbackTransaction();
+	return errorMessage(DATABASE_ERROR, 'Failed to add new exam to database.');	
+}
+
+function _addExamQuestions($examId, $data)
+{
+	$result = _validateExamQuestionsData($examId, 0, $data);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$questionsData = array();
+	foreach ($data as $id => $value) {
+		if (isset($value['enabled']) && $value['enabled']) {
+			$questionData = getQuestionData($id, $value['type']);
+			$questionData['points'] = $value['points'];
+			$questionsData[$id] = $questionData;
+		}
+	}
+	
+	$questionsData = json_encode($questionsData);
+	$modifiedDate = date('Y-m-d H:i:s');
+	$examData = array('questions' => $questionsData, 'modified' => $modifiedDate);	
+	return updateTable(EXAM_ARCHIVES_TABLE, $examData, 'exam_id=:id', array(':id' => $examId));
 }
 
 function _validateExamValue($value, $key)
@@ -122,8 +211,6 @@ function _validateExamValue($value, $key)
 		$name = trim($value);
 		if ($name == '') {
 			$errors[] = 'Exam name is empty.';
-		} elseif (strlen($name) > 64) {
-			$errors[] = 'Exam name is too long.';
 		}
 	} elseif ($key == 'group') {
 		if (is_array($value)) {
@@ -174,7 +261,7 @@ function _validateExamValue($value, $key)
 			$errors[] = 'Invalid time limit.';
 		}
 	} elseif ($key == 'default_points') {
-		if ($value < 0 || $value > 10) {
+		if ($value < 0 || $value > 99) {
 			$errors[] = 'Points per question is out of range.';
 		}
 	} elseif ($key == 'passing_score') {
@@ -214,6 +301,8 @@ function _validateExamValue($value, $key)
 			
 			$errors[] = 'Repeatable must be enabled first before setting a limit.';
 		}
+	} elseif ($key == 'revision' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid revision value.';
 	} elseif ($key == '_exam_interval') {
 		$result = array();
 		$result[] = _validateExamValue($value['start'], 'start_date_time');
@@ -230,7 +319,13 @@ function _validateExamValue($value, $key)
 		} else {
 			$errors = array_merge($result[0], $result[1]);
 		}
-	} elseif ($key == '_total_category_questions')
+	} elseif ($key == '_questions_count') {
+		$questions = getCategoryQuestions($value['category']);
+		if (count($questions) < $value['minimum']) {
+			$errors[] = 'Total questions count exceeds the available questions of category.';
+		}
+	}
+	
 	return $errors;
 }
 
@@ -262,6 +357,41 @@ function _isValidExamTime($value)
 	return false;
 }
 
+function _validateExamQuestionsData($examId, $revision, $data)
+{	
+	$questionsCount = 0;
+	foreach ($data as $id => $question) {
+		if (!ctype_digit("$id")) {
+			return errorMessage(VALIDATION_ERROR, 'Invalid question id.');
+		}
+		if (!empty($question['enabled']) && $question['enabled'] != 1) {
+			return errorMessage(VALIDATION_ERROR, 'Invalid question enable value.');
+		}
+		
+		if (isset($question['points']) && ($question['points'] < 0 || $question['points'] > 99)) {
+			return errorMessage(VALIDATION_ERROR, 'Invalid question points value.');
+		}
+		if (isset($question['order']) && !ctype_digit($question['order'])) {
+			return errorMessage(VALIDATION_ERROR, 'Invalid question order value.');
+		}
+		
+		if (isset($question['enabled']) && $question['enabled'] == 1) {
+			$questionsCount++;
+		}
+	}
+
+	$examProperties = getExamProperties($examId, $revision);
+	if ($examProperties['total_questions'] > $questionsCount) {
+		$message = 'Selected questions are less than specified total.';
+		return errorMessage(VALIDATION_ERROR, $message);
+	}
+	if ($questionsCount > $examProperties['total_questions'] && 
+		!$examProperties['randomize']) {
+		
+		$message = 'Selected questions exceeds the specified total.';
+		return errorMessage(VALIDATION_ERROR, $message);
+	}
+}
 
 function _processExamData(&$data, $key = null)
 {
@@ -326,5 +456,26 @@ function _processExamValue(&$value, $key)
 		} else {
 			$value = EXAM_NO_REPEAT;
 		}	
+	}
+}
+
+function _getExamArchiveData($examId, $revision, $column)
+{
+	$result = validateExamData(array('exam_id' => $examId, 'revision' => $revision));
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	if ($column != 'questions' && $column != 'properties') {
+		return errorMessage(VALIDATION_ERROR, 'Unsupported archive column name.');
+	}
+	
+	$table = EXAM_ARCHIVES_TABLE;
+	$sql = "SELECT $column FROM {$table} WHERE exam_id=:id AND revision=:revision";
+	$parameters = array(':id' => $examId, ':revision' => $revision);
+	$result = queryDatabase($sql, $parameters);
+	if (!empty($result)) {
+		$data = array_shift($result);
+		return json_decode($data[$column], true);
 	}
 }
