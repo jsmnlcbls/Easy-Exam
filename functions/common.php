@@ -1,5 +1,6 @@
 <?php
 const VALIDATION_ERROR = 1000;
+const DATABASE_ERROR = 2000;
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 const ESSAY_QUESTION = 2;
@@ -630,6 +631,31 @@ function decodeArray($value)
 	array_pop($array);
 	array_shift($array);
 	return $array;
+}
+
+/**
+ * Send response back to client browser
+ * @param String $content
+ * @param String|Array $header
+ * @param int $statusCode 
+ */
+function output($content, $header = array(), $statusCode = 200)
+{
+	header ('HTTP/1.1 ' . $statusCode);
+	if (is_array($header)) {
+		foreach ($header as $value) {
+			if (!empty($value)) {
+				header ($value);
+			}
+		}
+	} elseif (is_string($header)) {
+		header($header);
+	}
+	
+	if ('' != $content) {
+		echo $content;
+	}
+	flush();
 }
 
 //------------------------Internal functions-----------------------------------

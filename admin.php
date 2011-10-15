@@ -15,7 +15,7 @@ if ($requestMethod == "GET") {
 		$mainPanel = renderView($view);
 		$args = array('mainPanel' => $mainPanel);
 	}
-	echo _renderAdminPage($args);
+	output(_renderAdminPage($args));
 	return;
 } else if ($requestMethod == "POST") {
 	$postData = getPost();
@@ -24,10 +24,15 @@ if ($requestMethod == "GET") {
 	$function = "_{$action}Action";
 	if (_isInActionWhitelist($action) && function_exists($function)) {
 		$result = call_user_func($function, $postData);
-		_displayResultNotification($result);
+		if (is_callable($result)) {
+			call_user_func($result);
+		} else {
+			_displayResultNotification($result);	
+		}
 	} else {
 		_displayResultNotification(false);
 	}
+
 	return;
 }
 
@@ -67,9 +72,22 @@ function _addUserGroupAction($data)
 function _addExamAction($data)
 {
 	include "functions/exam.php";
-	$examData = getArrayValues($data, getExamTableColumns());
-	
-	return addExam($examData);
+	include "functions/question.php";
+	$step = isset($data['step']) ? $data['step'] : 1;
+	if ($step == 1) {
+		$examData = getArrayValues($data, getExamTableColumns());
+		$result = addExam($examData, $step);
+		if (!isErrorMessage ($result)) {
+			return function() use ($result) {
+				redirect('admin.php?view=exam-add-step-two&examId=' . $result);
+			};
+		} else {
+			return $result;
+		}
+	} else if ($step == 2) {
+		unset($data['step']);
+		return addExam($data, $step);
+	}
 }
 
 function _editQuestionCategoryAction($data)
@@ -98,6 +116,7 @@ function _editQuestionAction($data)
 function _editExamAction($data)
 {
 	include "functions/exam.php";
+	include "functions/question.php";
 	$examData = getArrayValues($data, getExamTableColumns());
 	
 	$id = $data["exam_id"];
@@ -151,7 +170,6 @@ function _displayResultNotification($result)
 		$message = json_decode($result, true);
 		$notification = '<h2>Error</h2>';
 		if (is_array($message) && isset($message['ERROR'])) {
-			
 			$errorMessage = nl2br($message['ERROR']['text']);
 			$notification .= '<div>'.$errorMessage.'</div>';
 		} elseif (is_array($message) && isset($message['OK'])) {
@@ -165,7 +183,8 @@ function _displayResultNotification($result)
 		}
 	}
 	$args = array('mainPanel' => $notification);
-	echo _renderAdminPage($args);
+	$content = _renderAdminPage($args);
+	output($content);
 }
 
 function _renderAdminPage($args)

@@ -29,7 +29,7 @@
 			select.after('<img src ="images/delete_group.png" style="margin-left: 5px;"></img>');
 			select.next().click(function(){methods.remove(select.parent())});
 		}
-	}
+	};
 	
 	$.fn.userGroupChoice = function() {
 		var first = true;
@@ -41,6 +41,125 @@
 				methods.wrapRemove($(this));
 			}
 		});
-		//return methods.init(this);
+	};
+})(jQuery);
+
+
+
+(function( $ ){
+	var selectedQuestionsCount = 0;
+	var container = '';
+	
+	var methods = {
+		_getSelector: function(checkbox) {
+			var id = checkbox.name.replace('[enabled]', '');
+			return 'input[name^="' +id+ '"]';
+		},
+		
+		setContainer: function(value) {
+			container = value;
+		},
+		
+		init: function(input) {
+			if (input.checked) {
+				selectedQuestionsCount++;
+			} else {
+				this.disableInputs(input);
+			}
+		},
+		
+		enableInputs: function(checkbox) {
+			$(this._getSelector(checkbox)).removeAttr('readonly');
+		},
+		
+		disableInputs: function(checkbox) {
+			$(this._getSelector(checkbox)).attr('readonly', 'readonly');
+		},
+		
+		updateCount: function()	{
+			$(container).text(selectedQuestionsCount);
+		}
+	};
+	
+	$.fn.questionSelection = function(settings) {
+		if ( typeof settings === 'object') {
+			methods.setContainer(settings.container);
+			$(this).each(function(){
+				methods.init(this);
+			});
+			methods.updateCount();
+			$(this).each(function(){
+				$(this).click(function(){
+					if (this.checked) {
+						methods.enableInputs(this);
+						selectedQuestionsCount++;
+					} else {
+						methods.disableInputs(this);
+						selectedQuestionsCount--;
+					}
+					methods.updateCount();
+					$.fn.examPointsCounter('updateTotal');
+					return true;
+				});
+			});
+			return $(this);
+		}
+		return $.error( 'Unsupported function call.');
+	};
+})(jQuery);
+
+(function( $ ){
+	var input = [];
+	var totalContainer = '';
+	
+	var methods = {
+		init: function(options) {
+			totalContainer = options.container;
+			return $(this).each(function(){	
+				input.push(this);
+				$(this).blur(methods.updateTotal);
+			});
+		},
+		
+		updateTotal: function(){
+			var total = 0;
+			$.each(input, function(key, value){
+				//relies on the onQuestionEnable plugin
+				if (!value.readOnly) {
+					total += +($(this).val());
+				}
+			});
+			$(totalContainer).text(total);
+		}
+	};
+	
+	$.fn.examPointsCounter = function(method) {
+		if (methods[method]) {
+			return methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
+		} else if ( typeof method === 'object' || ! method ) {
+			return methods.init.apply( this, arguments );
+		} else {
+			return $.error( 'Method ' +  method + ' does not exist');
+		}
+	};
+})(jQuery);
+
+(function( $ ){
+	$.fn.allowOnlyDigits = function() {
+		var regex = /^[0-9]+$/;
+		return $(this).each(function(){
+			var input = $(this);
+			var lastValue = input.val();
+			$(this).keyup(function(){
+				if (!$.trim(input.val()) == '') {
+					if(!regex.test(input.val())) {
+						input.val(lastValue);
+						return;
+					}
+					lastValue = input.val();
+				}
+			});
+			
+		});
 	};
 })(jQuery);

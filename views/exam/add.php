@@ -2,9 +2,12 @@
 include "functions/user.php";
 ?>
 <div id = "add-exam-panel">
-	<span class = "panel-title">Create New Exam</span>
+	<div class = "panel-title">Add Exam <em style="font-size:70%">(Step 1 of 2)</em></div>
+	<div><em>Set Exam Properties</em></div>
+	<hr/>
 	<form method = "post" action = "admin.php" id = "add-exam-form">
 		<input type = "hidden" name = "action" value = "addExam" />
+		<input type = "hidden" name = "step" value = "1" />
 		<table>
 			<tr>
 				<td>Exam Name</td>
@@ -33,7 +36,7 @@ include "functions/user.php";
 			</tr>
 			<tr>
 				<td>Total Questions</td>
-				<td><input type="text" name="max_questions" style="width:2em"/>
+				<td><input type="text" name="total_questions" style="width:2em"/>
 				</td>
 			</tr>
 			<tr>
@@ -70,13 +73,7 @@ include "functions/user.php";
 			<tr>
 				<td>Points Per Question</td>
 				<td>
-					<select name ="default_points">
-					<?php
-					for ($a = 1; $a <= 10; $a++) {
-						echo "<option value =\"{$a}\">$a</option>";
-					}
-					?>
-					</select>
+					<input type="text" name="default_points" value="1" style="width:1.5em" maxlength="2"/>
 				</td>
 			</tr>
 			<tr>
@@ -84,7 +81,8 @@ include "functions/user.php";
 				<td>
 					<input type="radio" name="question_display[mode]" value="0" checked="checked"/> All At Once<br/>
 					<input type="radio" name="question_display[mode]" value="1"/> One By One<br/>
-					<input type="radio" name="question_display[mode]" value="G"/> In Groups Of <input type="text" name="question_display[group]" style="width:2em"/><br/>
+					<input type="radio" name="question_display[mode]" value="G"/> In Groups Of 
+					<input type="text" name="question_display[group]" style="width:2em"/><br/>
 				</td>
 			</tr>
 			<tr>
@@ -107,10 +105,9 @@ include "functions/user.php";
 			</tr>
 			<tr>
 				<td></td>
-				<td><input type = "submit" value = "Add"/></td>
+				<td><input type = "submit" value = "Next"/></td>
 			</tr>
 			<tr>
-				
 				<td colspan="2" class="note">
 					<p>
 					* The date of exam expects the following format for entry: YYYY-MM-DD.<br/>
@@ -135,18 +132,3 @@ include "functions/user.php";
 		</table>
 	</form>
 </div>
-<script>
-	$(function(){
-		$("#add-more-group-button").click(function(){
-			var select = $('#initial-user-group').clone().removeAttr('id');
-			var container = $('#user-group-container').append('<div class = "user-group-div">');
-			var button = '<img class = "delete-group-button" src = "images/delete_group.png"></img>';
-			container.children().last().append(select).append("\n").append(button);
-		});
-		
-		$(".delete-group-button").live('click', function(){
-			$(this).parent('.user-group-div').remove();
-		});
-	});
-</script>
-		

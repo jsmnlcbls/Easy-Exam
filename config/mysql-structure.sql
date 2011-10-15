@@ -29,7 +29,7 @@ CREATE TABLE `exam` (
   `exam_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `group` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
-  `max_questions` tinyint(3) unsigned NOT NULL,
+  `total_questions` tinyint(3) unsigned NOT NULL,
   `start_date_time` datetime NOT NULL,
   `end_date_time` datetime NOT NULL,
   `time_limit` decimal(4,2) NOT NULL,
@@ -41,10 +41,24 @@ CREATE TABLE `exam` (
   `randomize` tinyint(1) NOT NULL,
   `max_take` tinyint(4) NOT NULL,
   `score_is_percentage` tinyint(1) NOT NULL,
+  `revision` int(11) NOT NULL DEFAULT '0',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE `exam_archives` (
+  `exam_id` int(11) NOT NULL,
+  `revision` int(11) NOT NULL DEFAULT '0',
+  `properties` text NOT NULL,
+  `questions` mediumtext NOT NULL,
+  `is_taken` tinyint(1) NOT NULL DEFAULT '0',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`exam_id`,`revision`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `multiple_choice` (
   `question_id` int(11) NOT NULL,

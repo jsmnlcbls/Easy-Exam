@@ -26,15 +26,28 @@ function questionHTML($type, $data)
 
 function examQuestionHTML($type, $data)
 {
+	$question = escapeOutput($data['question']);
+	$input = '';
 	if ($type == MULTIPLE_CHOICE_QUESTION) {
-		return multipleChoiceExamQuestionHTML($data);
+		$choices = escapeOutput($data['choices']);
+		$multipleAnswers = count($data['answer']) > 1 ? true : false; 
+		$input = _multipleChoiceExamAnswerInputHTML($choices, 
+													$data['question_id'], 
+													$multipleAnswers, 
+													$data['randomize']);
 	} elseif ($type == ESSAY_QUESTION) {
-		return essayExamQuestionHTML($data);
+		$name = _generateAnswerInputName($data['question_id']);
+		$input = essayQuestionAnswerInputHTML(array('name' => $name));
 	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-		return trueOrFalseExamQuestionHTML($data);
+		$name = _generateAnswerInputName($data['question_id']);
+		$input = trueOrFalseAnswerSelectHTML(array('name' => $name));
 	} elseif ($type == OBJECTIVE_QUESTION) {
-		return objectiveExamQuestionHTML($data);
+		$name = _generateAnswerInputName($data['question_id']);
+		$input = objectiveQuestionAnswerInputHTML(array('name' => $name));
+	} else {
+		return '';
 	}
+	return _examQuestionTemplate($question, $input, $data['points']);
 }
 
 function multipleChoiceQuestionHTML($data)
@@ -54,15 +67,6 @@ function multipleChoiceQuestionHTML($data)
 	return _questionTemplate($contents);
 }
 
-function multipleChoiceExamQuestionHTML($data)
-{
-	$choices = $data['choices'];
-	$multipleAnswers = count($data['answer']) > 1 ? true : false; 
-	$questionId = $data['question_id'];
-	$input = _multipleChoiceExamAnswerInputHTML($choices, $questionId, $multipleAnswers, $data['randomize']);
-	return _examQuestionTemplate($data['question'], $input);
-}
-
 function trueOrFalseQuestionHTML($data)
 {
 	$contents = array();
@@ -70,13 +74,6 @@ function trueOrFalseQuestionHTML($data)
 	$contents['answer'] = (bool) $data['answer'] ? 'True' : 'False';
 	$contents['type'] = $data['type'];
  	return _questionTemplate($contents);
-}
-
-function trueOrFalseExamQuestionHTML($data)
-{
-	$name = _generateAnswerInputName($data['question_id']);
-	$input = trueOrFalseAnswerSelectHTML(array('name' => $name));
-	return _examQuestionTemplate($data['question'], $input);
 }
 
 function essayQuestionHTML($data)
@@ -87,13 +84,6 @@ function essayQuestionHTML($data)
 	return _questionTemplate($contents);
 }
 
-function essayExamQuestionHTML($data)
-{
-	$name = _generateAnswerInputName($data['question_id']);
-	$input = essayQuestionAnswerInputHTML(array('name' => $name));
-	return _examQuestionTemplate($data['question'], $input);
-}
-
 function objectiveQuestionHTML($data)
 {
 	$contents = array();
@@ -101,13 +91,6 @@ function objectiveQuestionHTML($data)
 	$contents['answer'] = escapeOutput($data['answer']);
 	$contents['type'] = $data['type'];
 	return _questionTemplate($contents);
-}
-
-function objectiveExamQuestionHTML($data)
-{
-	$name = _generateAnswerInputName($data['question_id']);
-	$input = objectiveQuestionAnswerInputHTML(array('name' => $name)); 
-	return _examQuestionTemplate($data['question'], $input);
 }
 
 function questionCategorySelectHTML($attributes = array(), $includeRootCategory = false)
@@ -151,13 +134,12 @@ function _multipleChoiceExamAnswerInputHTML($choices, $questionId, $multipleAnsw
 	$list = '<ul class="exam-multiple-choices">';
 	$options = array();
 	foreach ($choices as $key => $value) {
-		$name = 'answer_' . escapeOutput($questionId);
-		$value = escapeOutput($value);
+		$name = _generateAnswerInputName($questionId, $multipleAnswers);
 		$type = 'radio';
 		if ($multipleAnswers) {
 			$type = 'checkbox';
 		}
-		$options[] = "<li><input type=\"$type\" value=\"{$key}\" name=\"{$name}[]\"> {$value}</li>";
+		$options[] = "<li><input type=\"$type\" value=\"{$key}\" name=\"{$name}\"> {$value}</li>";
 	}
 	if ($randomize) {
 		shuffle($options);
@@ -188,12 +170,15 @@ function _questionTemplate($contents)
 	return implode("\n", $output);
 }
 
-function _examQuestionTemplate($question, $answerInput)
+function _examQuestionTemplate($question, $answerInput, $points = '')
 {
-	$question = escapeOutput($question);
+	if ($points != '') {
+		$points = ($points > 1) ? "($points pts)" : '(1 pt)';
+		$points = '<span class="question-exam-points">' . $points . '</span>';	
+	}
 	$output = array();
 	$output[] = '<div class = "exam-question-div">';
-	$output[] = "<div>{$question}</div>";
+	$output[] = "<div>{$question}{$points}</div>";
 	$output[] = "<div>{$answerInput}</div>";
 	$output[] = "</div>";
 	return implode("\n", $output);
@@ -234,7 +219,6 @@ function _generateListHTML($input, $ordered = false, $attributes = array())
 	$out = array();
 	$out[] = $listStartMarkup;
 	foreach ($input as $value) {
-		$value = escapeOutput($value);
 		$out[] = "<li>$value</li>";
 	}
 	$out[] = $listEndMarkup;
@@ -257,7 +241,10 @@ function _getQuestionTypeAbbreviation($type)
 	}
 }
 
-function _generateAnswerInputName($questionId)
+function _generateAnswerInputName($questionId, $multipleAnswers = false)
 {
-	return "answer_{$questionId}[]";
+	if ($multipleAnswers) {
+		return "{$questionId}[]";
+	}
+	return "{$questionId}";
 }
