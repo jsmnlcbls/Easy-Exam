@@ -74,6 +74,7 @@ function _addExamAction($data)
 	include "functions/exam.php";
 	include "functions/question.php";
 	$step = isset($data['step']) ? $data['step'] : 1;
+	unset($data['step']);
 	if ($step == 1) {
 		$examData = getArrayValues($data, getExamTableColumns());
 		$result = addExam($examData, $step);
@@ -85,7 +86,6 @@ function _addExamAction($data)
 			return $result;
 		}
 	} else if ($step == 2) {
-		unset($data['step']);
 		return addExam($data, $step);
 	}
 }
@@ -117,10 +117,23 @@ function _editExamAction($data)
 {
 	include "functions/exam.php";
 	include "functions/question.php";
-	$examData = getArrayValues($data, getExamTableColumns());
 	
 	$id = $data["exam_id"];
-	return updateExam($id, $examData);
+	$step = isset($data['step']) ? $data['step'] : 1;
+	unset($data['step'], $data['exam_id']);
+	if ($step == 1) {
+		$examData = getArrayValues($data, getExamTableColumns());
+		$result = updateExam($id, $examData, $step);
+		if (!isErrorMessage ($result)) {
+			return function() use ($id) {
+				redirect('admin.php?view=exam-edit-questions&examId=' . $id);
+			};
+		} else {
+			return $result;
+		}
+	} else if ($step == 2) {
+		return updateExam($id, $data, $step);
+	}
 }
 
 function _editUserAction($data)

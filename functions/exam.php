@@ -13,20 +13,19 @@ function addExam($data, $step)
 	} elseif ($step == 2) {
 		$examId = $data['examId'];
 		unset($data['examId']);
-		return _addExamQuestions($examId, $data);
+		return _updateExamQuestions($examId, 0, $data);
 	}	
 }
 
-function updateExam($examId, $data)
+function updateExam($examId, $data, $step)
 {
-	$data = array_merge(array('exam_id' => $examId), $data);
-	$result = validateExamData($data);
-	if (isErrorMessage($result)) {
-		return $result;
+	if ($step == 1) {
+		return _updateExamProperties($examId, $data);
+	} elseif ($step == 2) {
+		$revision = $data['revision'];
+		unset($data['revision']);
+		return _updateExamQuestions($examId, $revision, $data);
 	}
-	
-	_processExamData($data);
-	return updateTable(EXAM_TABLE, $data, "exam_id=:id", array(':id' => $examId));
 }
 
 function getExamData($id)
@@ -46,6 +45,8 @@ function getExamData($id)
 			$data['max_take'] != EXAM_NO_REPEAT) {
 			$data['max_take'] = $data['max_take'] - 1;
 		}
+		$data['start_date_time'] = _decodeDateTime($data['start_date_time']);
+		$data['end_date_time'] = _decodeDateTime($data['end_date_time']);
 	}
 	return $data;
 }
@@ -64,14 +65,46 @@ function getAvailableExams()
 	return queryDatabase($sql, $parameters);
 }
 
-function getExamQuestions($examId, $revision = 0)
+function getExamQuestions($examId, $revision, $filterForExam = false)
 {
-	return _getExamArchiveData($examId, $revision, 'questions');
+	$questions = _getExamArchiveData($examId, $revision, 'questions');
+	if (!$filterForExam) {
+		return $questions;
+	}
+	
+	$examData = getExamProperties($examId, $revision);
+	foreach ($questions as $key => $value) {
+		if (!$value['enabled']) {
+			unset($questions[$key]);
+		}
+	}
+	
+	$totalQuestions = $examData['total_questions'];
+	if ($examData['randomize']) {
+		shuffle($questions);
+		$questions = array_splice($questions, 0, $totalQuestions);
+	} else {
+		$queue = new SplPriorityQueue();
+		foreach ($questions as $value) {
+			$queue->insert($value, (-1 * $value['order']));
+		}
+		
+		$questions = array();
+		for ($a = 0; $a < $totalQuestions; $a++) {
+			$questions[] = $queue->extract();
+		}
+	}
+	return $questions;
 }
 
-function getExamProperties($examId, $revision = 0)
+function getExamProperties($examId, $revision)
 {
 	return _getExamArchiveData($examId, $revision, 'properties');
+}
+
+function getExamAnswerKey($examId, $revision)
+{
+	return _getExamArchiveData($examId, $revision, 'answer_key');
 }
 
 function deleteExam($id)
@@ -89,7 +122,8 @@ function getExamTableColumns()
 {
 	return array('name', 'group', 'start_date_time', 'end_date_time', 'time_limit', 
 				 'questions_category', 'default_points', 'passing_score',
-				 'question_display', 'recorded', 'randomize', 'max_take', 'total_questions');
+				 'question_display', 'recorded', 'randomize', 'max_take', 
+				 'total_questions', 'revision');
 }
 
 function validateExamData($data, $key = null)
@@ -114,15 +148,15 @@ function validateExamData($data, $key = null)
 
 function gradeExamAnswers($answers, $examId, $revision)
 {
-	$questions = getExamQuestions($examId, $revision);
+	$answerKey = getExamAnswerKey($examId, $revision);
 	$correctAnswers = 0;
 	$totalPoints = 0;
 	foreach ($answers as $id => $answer) {
-		if (!isset($questions[$id])) {
+		if (!isset($answerKey[$id])) {
 			continue;
 		}
 		$correct = false;
-		$questionAnswer = $questions[$id]['answer'];
+		$questionAnswer = $answerKey[$id]['answer'];
 		if (is_array($questionAnswer) && is_array($answer)) {
 			$diff = array_diff($questionAnswer, $answer);
 			if (empty($diff)) {
@@ -137,7 +171,7 @@ function gradeExamAnswers($answers, $examId, $revision)
 		}
 		if ($correct) {
 			$correctAnswers++;
-			$totalPoints += $questions[$id]['points'];
+			$totalPoints += $answerKey[$id]['points'];
 		}
 	}	
 	$properties = getExamProperties($examId, $revision);
@@ -179,26 +213,91 @@ function _addExamProperties($data)
 	return errorMessage(DATABASE_ERROR, 'Failed to add new exam to database.');	
 }
 
-function _addExamQuestions($examId, $data)
+function _updateExamProperties($examId, $data)
 {
-	$result = _validateExamQuestionsData($examId, 0, $data);
+	$data = array_merge(array('exam_id' => $examId), $data);
+	$result = validateExamData($data);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$oldData = getExamData($examId);
+	_processExamData($data);
+	_processExamData($oldData);
+	$diff = array_diff_assoc($oldData, $data);
+	if (count($diff) == 2 && isset($diff['created']) && isset($diff['modified'])) {
+		//no changes
+		return true;
+	}
+	
+	$revision = $data['revision'];
+	$now = date('Y-m-d H:i:s');
+	$data['created'] = $oldData['created'];
+	$data['modified'] = $now;
+	$data['revision'] += 1;
+	beginTransaction();
+	$success = updateTable(EXAM_TABLE, $data, "exam_id=:id", array(':id' => $examId));
+	if ($success) {
+		$currentProperties = getExamProperties($examId, $revision);
+		$newProperties = json_encode($data);
+		if ($currentProperties['is_taken']) {
+			$archiveData = array('exam_id' => $examId, 
+								 'revision' => ($revision + 1), 
+								 'properties' => $newProperties,
+								 'created' => $now,
+								 'modified' => $now);
+			$success = insertIntoTable(EXAM_ARCHIVES_TABLE, $archiveData);
+		} else {
+			$archiveData = array('properties' => $newProperties, 
+								 'revision' => ($revision + 1),
+								 'modified' => $now);
+			$condition = 'exam_id=:id AND revision=:revisionCount';
+			$parameters = array(':id' => $examId, ':revisionCount' => $revision);
+			$success = updateTable(EXAM_ARCHIVES_TABLE, $archiveData, $condition, $parameters);
+		}
+		if ($success) {
+			commitTransaction();
+			return true;
+		}
+	}
+	rollbackTransaction();
+	return errorMessage(DATABASE_ERROR, 'Failed to update exam properties.');
+}
+
+function _updateExamQuestions($examId, $revision, $data)
+{
+	$result = _validateExamQuestionsData($examId, $revision, $data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
 	$questionsData = array();
+	$answerKey = array();
 	foreach ($data as $id => $value) {
+		$question = getQuestionData($id, $value['type']);
+		$question['points'] = $value['points'];
+		$question['order'] = $value['order'];
 		if (isset($value['enabled']) && $value['enabled']) {
-			$questionData = getQuestionData($id, $value['type']);
-			$questionData['points'] = $value['points'];
-			$questionsData[$id] = $questionData;
+			$question['enabled'] = true;
+			if (isset($question['answer'])) {
+				$answerKey[$id]['answer'] = $question['answer'];
+				$answerKey[$id]['points'] = $value['points'];
+			}
+		} else {
+			$question['enabled'] = false;
 		}
+		$questionsData[$id] = $question;
 	}
 	
 	$questionsData = json_encode($questionsData);
+	$answerKey = json_encode($answerKey);
 	$modifiedDate = date('Y-m-d H:i:s');
-	$examData = array('questions' => $questionsData, 'modified' => $modifiedDate);	
-	return updateTable(EXAM_ARCHIVES_TABLE, $examData, 'exam_id=:id', array(':id' => $examId));
+	$examData = array('questions' => $questionsData, 
+					  'answer_key' => $answerKey,
+					  'modified' => $modifiedDate);
+	$condition = 'exam_id=:id AND revision=:revisionCount';
+	$parameters = array(':id' => $examId, ':revisionCount' => $revision);
+	return updateTable(EXAM_ARCHIVES_TABLE, $examData, $condition, $parameters);
 }
 
 function _validateExamValue($value, $key)
@@ -466,16 +565,33 @@ function _getExamArchiveData($examId, $revision, $column)
 		return $result;
 	}
 	
-	if ($column != 'questions' && $column != 'properties') {
+	if ($column != 'questions' && $column != 'properties' && $column != 'answer_key') {
 		return errorMessage(VALIDATION_ERROR, 'Unsupported archive column name.');
 	}
 	
+	$tableColumns = $column;
+	if ($column == 'properties') {
+		$tableColumns = 'properties, is_taken';
+	}
+	
 	$table = EXAM_ARCHIVES_TABLE;
-	$sql = "SELECT $column FROM {$table} WHERE exam_id=:id AND revision=:revision";
+	$sql = "SELECT $tableColumns FROM {$table} WHERE exam_id=:id AND revision=:revision";
 	$parameters = array(':id' => $examId, ':revision' => $revision);
 	$result = queryDatabase($sql, $parameters);
 	if (!empty($result)) {
 		$data = array_shift($result);
-		return json_decode($data[$column], true);
+		$decodedData = json_decode($data[$column], true);
+		if ($column == 'properties') {
+			$decodedData['is_taken'] = $data['is_taken'];
+		}
+		return $decodedData;
 	}
+}
+
+function _decodeDateTime($dateTime)
+{
+	$dateTime = date_create($dateTime);
+	$date = date_format($dateTime, 'Y-m-d');
+	$time = date_format($dateTime, 'H:i');
+	return array('date' => $date, 'time' => $time);
 }

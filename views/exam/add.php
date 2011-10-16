@@ -6,8 +6,9 @@ include "functions/user.php";
 	<div><em>Set Exam Properties</em></div>
 	<hr/>
 	<form method = "post" action = "admin.php" id = "add-exam-form">
-		<input type = "hidden" name = "action" value = "addExam" />
-		<input type = "hidden" name = "step" value = "1" />
+		<input type="hidden" name="action" value="addExam" />
+		<input type="hidden" name="step" value="1" />
+		<input type="hidden" name="revision" value="0" />
 		<table>
 			<tr>
 				<td>Exam Name</td>
