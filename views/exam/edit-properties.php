@@ -5,10 +5,14 @@ $examId = getUrlQuery("examId");
 $data = escapeOutput(getExamData($examId));
 ?>
 <div id = "add-exam-panel">
-	<span class = "panel-title">Modify An Exam</span>
+	<span class = "panel-title">Edit Exam <em style="font-size:70%">(Step 1 of 2)</em></span>
+	<div><em>Set Exam Properties</em></div>
+	<hr/>
 	<form method = "post" action = "admin.php" id = "edit-exam-form">
-		<input type = "hidden" name = "action" value = "editExam" />
-		<input type = "hidden" name = "exam_id" value = "<?php echo $data['exam_id']; ?>" />
+		<input type="hidden" name="action" value="editExam" />
+		<input type="hidden" name="exam_id" value="<?php echo $data['exam_id']; ?>" />
+		<input type="hidden" name="revision" value="<?php echo $data['revision']; ?>" />
+		<input type="hidden" name="step" value="1" />
 		<table>
 			<tr>
 				<td>Exam Name</td>
@@ -18,19 +22,12 @@ $data = escapeOutput(getExamData($examId));
 				<td>Available Only To</td>
 				<td>
 					<?php
-					$count = 0;
 					foreach ($data['group'] as $groupId) {
 						$button = '';
-						$attributes = array();
-						if ($count == 0) {
-							$attributes = array('name' => 'group[]', 'selected' => $groupId);
-						} else {
-							$attributes = array('name' => 'group[]', 'selected' => $groupId);
-						}
+						$attributes = array('name' => 'group[]', 'selected' => $groupId);
 						echo userGroupSelectHTML($attributes);
 						echo "\n";
 						echo $button;
-						$count++;
 					}
 					?>
 					<script>
@@ -56,28 +53,18 @@ $data = escapeOutput(getExamData($examId));
 			<tr>
 				<td>Exam Availability Start</td>
 				<td>
-					<?php 
-					$dateTime = date_create($data['start_date_time']);
-					$date = date_format($dateTime, 'Y-m-d');
-					$time = date_format($dateTime, 'H:i');
-					?>
-					Date <input value="<?php echo $date;?>" style="width:5em;text-align:center" type="text" name="start_date_time[date]"/>
+					Date <input value="<?php echo $data['start_date_time']['date'];?>" style="width:5em;text-align:center" type="text" name="start_date_time[date]"/>
 					<span class="note">*</span>
-					Time <input value ="<?php echo $time;?>" style="width:3em;text-align:center" type="text" name="start_date_time[time]"/>
+					Time <input value ="<?php echo $data['start_date_time']['time'];?>" style="width:3em;text-align:center" type="text" name="start_date_time[time]"/>
 					<span class="note">**</span>
 				</td>
 			</tr>
 			<tr>
 				<td>Exam Availability End</td>
 				<td>
-					<?php
-					$dateTime = date_create($data['end_date_time']);
-					$date = date_format($dateTime, 'Y-m-d');
-					$time = date_format($dateTime, 'H:i');
-					?>
-					Date <input value="<?php echo $date; ?>" style="width:5em;text-align:center" type="text" name="end_date_time[date]"/>
+					Date <input value="<?php echo $data['end_date_time']['date']; ?>" style="width:5em;text-align:center" type="text" name="end_date_time[date]"/>
 					<span class="note">*</span>
-					Time <input value="<?php echo $time; ?>" style="width:3em;text-align:center" type="text" name="end_date_time[time]"/>
+					Time <input value="<?php echo $data['end_date_time']['time']; ?>" style="width:3em;text-align:center" type="text" name="end_date_time[time]"/>
 					<span class="note">**</span>
 				</td>
 			</tr>
@@ -166,7 +153,7 @@ $data = escapeOutput(getExamData($examId));
 			</tr>
 			<tr>
 				<td></td>
-				<td><input type = "submit" value = "Save"/></td>
+				<td><input type = "submit" value = "Next"/></td>
 			</tr>
 			<tr>
 				

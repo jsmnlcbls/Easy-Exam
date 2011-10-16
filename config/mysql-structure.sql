@@ -54,6 +54,7 @@ CREATE TABLE `exam_archives` (
   `revision` int(11) NOT NULL DEFAULT '0',
   `properties` text NOT NULL,
   `questions` mediumtext NOT NULL,
+  `answer_key` text NOT NULL,
   `is_taken` tinyint(1) NOT NULL DEFAULT '0',
   `created` datetime NOT NULL,
   `modified` datetime NOT NULL,

@@ -40,16 +40,16 @@ $randomQuestions = (bool) $examData['randomize'];
 				$pointsInput = '<input class="question-points" style="width:1.5em" maxlength="2" type="text" value="'. $defaultPoints . '" name="' . $name . '[points]" />';
 				$options[] = "Points {$pointsInput}";
 				$options[] = 'Order <input style="width:2em" maxlength="3" type="text" value="' . $order . '" name="' . $name . '[order]" />';
-				$order++;
 			} else {
 				$options[] = '<input type="hidden" name="' . $name . '[points]" value="'. $defaultPoints . '" />';
+				$options[] = '<input type="hidden" name="' . $name . '[order]" value="' . $order . '" />';
 			}
 			$out[] = '<li>';
 			$out[] = '<input type="hidden" name="' . $name . '[type]" value="' . $value['type'] .'" />'; 
 			$out[] = "<div>{$includeCheckbox}{$value['question']}</div>";
-			$out[] = '<div style="font-size:80%">'. implode('&nbsp;&nbsp;', $options) . '</div>';
-			//$out[] = '<br/>';
+			$out[] = '<div style="font-size:80%">'. implode(' ', $options) . '</div>';
 			$out[] = '</li>';
+			$order++;
 		}
 		echo implode("\n", $out);
 	?>
@@ -59,7 +59,9 @@ $randomQuestions = (bool) $examData['randomize'];
 </div>
 <script>
 	$('input[type=checkbox]').questionSelection({container:'#selected-questions-count'});
-	$('.question-points').examPointsCounter({container:'#total-exam-points-container'});
 	$('input[type="text"]').allowOnlyDigits();
+	<?php if (!$randomQuestions) { ?>
+	$('.question-points').examPointsCounter({container:'#total-exam-points-container'});
+	<?php } ?>
 </script>
 		
