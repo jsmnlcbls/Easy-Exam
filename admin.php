@@ -158,6 +158,12 @@ function _deleteQuestionAction($data)
 	return deleteQuestion($data["questionId"]);
 }
 
+function _deleteQuestionCategoryAction($data)
+{
+	include "functions/question.php";
+	return deleteQuestionCategory($data['category']);
+}
+
 function _deleteExamAction($data)
 {
 	include "functions/exam.php";
@@ -211,7 +217,7 @@ function _isInActionWhitelist($action)
 {
 	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
 				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
-				'deleteCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
+				'deleteQuestionCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
 				'editAdminCredentials', 
 				'addUserGroup', 'editUserGroup', 'deleteUserGroup');
 	

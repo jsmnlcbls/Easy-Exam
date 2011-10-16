@@ -61,25 +61,6 @@ function getCategoryQuestions($category, $includeSubcategories = true)
 	return $questions;
 }
 
-function checkAnswersToQuestions($category, $userAnswers)
-{
-	$result = _validateQuestionData($category, 'category');
-	if (isErrorMessage($result)) {
-		return $result;
-	}
-	
-	$category = _sanitizeQuestionData($category, 'category');
-	$answers = _getAnswersToQuestions($category);
-	$total = count($answers);
-	$correctAnswers = 0;
-	foreach ($userAnswers as $key => $value) {
-		if (isset($answers[$key]) && $answers[$key]['answer'] == $value) {
-			$correctAnswers++;
-		}
-	}
-	return (float) ($correctAnswers/$total) * 100;
-}
-
 function addQuestion($type, $rawData)
 {
 	$result = _validateQuestionData($rawData, null, $type);
@@ -245,6 +226,16 @@ function deleteQuestion($id)
 	
 	$id = _sanitizeQuestionData($id, 'question_id');
 	return deleteFromTable(QUESTIONS_TABLE, 'question_id=:id', array(':id' => $id));
+}
+
+function deleteQuestionCategory($id)
+{
+	$result = _validateQuestionCategoryData($id, 'category_id');
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	return deleteFromTable(QUESTION_CATEGORY_TABLE, 'category_id=:id', array(':id' => $id));
 }
 
 function getQuestionCategoryTableColumns()
