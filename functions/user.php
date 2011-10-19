@@ -259,9 +259,9 @@ function _isValidAccountGroup($value)
 function _processAccountGroupData(&$value, $key = null)
 {
 	if ($key == 'group_id') {
-		filter_var($value, FILTER_SANITIZE_NUMBER_INT);
+		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
 	} elseif ($key == 'name') {
-		trim($value);
+		$value = trim($value);
 	}
 }
 
@@ -278,20 +278,19 @@ function _processAccountsData(&$data, $key = null)
 function _processAccountsValue(&$value, $key = null)
 {
 	if ($key == 'id') {
-		filter_var($value, FILTER_SANITIZE_NUMBER_INT);
+		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
 	} elseif ($key == 'role' && is_array($value)) {
 		foreach ($value as $key => $item) {
 			$value[$key] = filter_var($item, FILTER_SANITIZE_NUMBER_INT);
 		}
 		$value = _encodeRole($value);
-		
 	} elseif ($key == 'group' && is_array($value)) {
 		foreach ($value as $key => $item) {
 			$value[$key] = filter_var($item, FILTER_SANITIZE_NUMBER_INT);
 		}
 		$value = _encodeGroup($value);
 	} elseif ($key == 'name') {
-		trim($value);
+		$value = trim($value);
 	} elseif ($key == 'password') {
 		//no processing
 	}

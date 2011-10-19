@@ -522,7 +522,7 @@ function _processExamValue(&$value, $key)
 		$key == 'default_points' ||
 		$key == 'passing_score' ||
 		$key == 'total_questions') {
-		filter_var($value, FILTER_SANITIZE_NUMBER_INT);
+		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
 	} elseif ($key == 'name') {
 		$value = trim($value);
 	} elseif ($key == 'group' && is_array($value)) {
@@ -533,7 +533,7 @@ function _processExamValue(&$value, $key)
 		$dateTime = $value['date'] . ' ' . $value['time'];
 		$value = date_format(date_create($dateTime), "Y-m-d H:i");
 	} elseif ($key == 'time_limit') {
-		filter_var(abs($value), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+		$value = filter_var(abs($value), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
 	} elseif ($key == 'recorded' || 
 			  $key == 'randomize') {
 		$value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
