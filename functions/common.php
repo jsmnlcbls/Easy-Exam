@@ -503,7 +503,7 @@ function validateInputData($validatorFunction, $data, $key = null)
 	return errorMessage(VALIDATION_ERROR, $errorMessages);
 }
 
-function processData($function, $data, $key = null)
+function processData($function, &$data, $key = null)
 {
 	if (is_array($data) && $key == null) {
 		array_walk($data, $function);
