@@ -256,7 +256,15 @@ function _isValidAccountGroup($value)
 	return false;
 }
 
-function _processAccountGroupData(&$value, $key = null)
+function _processAccountGroupData(&$data, $key = null)
+{
+	$function = function (&$data, $key) {
+		_processAccountGroupValue($data, $key);
+	};
+	processData($function, $data, $key);
+}
+
+function _processAccountGroupValue(&$value, $key = null)
 {
 	if ($key == 'group_id') {
 		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
@@ -267,12 +275,8 @@ function _processAccountGroupData(&$value, $key = null)
 
 function _processAccountsData(&$data, $key = null)
 {
-	if (is_array($data)) {
-		$function = function(&$data, $key) { _processAccountsValue($data, $key); };
-		array_walk($data, $function);
-	} elseif (is_string($key)) {
-		_processAccountsValue($data, $key);
-	}
+	$function = function(&$data, $key) { _processAccountsValue($data, $key); };
+	processData($function, $data, $key);
 }
 
 function _processAccountsValue(&$value, $key = null)

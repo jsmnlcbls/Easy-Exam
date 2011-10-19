@@ -494,13 +494,13 @@ function _validateExamQuestionsData($examId, $revision, $data)
 
 function _processExamData(&$data, $key = null)
 {
-	if (is_array($data)) {
-		$function = function(&$data, $key) { _processExamValue($data, $key); };
-		_processScoreIsPercentage($data);
-		array_walk($data, $function);
-	} elseif (is_string($key)) {
-		_processExamValue($data, $key);
-	}
+	$function = function(&$data, $key) { 
+		if (is_array($data)) {
+			_processScoreIsPercentage($data);
+		}
+		_processExamValue($data, $key); 
+	};
+	processData($function, $data, $key);
 }
 
 function _processScoreIsPercentage(&$data)
