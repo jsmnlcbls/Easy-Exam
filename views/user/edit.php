@@ -47,7 +47,7 @@ $data = getUserData($id);
 				<?php
 					$roles = getAllRoles();
 					foreach ($roles as $id => $name) {
-						if ($data['role'] & $id) {
+						if (isset($data['role'][$id])) {
 							echo "<input checked = \"checked\" type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
 						} else {
 							echo "<input type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
