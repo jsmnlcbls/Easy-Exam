@@ -14,10 +14,9 @@ if ($requestMethod == "GET") {
 			$id = intval($result);
 			$user = getArrayValues(getUserData($id), array('id', 'role', 'name'));
 			setLoggedInUser($user['id'], $user['role'], $user['name']);
-			$role = $user['role'];
-			if ($role == EXAMINEE_ROLE) {
+			if (isset($user['role'][EXAMINEE_ROLE])) {
 				redirect(getSettings('User Page'));
-			} elseif ($role == EXAMINER_ROLE || $role == ADMINISTRATOR_ROLE) {
+			} elseif (isset($user['role'][EXAMINER_ROLE]) || isset($user['role'][ADMINISTRATOR_ROLE])) {
 				redirect(getSettings('Admin Page'));
 			}
 		} else {

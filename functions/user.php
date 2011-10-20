@@ -7,9 +7,10 @@ const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
 const ACCOUNT_GROUP_TABLE = 'account_group';
 
-function getAllRoles()
+function getAllRoles($includeAdministrator = false)
 {
-	$sql = 'SELECT * FROM ' . ROLE_TABLE . ' WHERE id <> 0';
+	$condition = !$includeAdministrator ? ' WHERE id <> 0' : '';
+	$sql = 'SELECT * FROM ' . ROLE_TABLE . $condition;
 	$database = getDatabase();
 	$source = $database->query($sql);
 	$data = array();
@@ -319,11 +320,16 @@ function _encodeRole($roleArray)
 
 function _decodeRole($encodedRole)
 {
-	$roles = getAllRoles();
+	$roles = getAllRoles(true);
 	$output = array();
-	foreach ($roles as $id => $name) {
-		if ($encodedRole & $id) {
-			$output[$id] = $name;
+	
+	if ($encodedRole == ADMINISTRATOR_ROLE) {
+		$output[ADMINISTRATOR_ROLE] = $roles[ADMINISTRATOR_ROLE];
+	} else {
+		foreach ($roles as $id => $name) {
+			if ($encodedRole & $id) {
+				$output[$id] = $name;
+			}
 		}
 	}
 	return $output;
