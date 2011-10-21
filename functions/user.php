@@ -39,8 +39,9 @@ function getAllUserGroups()
 	return $cache;
 }
 
-function addUser($data)
+function addUser($inputData)
 {
+	$data = getArrayValues($inputData, _getAccountsTableColumns());
 	$result = validateAccountsData($data);
 	if (isErrorMessage($result)) {
 		return $result;
@@ -53,8 +54,9 @@ function addUser($data)
 	return insertIntoTable(ACCOUNTS_TABLE, $data);
 }
 
-function addUserGroup($data)
+function addUserGroup($inputData)
 {
+	$data = getArrayValues($inputData, _getAccountsGroupTableColumns());
 	$result = validateAccountGroupData($data);
 	if (isErrorMessage($result)) {
 		return $result;
@@ -75,7 +77,7 @@ function getUserData($id)
 	$sql = "SELECT * FROM {$table} WHERE id = :id";
 	$parameters = array(':id' => $id);
 	$result = queryDatabase($sql, $parameters);
-	if (is_array($result)) {
+	if (!empty($result) && is_array($result)) {
 		$data = array_shift($result);
 		$data['group'] = _decodeGroup($data['group']);
 		$data['role'] = _decodeRole($data['role']);
@@ -100,14 +102,15 @@ function getUserGroupData($id)
 	return false;
 }
 
-function updateUser($id, $data)
+function updateUser($inputData)
 {
-	$userData = array_merge(array('id' => $id), $data);
-	$result = validateAccountsData($userData);
+	$data = getArrayValues($inputData, _getAccountsTableColumns(true));
+	$result = validateAccountsData($data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
+	$id = $data['id'];
 	_processAccountsData($data);
 	if ($data['password'] != "") {
 		$passwordData = _derivePassword($data['password']);
@@ -120,14 +123,15 @@ function updateUser($id, $data)
 	}
 }
 
-function updateUserGroup($id, $data)
+function updateUserGroup($inputData)
 {
-	$groupData = array_merge($data, array('group_id' => $id));
-	$result = validateAccountGroupData($groupData);
+	$data = getArrayValues($inputData, _getAccountsGroupTableColumns(true));
+	$result = validateAccountGroupData($data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
+	$id = $data['group_id'];
 	_processAccountGroupData($data);
 	return updateTable(ACCOUNT_GROUP_TABLE, $data, 'group_id = :id', array(':id' => $id));
 }
@@ -169,15 +173,6 @@ function deleteUserGroup($id)
 	return deleteFromTable(ACCOUNT_GROUP_TABLE, 'group_id=:id', array(':id' => $id));
 }
 
-function getAccountsTableColumns($includePrimaryKeys = false)
-{	
-	if ($includePrimaryKeys) {
-		return array('id', 'role', 'name', 'password', 'group');
-	} else {
-		return array('role', 'name', 'password', 'group');
-	}
-}
-
 function validateAccountsData($value, $key = null)
 {
 	$validator = function ($value, $key) {
@@ -194,6 +189,27 @@ function validateAccountGroupData($value, $key = null)
 	};
 
 	return validateInputData($validator, $value, $key);
+}
+
+
+//------------------------------------------------------------------------------
+
+function _getAccountsTableColumns($includePrimaryKeys = false)
+{	
+	if ($includePrimaryKeys) {
+		return array('id', 'role', 'name', 'password', 'group');
+	} else {
+		return array('role', 'name', 'password', 'group');
+	}
+}
+
+function _getAccountsGroupTableColumns($includePrimaryKeys = false)
+{
+	$columns = array('name');
+	if ($includePrimaryKeys) {
+		array_unshift($columns, 'group_id');
+	}
+	return $columns;
 }
 
 function _validateAccountGroupValue($value, $key)

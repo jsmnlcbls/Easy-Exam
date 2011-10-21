@@ -51,15 +51,13 @@ function _addQuestionAction($data)
 function _addUserAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, getAccountsTableColumns());
-	return addUser($userData);
+	return addUser($data);
 }
 
 function _addUserGroupAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, array('name'));
-	return addUserGroup($userData);
+	return addUserGroup($data);
 }
 
 function _addExamAction($data)
@@ -121,17 +119,13 @@ function _editExamAction($data)
 function _editUserAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, getAccountsTableColumns());
-	$id = $data['id'];
-	return updateUser($id, $userData);
+	return updateUser($data);
 }
 
 function _editUserGroupAction($data)
 {
 	include "functions/user.php";
-	$groupData = getArrayValues($data, array('name'));
-	$id = $data['group_id'];
-	return updateUserGroup($id, $groupData);
+	return updateUserGroup($data);
 }
 
 function _deleteQuestionAction($data)
