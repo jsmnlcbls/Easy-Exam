@@ -7,7 +7,7 @@
 			<tr>
 				<td>Category Name</td>
 				<td>
-					<?php echo questionCategorySelectHTML(); ?>
+					<?php echo questionCategorySelectHTML(array('name' => 'category_id')); ?>
 				</td>
 			</tr>
 			<tr>
