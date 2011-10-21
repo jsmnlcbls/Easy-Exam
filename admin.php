@@ -39,20 +39,13 @@ if ($requestMethod == "GET") {
 function _addQuestionCategoryAction($data)
 {
 	include '/functions/question.php';
-	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
-	return addQuestionCategory($categoryData);
+	return addQuestionCategory($data);
 }
 
 function _addQuestionAction($data)
 {
 	include '/functions/question.php';
-	$type = $data['type'];
-	$options = array('TYPE' => $type);
-	$mainTableColumns = getQuestionTableColumns();
-	$secondaryTableColumns = getQuestionTableColumns($options);
-	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
-	$questionData = getArrayValues($data, $columns);
-	return addQuestion($type, $questionData);
+	return addQuestion($data);
 }
 
 function _addUserAction($data)
@@ -92,25 +85,14 @@ function _addExamAction($data)
 
 function _editQuestionCategoryAction($data)
 {
-	include '/functions/question.php';
-	$categoryId = $data["category_id"];
-	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
-	
-	return editQuestionCategory($categoryId, $categoryData); 
+	include '/functions/question.php';	
+	return editQuestionCategory($data); 
 }
 
 function _editQuestionAction($data)
 {
 	include '/functions/question.php';
-	$id = $data['question_id'];
-	$type = $data['type'];
-	$options = array('TYPE' => $type);
-	$mainTableColumns = getQuestionTableColumns();
-	$secondaryTableColumns = getQuestionTableColumns($options);
-	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
-	$questionData = getArrayValues($data, $columns);
-	
-	return updateQuestion($id, $questionData);
+	return updateQuestion($data);
 }
 
 function _editExamAction($data)
@@ -155,13 +137,13 @@ function _editUserGroupAction($data)
 function _deleteQuestionAction($data)
 {
 	include "functions/question.php";
-	return deleteQuestion($data["questionId"]);
+	return deleteQuestion($data);
 }
 
 function _deleteQuestionCategoryAction($data)
 {
 	include "functions/question.php";
-	return deleteQuestionCategory($data['category']);
+	return deleteQuestionCategory($data);
 }
 
 function _deleteExamAction($data)
