@@ -64,21 +64,14 @@ function _addExamAction($data)
 {
 	include "functions/exam.php";
 	include "functions/question.php";
-	$step = isset($data['step']) ? $data['step'] : 1;
-	unset($data['step']);
-	if ($step == 1) {
-		$examData = getArrayValues($data, getExamTableColumns());
-		$result = addExam($examData, $step);
-		if (!isErrorMessage ($result)) {
-			return function() use ($result) {
-				redirect('admin.php?view=exam-add-step-two&examId=' . $result);
-			};
-		} else {
-			return $result;
-		}
-	} else if ($step == 2) {
-		return addExam($data, $step);
+	$step = isset($data['step']) ? $data['step'] : null;
+	$result = addExam($data);
+	if ($step == 1 && !isErrorMessage($result)) {
+		return function() use ($result) {
+				redirect('admin.php?view=exam-add-questions&examId=' . $result);
+		};
 	}
+	return $result;
 }
 
 function _editQuestionCategoryAction($data)
@@ -100,20 +93,13 @@ function _editExamAction($data)
 	
 	$id = $data["exam_id"];
 	$step = isset($data['step']) ? $data['step'] : 1;
-	unset($data['step'], $data['exam_id']);
-	if ($step == 1) {
-		$examData = getArrayValues($data, getExamTableColumns());
-		$result = updateExam($id, $examData, $step);
-		if (!isErrorMessage ($result)) {
-			return function() use ($id) {
+	$result = updateExam($data);
+	if ($step == 1 && !isErrorMessage ($result)) {
+		return function() use ($id) {
 				redirect('admin.php?view=exam-edit-questions&examId=' . $id);
 			};
-		} else {
-			return $result;
-		}
-	} else if ($step == 2) {
-		return updateExam($id, $data, $step);
-	}
+	} 
+	return $result;
 }
 
 function _editUserAction($data)
@@ -143,7 +129,7 @@ function _deleteQuestionCategoryAction($data)
 function _deleteExamAction($data)
 {
 	include "functions/exam.php";
-	return deleteExam($data["examId"]);
+	return deleteExam($data);
 }
 
 function _deleteUserAction($data)

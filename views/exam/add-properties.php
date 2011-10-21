@@ -1,7 +1,7 @@
 <?php
 include "functions/user.php";
 ?>
-<div id = "add-exam-panel">
+<div id = "add-exam-panel-step-1">
 	<div class = "panel-title">Add Exam <em style="font-size:70%">(Step 1 of 2)</em></div>
 	<div><em>Set Exam Properties</em></div>
 	<hr/>
@@ -106,7 +106,7 @@ include "functions/user.php";
 			</tr>
 			<tr>
 				<td></td>
-				<td><input type = "submit" value = "Next"/></td>
+				<td><button id="next-button">Next</button></td>
 			</tr>
 			<tr>
 				<td colspan="2" class="note">

@@ -6,25 +6,24 @@ const QUESTION_DISPLAY_ONE_BY_ONE = 1;
 const EXAM_UNLIMITED_REPEAT = 0;
 const EXAM_NO_REPEAT = 1;
 
-function addExam($data, $step)
+function addExam($inputData)
 {
+	$step = $inputData['step'];
 	if ($step == 1) {
-		return _addExamProperties($data);
+		return _addExamProperties($inputData);
 	} elseif ($step == 2) {
-		$examId = $data['examId'];
-		unset($data['examId']);
-		return _updateExamQuestions($examId, 0, $data);
-	}	
+		return _updateExamQuestions($inputData);
+	}
+	return false;
 }
 
-function updateExam($examId, $data, $step)
+function updateExam($inputData)
 {
+	$step = $inputData['step'];
 	if ($step == 1) {
-		return _updateExamProperties($examId, $data);
+		return _updateExamProperties($inputData);
 	} elseif ($step == 2) {
-		$revision = $data['revision'];
-		unset($data['revision']);
-		return _updateExamQuestions($examId, $revision, $data);
+		return _updateExamQuestions($inputData);
 	}
 }
 
@@ -107,8 +106,9 @@ function getExamAnswerKey($examId, $revision)
 	return _getExamArchiveData($examId, $revision, 'answer_key');
 }
 
-function deleteExam($id)
+function deleteExam($inputData)
 {
+	$id = $inputData['exam_id'];
 	$result = validateExamData($id, 'exam_id');
 	if (isErrorMessage($result)) {
 		return $result;
@@ -116,14 +116,6 @@ function deleteExam($id)
 	
 	_processExamData($id, 'exam_id');
 	return deleteFromTable(EXAM_TABLE, 'exam_id=:id', array(':id' => $id));
-}
-
-function getExamTableColumns()
-{
-	return array('name', 'group', 'start_date_time', 'end_date_time', 'time_limit', 
-				 'questions_category', 'default_points', 'passing_score',
-				 'question_display', 'recorded', 'randomize', 'max_take', 
-				 'total_questions', 'revision');
 }
 
 function validateExamData($data, $key = null)
@@ -183,8 +175,9 @@ function gradeExamAnswers($answers, $examId, $revision)
 
 //------------------------------------------------------------------------------
 
-function _addExamProperties($data)
+function _addExamProperties($inputData)
 {
+	$data = getArrayValues($inputData, _getExamTableColumns());
 	$result = validateExamData($data);
 	if (isErrorMessage($result)) {
 		return $result;
@@ -213,14 +206,15 @@ function _addExamProperties($data)
 	return errorMessage(DATABASE_ERROR, 'Failed to add new exam to database.');	
 }
 
-function _updateExamProperties($examId, $data)
+function _updateExamProperties($inputData)
 {
-	$data = array_merge(array('exam_id' => $examId), $data);
+	$data = getArrayValues($inputData, _getExamTableColumns(true));
 	$result = validateExamData($data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
+	$examId = $data['exam_id'];
 	$oldData = getExamData($examId);
 	_processExamData($data);
 	_processExamData($oldData);
@@ -264,8 +258,11 @@ function _updateExamProperties($examId, $data)
 	return errorMessage(DATABASE_ERROR, 'Failed to update exam properties.');
 }
 
-function _updateExamQuestions($examId, $revision, $data)
+function _updateExamQuestions($inputData)
 {
+	$data = _getExamQuestionsFromInputData($inputData);
+	$examId = $inputData['exam_id'];
+	$revision = $inputData['revision'];
 	$result = _validateExamQuestionsData($examId, $revision, $data);
 	if (isErrorMessage($result)) {
 		return $result;
@@ -298,6 +295,29 @@ function _updateExamQuestions($examId, $revision, $data)
 	$condition = 'exam_id=:id AND revision=:revisionCount';
 	$parameters = array(':id' => $examId, ':revisionCount' => $revision);
 	return updateTable(EXAM_ARCHIVES_TABLE, $examData, $condition, $parameters);
+}
+
+function _getExamTableColumns($includePrimaryKeys = false)
+{
+	$columns = array('name', 'group', 'start_date_time', 'end_date_time', 'time_limit', 
+				 'questions_category', 'default_points', 'passing_score',
+				 'question_display', 'recorded', 'randomize', 'max_take', 
+				 'total_questions', 'revision');
+	if ($includePrimaryKeys) {
+		array_unshift($columns, 'exam_id');
+	}
+	return $columns;
+}
+
+function _getExamQuestionsFromInputData($inputData)
+{
+	$data = array();
+	foreach ($inputData as $id => $question) {
+		if (ctype_digit("$id")) {
+			$data[$id] = $question; 
+		}
+	}
+	return $data;
 }
 
 function _validateExamValue($value, $key)
@@ -458,6 +478,15 @@ function _isValidExamTime($value)
 
 function _validateExamQuestionsData($examId, $revision, $data)
 {	
+	$error = _validateExamValue($examId, 'exam_id');
+	if (!empty($error)) {
+		return errorMessage(VALIDATION_ERROR, array_pop($error));
+	}
+	$error = _validateExamValue($revision, 'revision');
+	if (!empty($error)) {
+		return errorMessage(VALIDATION_ERROR, array_pop($error));
+	}
+	
 	$questionsCount = 0;
 	foreach ($data as $id => $question) {
 		if (!ctype_digit("$id")) {

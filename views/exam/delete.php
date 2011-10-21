@@ -7,7 +7,7 @@
 			<tr>
 				<td>Exam Name</td>
 				<td>
-					<select name = "examId">
+					<select name = "exam_id">
 					<option value = "">None Selected</option>
 					<?php
 						include "functions/exam.php";
