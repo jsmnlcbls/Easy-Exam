@@ -2,24 +2,12 @@
 <div id = "select-category-panel">
 	<span class = "panel-title">Select Category To Delete</span>
 	<form method = "post" action = "admin.php" id = "edit-category-form">
-		<input type = "hidden" name = "action" value = "deleteCategory"/>
+		<input type = "hidden" name = "action" value = "deleteQuestionCategory"/>
 		<table>
 			<tr>
 				<td>Category Name</td>
 				<td>
-					<select name = "category">
-					<?php
-						$categories = getAllQuestionCategories();
-						foreach ($categories as $category) {
-							$name = escapeOutput($category['name']);
-							if ($category['category_id'] == 0) {
-								echo '<option value = "0">None Selected</option>';
-							} else {
-								echo "<option value = \"{$category['category_id']}\">{$name}</option>";
-							}
-						}
-					?>
-					</select>
+					<?php echo questionCategorySelectHTML(array('name' => 'category_id')); ?>
 				</td>
 			</tr>
 			<tr>

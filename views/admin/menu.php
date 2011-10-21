@@ -16,7 +16,7 @@
 <br/>
 <span class="submenu-title">Exam</span>
 <ul class = "sub-menu">
-	<li><a href="?view=exam-add">Add</a></li>
+	<li><a href="?view=exam-add-properties">Add</a></li>
 	<li><a href="?view=exam-edit">Edit</a></li>
 	<li><a href="?view=exam-delete">Delete</a></li>
 </ul>

@@ -438,10 +438,10 @@ function logoutUser()
  */
 function getArrayValues($inputArray, $keys = null)
 {
+	$values = array();
 	if ($keys == null) {
-		return array_values($inputArray);
+		$values = array_values($inputArray);
 	} else if (is_array($keys)) {
-		$values = array();
 		foreach ($keys as $keyVal) {
 			if (isset($inputArray[$keyVal])) {
 				$values[$keyVal] = $inputArray[$keyVal];
@@ -449,8 +449,8 @@ function getArrayValues($inputArray, $keys = null)
 				$values[$keyVal] = null;
 			}
 		}
-		return $values;
 	}
+	return $values;
 }
 
 /**
@@ -501,6 +501,15 @@ function validateInputData($validatorFunction, $data, $key = null)
 		return true;
 	}
 	return errorMessage(VALIDATION_ERROR, $errorMessages);
+}
+
+function processData($function, &$data, $key = null)
+{
+	if (is_array($data) && $key == null) {
+		array_walk($data, $function);
+	} elseif (is_string($key)) {
+		$function($data, $key);
+	}
 }
 
 /**

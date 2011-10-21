@@ -39,78 +39,51 @@ if ($requestMethod == "GET") {
 function _addQuestionCategoryAction($data)
 {
 	include '/functions/question.php';
-	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
-	return addQuestionCategory($categoryData);
+	return addQuestionCategory($data);
 }
 
 function _addQuestionAction($data)
 {
 	include '/functions/question.php';
-	$type = $data['type'];
-	$options = array('TYPE' => $type);
-	$mainTableColumns = getQuestionTableColumns();
-	$secondaryTableColumns = getQuestionTableColumns($options);
-	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
-	$questionData = getArrayValues($data, $columns);
-	return addQuestion($type, $questionData);
+	return addQuestion($data);
 }
 
 function _addUserAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, getAccountsTableColumns());
-	return addUser($userData);
+	return addUser($data);
 }
 
 function _addUserGroupAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, array('name'));
-	return addUserGroup($userData);
+	return addUserGroup($data);
 }
 
 function _addExamAction($data)
 {
 	include "functions/exam.php";
 	include "functions/question.php";
-	$step = isset($data['step']) ? $data['step'] : 1;
-	unset($data['step']);
-	if ($step == 1) {
-		$examData = getArrayValues($data, getExamTableColumns());
-		$result = addExam($examData, $step);
-		if (!isErrorMessage ($result)) {
-			return function() use ($result) {
-				redirect('admin.php?view=exam-add-step-two&examId=' . $result);
-			};
-		} else {
-			return $result;
-		}
-	} else if ($step == 2) {
-		return addExam($data, $step);
+	$step = isset($data['step']) ? $data['step'] : null;
+	$result = addExam($data);
+	if ($step == 1 && !isErrorMessage($result)) {
+		return function() use ($result) {
+				redirect('admin.php?view=exam-add-questions&examId=' . $result);
+		};
 	}
+	return $result;
 }
 
 function _editQuestionCategoryAction($data)
 {
-	include '/functions/question.php';
-	$categoryId = $data["category_id"];
-	$categoryData = getArrayValues($data, getQuestionCategoryTableColumns());
-	
-	return editQuestionCategory($categoryId, $categoryData); 
+	include '/functions/question.php';	
+	return editQuestionCategory($data); 
 }
 
 function _editQuestionAction($data)
 {
 	include '/functions/question.php';
-	$id = $data['question_id'];
-	$type = $data['type'];
-	$options = array('TYPE' => $type);
-	$mainTableColumns = getQuestionTableColumns();
-	$secondaryTableColumns = getQuestionTableColumns($options);
-	$columns = array_merge($mainTableColumns, $secondaryTableColumns);
-	$questionData = getArrayValues($data, $columns);
-	
-	return updateQuestion($id, $questionData);
+	return updateQuestion($data);
 }
 
 function _editExamAction($data)
@@ -120,48 +93,43 @@ function _editExamAction($data)
 	
 	$id = $data["exam_id"];
 	$step = isset($data['step']) ? $data['step'] : 1;
-	unset($data['step'], $data['exam_id']);
-	if ($step == 1) {
-		$examData = getArrayValues($data, getExamTableColumns());
-		$result = updateExam($id, $examData, $step);
-		if (!isErrorMessage ($result)) {
-			return function() use ($id) {
+	$result = updateExam($data);
+	if ($step == 1 && !isErrorMessage ($result)) {
+		return function() use ($id) {
 				redirect('admin.php?view=exam-edit-questions&examId=' . $id);
 			};
-		} else {
-			return $result;
-		}
-	} else if ($step == 2) {
-		return updateExam($id, $data, $step);
-	}
+	} 
+	return $result;
 }
 
 function _editUserAction($data)
 {
 	include "functions/user.php";
-	$userData = getArrayValues($data, getAccountsTableColumns());
-	$id = $data['id'];
-	return updateUser($id, $userData);
+	return updateUser($data);
 }
 
 function _editUserGroupAction($data)
 {
 	include "functions/user.php";
-	$groupData = getArrayValues($data, array('name'));
-	$id = $data['group_id'];
-	return updateUserGroup($id, $groupData);
+	return updateUserGroup($data);
 }
 
 function _deleteQuestionAction($data)
 {
 	include "functions/question.php";
-	return deleteQuestion($data["questionId"]);
+	return deleteQuestion($data);
+}
+
+function _deleteQuestionCategoryAction($data)
+{
+	include "functions/question.php";
+	return deleteQuestionCategory($data);
 }
 
 function _deleteExamAction($data)
 {
 	include "functions/exam.php";
-	return deleteExam($data["examId"]);
+	return deleteExam($data);
 }
 
 function _deleteUserAction($data)
@@ -211,7 +179,7 @@ function _isInActionWhitelist($action)
 {
 	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
 				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
-				'deleteCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
+				'deleteQuestionCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
 				'editAdminCredentials', 
 				'addUserGroup', 'editUserGroup', 'deleteUserGroup');
 	

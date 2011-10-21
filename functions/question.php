@@ -2,28 +2,30 @@
 const QUESTIONS_TABLE = 'questions';
 const QUESTION_CATEGORY_TABLE = 'question_category';
 
-function addQuestionCategory($data)
+function addQuestionCategory($inputData)
 {
-	$result = _validateQuestionCategoryData($data);
+	$data = getArrayValues($inputData, _getQuestionCategoryTableColumns());
+	$result = validateQuestionCategoryData($data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$data = _sanitizeQuestionCategoryData($data);
+	_processQuestionCategoryData($data);
 	return insertIntoTable(QUESTION_CATEGORY_TABLE, $data);
 }
 
-function editQuestionCategory($id, $data)
+function editQuestionCategory($inputData)
 {
-	$input = array_merge(array('category_id' => $id), $data);
-	$result = _validateQuestionCategoryData($input);
+	$data = getArrayValues($inputData, _getQuestionCategoryTableColumns(true));
+	$result = validateQuestionCategoryData($data);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$id = _sanitizeQuestionCategoryData($id, 'category_id');
-	$data = _sanitizeQuestionCategoryData($data);
-	return updateTable(QUESTION_CATEGORY_TABLE, $data, 'category_id = :id', array(':id' => $id));
+	_processQuestionCategoryData($data);
+	$condition = 'category_id = :id';
+	$parameters = array(':id' => $data['category_id']);
+	return updateTable(QUESTION_CATEGORY_TABLE, $data, $condition, $parameters);
 }
 
 function getAllQuestionTypes()
@@ -42,14 +44,12 @@ function getQuestionCategoryData($id)
 
 function getCategoryQuestions($category, $includeSubcategories = true)
 {
-	$result = _validateQuestionData($category, 'category');
+	$result = validateQuestionData($category, 'category');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$category = _sanitizeQuestionData($category, 'category');
 	$questions = _getQuestions($category);
-	
 	if ($includeSubcategories) {
 		$subCategories = _getSubCategories($category);
 		if (count($subCategories) > 0) {
@@ -61,61 +61,40 @@ function getCategoryQuestions($category, $includeSubcategories = true)
 	return $questions;
 }
 
-function checkAnswersToQuestions($category, $userAnswers)
+function addQuestion($inputData)
 {
-	$result = _validateQuestionData($category, 'category');
+	$type = $inputData['type'];
+	$mainTableColumns = _getQuestionTableColumns();
+	$secondaryTableColumns = _getSecondaryQuestionTableColumns($type);
+	$mainData = getArrayValues($inputData, $mainTableColumns);
+	$secondaryData = getArrayValues($inputData, $secondaryTableColumns);
+	
+	$result = validateQuestionData(($mainData + $secondaryData), null, $type);
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$category = _sanitizeQuestionData($category, 'category');
-	$answers = _getAnswersToQuestions($category);
-	$total = count($answers);
-	$correctAnswers = 0;
-	foreach ($userAnswers as $key => $value) {
-		if (isset($answers[$key]) && $answers[$key]['answer'] == $value) {
-			$correctAnswers++;
-		}
-	}
-	return (float) ($correctAnswers/$total) * 100;
-}
-
-function addQuestion($type, $rawData)
-{
-	$result = _validateQuestionData($rawData, null, $type);
-	if (isErrorMessage($result)) {
-		return $result;
+	_processQuestionData($mainData, null, $type);
+	_processQuestionData($secondaryData, null, $type);
+	if ($type == MULTIPLE_CHOICE_QUESTION || 
+		$type == TRUE_OR_FALSE_QUESTION || 
+		$type == OBJECTIVE_QUESTION) {
+		
+		return _insertAndSyncQuestion($type, $mainData, $secondaryData);
+	} elseif ($type == ESSAY_QUESTION) {
+		return _insertQuestion($mainData);
 	}
 	
-	$type = _sanitizeQuestionData($type, 'type');
-	$questionData = _sanitizeQuestionData($rawData);
-	$result = false;
-	switch (intval($type)) {
-		case MULTIPLE_CHOICE_QUESTION:
-			$questionData['choices'] = _encodeMultipleChoices($questionData['choices']);
-			$questionData['answer'] = _encodeMultipleChoiceAnswer($questionData['answer']);
-		case TRUE_OR_FALSE_QUESTION:
-			//cascade intentional
-		case OBJECTIVE_QUESTION:
-			$result = _insertAndSyncQuestion($type, $questionData);
-			break;
-		case ESSAY_QUESTION:
-			$result = _insertQuestion($questionData);
-			break;
-		default:
-			$result = false;
-			break;
-	}
-	return $result;
+	return false;
 }
 
 function searchQuestions($data)
 {
 	//no validation intended
 	
-	$category = _sanitizeQuestionData($data['category'], 'category');
-	$question = _sanitizeQuestionData($data['question'], 'question');
-	$type = _sanitizeQuestionData($data['type'], 'type');
+	$category = $data['category'];
+	$type = $data['type'];
+	$question = $data['question'];
 	
 	$categoryCondition = "";
 	$parameters = array();
@@ -166,15 +145,11 @@ function searchQuestions($data)
 
 function getQuestionData($id, $type = null)
 {
-	$result = _validateQuestionData($id, 'question_id');
+	$result = validateQuestionData($id, 'question_id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$id = _sanitizeQuestionData($id, 'question_id');
-	if ($type != null) {
-		$type = _sanitizeQuestionData($type, 'type');
-	}
 	$sql = "SELECT * FROM questions AS t1 ";
 	$join = true;
 	if ($type == MULTIPLE_CHOICE_QUESTION) {
@@ -194,94 +169,62 @@ function getQuestionData($id, $type = null)
 	$result = queryDatabase($sql, $parameters);
 	$result = array_shift($result);
 	
-	if ($type == MULTIPLE_CHOICE_QUESTION) {
+	if ($type == MULTIPLE_CHOICE_QUESTION && !empty($result)) {
 		$result['choices'] = _decodeMultipleChoices($result['choices']);
 		$result['answer'] = _decodeMultipleChoiceAnswer($result['answer']);
 	}
 	return $result;
 }
 
-function updateQuestion($id, $rawData)
+function updateQuestion($inputData)
 {
-	$type = $rawData['type'];
-	$result = array();
-	$result[] = _validateQuestionData($type, 'type');
-	$result[] = _validateQuestionData($id, 'question_id');
-	$result[] = _validateQuestionData($rawData, null, $type);
-	foreach ($result as $value) {
-		if (isErrorMessage($value)) {
-			return $value;
-		}
+	$id = $inputData['question_id'];
+	$type = $inputData['type'];
+	$mainTableColumns = _getQuestionTableColumns();
+	$secondaryTableColumns = _getSecondaryQuestionTableColumns($type);
+	$mainData = getArrayValues($inputData, $mainTableColumns);
+	$secondaryData = getArrayValues($inputData, $secondaryTableColumns);
+	$result = validateQuestionData(($mainData + $secondaryData), null, $type);
+	if (isErrorMessage($result)) {
+		return $result;
 	}
+
+	_processQuestionData($mainData, null, $type);
+	_processQuestionData($secondaryData, null, $type);
+	if ($type == MULTIPLE_CHOICE_QUESTION ||
+		$type == TRUE_OR_FALSE_QUESTION ||
+		$type == OBJECTIVE_QUESTION) {
+		
+		return _updateAndSyncQuestion($id, $type, $mainData, $secondaryData);
+	} elseif ($type == ESSAY_QUESTION) {
+		return _updateQuestion($id, $mainData);
+	}	
 	
-	$id = _sanitizeQuestionData($id, 'question_id');
-	$type = _sanitizeQuestionData($type, 'type');
-	$questionData = _sanitizeQuestionData($rawData);
-	$result = false;
-	switch ($type) {
-		case MULTIPLE_CHOICE_QUESTION:
-			$questionData['choices'] = _encodeMultipleChoices($questionData['choices']);
-			$questionData['answer'] = _encodeMultipleChoiceAnswer($questionData['answer']);
-		case TRUE_OR_FALSE_QUESTION:
-			//cascade intentional
-		case OBJECTIVE_QUESTION:
-			$result = _updateAndSyncQuestion($id, $type, $questionData);
-			break;
-		case ESSAY_QUESTION:
-			$result = _updateQuestion($id, $questionData);
-			break;
-		default:
-			break;
-	}
-	return $result;
+	return false;
 }
 
-function deleteQuestion($id)
+function deleteQuestion($inputData)
 {
-	$result = _validateQuestionData($id, 'question_id');
+	$id = $inputData['question_id'];
+	$result = validateQuestionData($id, 'question_id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$id = _sanitizeQuestionData($id, 'question_id');
 	return deleteFromTable(QUESTIONS_TABLE, 'question_id=:id', array(':id' => $id));
 }
 
-function getQuestionCategoryTableColumns()
+function deleteQuestionCategory($inputData)
 {
-	return array('name', 'parent_category');
-}
-
-function getQuestionTableColumns($options = array())
-{
-	$includePrimaryKeys = false;
-	if (isset($options['INCLUDE_PRIMARY_KEYS']) && 
-			  $options['INCLUDE_PRIMARY_KEYS']) {
-		$includePrimaryKeys = true;
+	$id = $inputData['category_id'];
+	$result = validateQuestionCategoryData($id, 'category_id');
+	if (isErrorMessage($result)) {
+		return $result;
 	}
-	$type = isset($options['TYPE']) ? _sanitizeQuestionData($options['TYPE'], 'type') : null;
 	
-	$columns = array();
-	if ($type == MULTIPLE_CHOICE_QUESTION && $includePrimaryKeys) {
-		$columns = array('question_id', 'answer', 'category', 'choices', 'randomize');
-	} elseif ($type == MULTIPLE_CHOICE_QUESTION) {
-		$columns = array('answer', 'category', 'choices', 'randomize');
-	} elseif ($type == TRUE_OR_FALSE_QUESTION && $includePrimaryKeys) {
-		$columns = array('question_id', 'answer', 'category');
-	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-		$columns = array('answer', 'category');
-	} elseif ($type == OBJECTIVE_QUESTION && $includePrimaryKeys) {
-		$columns = array('question_id', 'answer', 'category');
-	} elseif ($type == OBJECTIVE_QUESTION) {
-		$columns = array('answer', 'category');
-	} elseif ($type == null && $includePrimaryKeys) {
-		$columns = array('question_id', 'question', 'category', 'type');
-	} elseif ($type == null) {
-		$columns = array('question', 'category', 'type');
-	} else {
-		$columns = array();
-	}
-	return $columns;
+	$condition = 'category_id = :id';
+	$parameters = array(':id' => $id);
+	return deleteFromTable(QUESTION_CATEGORY_TABLE, $condition, $parameters);
 }
 
 function getQuestionEditView($type)
@@ -297,23 +240,74 @@ function getQuestionEditView($type)
 	}
 }
 
+function validateQuestionCategoryData($value, $key = null)
+{
+	$validator = function ($value, $key) {
+		return _validateQuestionCategoryValue($value, $key);
+	};
+	
+	return validateInputData($validator, $value, $key);
+}
 
-function _insertAndSyncQuestion($type, $data)
+function validateQuestionData($value, $key = null, $type = null)
+{	
+	$validator = function($value, $key) use ($type) {
+		return _validateQuestionValue($value, $key, $type);
+	};
+	
+	return validateInputData($validator, $value, $key);
+}
+
+//------------------------------------------------------------------------------
+
+function _getQuestionCategoryTableColumns($includePrimaryKeys = false)
+{
+	$columns = array('name', 'parent_category');
+	if ($includePrimaryKeys) {
+		array_unshift($columns, 'category_id');
+	}
+	return $columns;
+}
+
+function _getQuestionTableColumns($includePrimaryKeys = false)
+{
+	$columns = array('question', 'category', 'type');
+	if ($includePrimaryKeys) {
+		array_unshift($columns, 'question_id');
+	}
+	return $columns;
+}
+
+function _getSecondaryQuestionTableColumns($type, $includePrimaryKeys = false)
+{
+	$columns = array();
+	if ($type == MULTIPLE_CHOICE_QUESTION) {
+		$columns = array('answer', 'category', 'choices', 'randomize');
+	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
+		$columns = array('answer', 'category');
+	} elseif ($type == OBJECTIVE_QUESTION) {
+		$columns = array('answer', 'category');
+	}
+	
+	if ($includePrimaryKeys && !empty($columns)) {
+		array_unshift($columns, 'question_id');
+	}
+	return $columns;
+}
+
+function _insertAndSyncQuestion($type, $mainData, $secondaryData)
 {
 	$secondaryTable = _getSecondaryQuestionTableName($type);
-	$mainTableColumnValues = getArrayValues($data, getQuestionTableColumns());
-	$secondaryTableColumnValues = getArrayValues($data, getQuestionTableColumns(array('TYPE' => $type)));
 	beginTransaction();
-	$success = _insertQuestion($mainTableColumnValues);
+	$success = _insertQuestion($mainData);
 	if ($success) {
-		$secondaryTableColumnValues['question_id'] = getLastInsertedId();
-		$success = insertIntoTable($secondaryTable, $secondaryTableColumnValues);
+		$secondaryData['question_id'] = getLastInsertedId();
+		$success = insertIntoTable($secondaryTable, $secondaryData);
 		if ($success) {
 			commitTransaction();
 			return true;
-		} else {
-			rollbackTransaction();
 		}
+		rollbackTransaction();
 	}
 	return false;
 }
@@ -323,23 +317,20 @@ function _insertQuestion($data)
 	return insertIntoTable(QUESTIONS_TABLE, $data);
 }
 
-function _updateAndSyncQuestion($id, $type, $data)
+function _updateAndSyncQuestion($id, $type, $mainData, $secondaryData)
 {
 	$secondaryTable = _getSecondaryQuestionTableName($type);
-	$mainTableColumnValues = getArrayValues($data, getQuestionTableColumns());
-	$secondaryTableColumnValues = getArrayValues($data, getQuestionTableColumns(array('TYPE' => $type)));
 	beginTransaction();
-	$success = _updateQuestion($id, $mainTableColumnValues);
+	$success = _updateQuestion($id, $mainData);
 	if ($success) {
 		$condition = "question_id = :question_id";
 		$conditionParameters = array(':question_id' => $id);
-		$success = updateTable($secondaryTable, $secondaryTableColumnValues, $condition, $conditionParameters);
+		$success = updateTable($secondaryTable, $secondaryData, $condition, $conditionParameters);
 		if ($success) {
 			commitTransaction();
 			return true;
-		} else {
-			rollbackTransaction();
 		}
+		rollbackTransaction();
 	}
 	return false;
 }
@@ -351,99 +342,66 @@ function _updateQuestion($id, $data)
 	return updateTable(QUESTIONS_TABLE, $data, $condition, $conditionParameters);
 }
 
-function _validateQuestionCategoryData($value, $key = null)
+function _validateQuestionCategoryValue($value, $key)
 {
-	$validatorFunction = function ($value, $key) {
-		return _isValidQuestionCategoryValue($value, $key);
-	};
-	
-	$errorMessageFunction = function ($key, $value) {
-		return _getValidateQuestionCategoryErrorMessage($key, $value);
-	};
-	
-	$inputData = $value;
-	if (!is_array($value) && is_string($key)) {
-		$inputData = array($key => $value);
+	$errors = array();
+	if ($key == 'category_id' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid question category id.';
+	} elseif ($key == 'parent_category' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid parent question category id.';
+	} elseif ($key == 'name' && '' == trim($value)) {
+		$errors[] = 'Question category name is empty.';
 	}
-	
-	return validateData($inputData, $validatorFunction, $errorMessageFunction);
+	return $errors;
 }
 
-function _isValidQuestionCategoryValue($value, $key)
+function _validateQuestionValue($value, $key, $type = null)
 {
-	if ($key == 'category_id' || $key == 'parent_category' && ctype_digit("$value")) {
-		return true;
-	} elseif ($key == 'name' && is_string($value) && 
-			  !empty($value) && strlen($value) < 65) {
-		return true;
-	}
-	return false;
-}
-
-function _getValidateQuestionCategoryErrorMessage($key, $data)
-{
-	$message = 'Invalid ';
-	if ($key == 'category_id') {
-		$message .= 'category id';
-	} elseif ($key == 'parent_category') {
-		$message .= 'parent category';
-	} elseif ($key == 'name') {
-		$message .= 'category name';
-	}
-	$message .= ": '$data'";
-	return $message;
-}
-
-function _validateQuestionData($value, $key = null, $type = null)
-{
-	$validatorFunction = function($value, $key) use ($type) {
-		return _isValidQuestionValue($value, $key, $type);
-	};
-	
-	$errorMessageFunction = function($key, $value) {
-		return _getValidateQuestionErrorMessage($key, $value);
-	};
-	
-	$inputData = $value;
-	if (!is_array($value) && is_string($key)) {
-		$inputData = array($key => $value);
-	}
-	
-	return validateData($inputData, $validatorFunction, $errorMessageFunction);
-}
-
-function _isValidQuestionValue($value, $key, $type = null)
-{
-	if ($key == 'question_id' || $key == 'category' && ctype_digit("$value")) {
-		return true;
-	} elseif ($key == 'type' && ctype_digit("$value") && $value < 256) {
-		return true;
-	} elseif ($key == 'question' && "" != trim($value)) {
-		return true;
+	$errors = array();
+	if ($key == 'question_id' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid question id.';
+	} elseif ($key == 'category' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid question category.';
+	} elseif ($key == 'type') {
+		if ($value != MULTIPLE_CHOICE_QUESTION && 
+			$value != ESSAY_QUESTION &&
+			$value != TRUE_OR_FALSE_QUESTION &&
+			$value != OBJECTIVE_QUESTION) {
+			
+			$errors[] = 'Invalid question type.';
+		}
+	} elseif ($key == 'question' && "" == trim($value)) {
+		$errors[] = 'Question is empty.';
 	} elseif (null != $type) {
+		$result = array();
 		if ($type == MULTIPLE_CHOICE_QUESTION) {
-			return _isValidMultipleChoiceValue($value, $key);
+			$result = _validateMultipleChoiceValue($value, $key);
 		} elseif ($type == OBJECTIVE_QUESTION) {
-			return _isValidObjectiveValue($value, $key);
+			$result = _validateObjectiveValue($value, $key);
 		} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-			return _isValidTrueOrFalseValue($value, $key);
+			$result = _validateTrueOrFalseValue($value, $key);
+		}
+		if (!empty($result)) {
+			$errors = array_merge($errors, $result);
 		}
 	}
-	return false;
+	return $errors;
 }
 
-function _isValidMultipleChoiceValue($value, $key)
+function _validateMultipleChoiceValue($value, $key)
 {
+	$errors = array();
 	if ($key == 'answer' && is_array($value)) {
 		foreach ($value as $choice => $isAnswer) {
 			if (!ctype_digit("$choice") || !ctype_digit("$isAnswer")) {
-				return false;
+				$errors[] = 'Invalid multiple choice answer.';
 			}
 		}
-		
-		return true;
-	} elseif ($key == 'randomize' && ($value == 1 || $value == 0)) {
-		return true;
+	} elseif ($key == 'answer' && empty($value)) {
+		$errors[] = 'No answer to question was specified.';
+	} elseif ($key == 'randomize' && !empty($value) && 
+			  !filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+		$errors[] = 'Invalid randomize option.';
 	} elseif ($key == 'choices' && is_array($value)) {
 		$nonEmpty = 0;
 		foreach ($value as $choice) {
@@ -451,129 +409,78 @@ function _isValidMultipleChoiceValue($value, $key)
 				$nonEmpty++;
 			}
 		}
-		if ($nonEmpty > 1) {
-			return true;
+		if ($nonEmpty < 2) {
+			$errors[] = 'Number of choices must be greater than one.';
 		}
 	}
-	return false;
+	return $errors;
 }
 
-function _isValidObjectiveValue($value, $key)
+function _validateObjectiveValue($value, $key)
 {
-	if ($key == 'answer' && '' != trim($value)) {
-		return true;
+	$errors = array();
+	if ($key == 'answer' && '' == trim($value)) {
+		$errors[] = 'Answer is empty.';
 	}
-	return false;
+	return $errors;
 }
 
-function _isValidTrueOrFalseValue($value, $key)
+function _validateTrueOrFalseValue($value, $key)
 {
-	if ($key == 'answer' && ctype_digit("$value") && ($value == 1 || $value == 0)) {
-		return true;
+	$errors = array();
+	if ($key == 'answer' && !filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+		$errors[] = 'Invalid answer.';
 	}
-	return false;
+	return $errors;
 }
 
-function _getValidateQuestionErrorMessage($key, $value)
+function _processQuestionCategoryData(&$value, $key = null) 
 {
-	$message = 'Invalid ';
-	if ($key == 'question_id') {
-		$message .= 'question id';
-	} elseif ($key == 'category') {
-		$message .= 'question category';
-	} elseif ($key == 'type') {
-		$message .= 'question type';
-	} elseif ($key == 'question') {
-		$message .= 'question';
-	} elseif ($key == 'answer') {
-		$message .= 'answer';
-	} else {
-		return 'Invalid data for key: '.$key;
-	}
-	return $message .= ": '$value'"; 
+	$function = function(&$value, $key) {_processQuestionCategoryValue($value, $key);};
+	processData($function, $value, $key);
 }
 
-function _sanitizeQuestionCategoryData($rawData, $key = null) 
-{
-	if (is_array($rawData)) {
-		$sanitizedData = array();
-		foreach ($rawData as $key => $value) {
-			$sanitizedData[$key] = _sanitizeQuestionCategoryValue($value, $key);
-		}
-		return $sanitizedData;
-	} elseif (is_string($key)) {
-		return _sanitizeQuestionCategoryValue($rawData, $key);
-	}
-}
-
-function _sanitizeQuestionCategoryValue($value, $key)
-{
-	if ($key == 'category_id' || $key == 'parent_category') {
-		return intval($value);
+function _processQuestionCategoryValue(&$value, $key) {
+	if ($key == 'category_id' ||
+		$key == 'parent_category') {
+		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
 	} elseif ($key == 'name') {
-		return trim($value);
+		$value = trim($value);
 	}
 }
 
-function _sanitizeQuestionData($rawData, $key = null, $type = null)
+function _processQuestionData(&$data, $key = null, $type = null)
 {
-	if (is_array($rawData) && $key == null) {
-		if (isset($rawData['type'])) {
-			$type = _sanitizeQuestionValue($rawData['type'], 'type');
-		}
-		$sanitized = array();
-		foreach ($rawData as $key => $value) {
-			$sanitized[$key] = _sanitizeQuestionValue($value, $key, $type);
-		}
-		return $sanitized;
-	} else if (is_string($key)) {
-		return _sanitizeQuestionValue($rawData, $key, $type); 
+	if (is_array($data) && isset($data['type'])) {
+		$type = $data['type'];
 	}
-}
-
-function _sanitizeQuestionValue($value, $key, $type = null)
-{
-	switch ($key) {
-		case 'question_id':
-			//cascade intentional
-		case 'category':
-			//cascade intentional
-		case 'type':
-			return intval($value);
-		case 'answer':
-			if ($type == TRUE_OR_FALSE_QUESTION) {
-				return (bool) $value;
-			} else {
-				return $value;
-			}
-			break;
-		case 'question':
-			return trim($value);
-		default:
-			//by default accept input as is. 
-			//escape or filter it later for output
-			return $value;
-			break;
-	}
-}
-
-function _getAnswersToQuestions($category)
-{
-	$category = _sanitizeQuestionData($category, 'category');
-	$joins = array();
-	foreach (_getSecondaryQuestionTables() as $table) {
-		$joins[] = "SELECT q.question_id, t.answer, q.type FROM questions as q INNER JOIN $table AS t "
-			   . "ON q.question_id = t.question_id WHERE q.category = :category AND t.category = :category";
-	}
-	$sql = implode (" UNION ", $joins);
+	$function = function (&$data, $key) use ($type) {
+		_processQuestionValue($data, $key, $type);
+	};
 	
-	$answers = queryDatabase($sql, array(':category' => $category), 'question_id');
-	return $answers;
+	processData($function, $data, $key);
+}
+
+function _processQuestionValue(&$value, $key, $type = null)
+{
+	if ($key == 'question_id' || $key == 'category' || $key == 'type') {
+		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
+	} elseif ($key == 'answer') {
+		if ($type == TRUE_OR_FALSE_QUESTION) {
+			$value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+		} elseif ($type == MULTIPLE_CHOICE_QUESTION &&
+				  is_array($value)) {
+			$value = _encodeMultipleChoiceAnswer($value);
+		} elseif ($type == OBJECTIVE_QUESTION) {
+				$value = trim($value);
+		}
+	} elseif ($key == 'choices' && $type == MULTIPLE_CHOICE_QUESTION) {
+		$value = _encodeMultipleChoices($value);
+	}
 }
 
 function _getQuestions($category)
 {
-	$category = _sanitizeQuestionData($category, 'category');
 	$sql = "SELECT * FROM questions WHERE category = :category";
 	$parameters = array(':category' => $category);
 	return queryDatabase($sql, $parameters);

@@ -7,7 +7,7 @@ $categoryData = getQuestionCategoryData($examData['questions_category']);
 $questions = getCategoryQuestions($examData['questions_category']);
 $randomQuestions = (bool) $examData['randomize'];
 ?>
-<div id = "edit-category-panel">
+<div id = "add-exam-panel-step-2">
 	<div class = "panel-title">Add Exam <em style="font-size:70%">(Step 2 of 2)</em></div>
 	<div><em>Set Exam Questions</em></div>
 	<hr/>
@@ -24,8 +24,9 @@ $randomQuestions = (bool) $examData['randomize'];
 	</div>
 	<form method="post" action="admin.php">
 	<input type="hidden" name="action" value="addExam"/> 
-	<input type="hidden" name="step" value="2"/> 
-	<input type="hidden" name="examId" value="<?php echo $examId;?>" />
+	<input type="hidden" name="step" value="2"/>
+	<input type="hidden" name="revision" value="0"/>
+	<input type="hidden" name="exam_id" value="<?php echo $examId;?>" />
 	<ol id="questions-list">
 	<?php
 		$out = array();
