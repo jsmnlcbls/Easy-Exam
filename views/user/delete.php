@@ -3,7 +3,6 @@ include "functions/user.php";
 
 $id = getUrlQuery('id');
 $data = getUserData($id);
-print_r($data);
 if (!empty($data)) {
 ?>
 <div id = "delete-user-panel">
