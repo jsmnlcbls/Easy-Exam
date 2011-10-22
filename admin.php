@@ -5,6 +5,7 @@ allowOnlyIfInstalled();
 
 initialize();
 allowLoggedInUserOnly();
+allowOnlyUserRoles(array(EXAMINER_ROLE, ADMINISTRATOR_ROLE));
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
@@ -113,12 +114,20 @@ function _editUserAction($data)
 	if (getLoggedInUser('role') == EXAMINER_ROLE) {
 		$data['role'] = EXAMINEE_ROLE;
 	}
+	
+	if (!isAllowedByOwnership(getUserData($data['id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return updateUser($data);
 }
 
 function _editUserGroupAction($data)
 {
 	include "functions/user.php";
+	
+	if (!isAllowedByOwnership(getUserGroupData($data['group_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return updateUserGroup($data);
 }
 
@@ -143,13 +152,20 @@ function _deleteExamAction($data)
 function _deleteUserAction($data)
 {
 	include "functions/user.php";
-	return deleteUser($data['id']);
+	
+	if (!isAllowedByOwnership(getUserData($data['id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
+	return deleteUser($data);
 }
 
 function _deleteUserGroupAction($data)
 {
 	include "functions/user.php";
-	return deleteUserGroup($data['group_id']);
+	if (!isAllowedByOwnership(getUserGroupData($data['group_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
+	return deleteUserGroup($data);
 }
 
 function _displayResultNotification($result)

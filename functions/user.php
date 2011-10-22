@@ -1,8 +1,4 @@
 <?php
-const ADMINISTRATOR_ROLE = 0;
-const EXAMINEE_ROLE = 1;
-const EXAMINER_ROLE = 2;
-
 const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
 const ACCOUNT_GROUP_TABLE = 'account_group';
@@ -167,8 +163,9 @@ function updateAdminCredentials($name, $password)
 	return updateTable(ACCOUNTS_TABLE, $data, "id = 0");
 }
 
-function deleteUser($id)
+function deleteUser($inputData)
 {
+	$id = $inputData['id'];
 	$result = validateAccountsData($id, 'id');
 	if (isErrorMessage($result)) {
 		return $result;
@@ -177,8 +174,9 @@ function deleteUser($id)
 	return deleteFromTable(ACCOUNTS_TABLE, 'id=:id', array(':id' => $id));
 }
 
-function deleteUserGroup($id)
+function deleteUserGroup($inputData)
 {
+	$id = $inputData['group_id'];
 	$result = validateAccountGroupData($id, 'group_id');
 	if (isErrorMessage($result)) {
 		return $result;
