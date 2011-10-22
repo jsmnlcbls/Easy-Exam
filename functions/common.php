@@ -280,6 +280,32 @@ function deleteFromTable($tableName, $whereCondition, $whereParameterValues = nu
 	return executeDatabase($sql, $whereParameterValues);
 }
 
+function selectFromTable($table, $columns, $clauses, $index = null)
+{
+	$table = _escapeSqlIdentifier($table);
+	
+	if (is_array($columns)) {
+		$columns = implode(', ', _escapeSqlIdentifier($columns));
+	}
+	
+	$where = '';
+	if (isset($clauses['WHERE']['condition'])) {
+		$where = 'WHERE ' . $clauses['WHERE']['condition'];
+	}
+	$parameters = null;
+	if (isset($clauses['WHERE']['parameters'])) {
+		$parameters = $clauses['WHERE']['parameters'];
+	}
+	
+	$orderBy = '';
+	if (isset($clauses['ORDER BY'])) {
+		$orderBy = 'ORDER BY ' . $clauses['ORDER BY'];
+	}
+	
+	$sql = "SELECT {$columns} FROM {$table} {$where} {$orderBy}";
+	return queryDatabase($sql, $parameters, $index);
+}
+
 /**
  * Rollbacks the current database transaction
  * @return boolean
