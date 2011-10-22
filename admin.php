@@ -52,6 +52,9 @@ function _addUserAction($data)
 {
 	include "functions/user.php";
 	$data['owner'] = getLoggedInUser('id');
+	if (getLoggedInUser('role') == EXAMINER_ROLE) {
+		$data['role'] = EXAMINEE_ROLE;
+	}
 	return addUser($data);
 }
 
@@ -107,6 +110,9 @@ function _editExamAction($data)
 function _editUserAction($data)
 {
 	include "functions/user.php";
+	if (getLoggedInUser('role') == EXAMINER_ROLE) {
+		$data['role'] = EXAMINEE_ROLE;
+	}
 	return updateUser($data);
 }
 

@@ -3,6 +3,7 @@ include "functions/user.php";
 
 $id = getUrlQuery('id');
 $data = getUserData($id);
+$role = getLoggedInUser('role');
 ?>
 <div id = "edit-user-panel">
 	<span class = "panel-title">Edit User</span>
@@ -13,6 +14,12 @@ $data = getUserData($id);
 		echo "<input type = \"hidden\" name = \"id\" value = \"{$data['id']}\">";
 		?>
 		<table>
+			<?php
+			if ($role == ADMINISTRATOR_ROLE) {
+				$owner = getUserData($data['owner'], array('name'));
+				echo "<tr><td>Owner</td><td>{$owner['name']}</td></tr>";
+			}
+			?>
 			<tr>
 				<td>Group</td>
 				<td>
@@ -20,7 +27,7 @@ $data = getUserData($id);
 					foreach ($data['group'] as $groupId) {
 						$button = '';
 						$attributes = array('name' => 'group[]', 'selected' => $groupId);
-						echo userGroupSelectHTML($attributes);
+						echo userGroupSelectHTML($attributes, $data['owner']);
 						echo "\n";
 						echo $button;
 					}
@@ -35,21 +42,23 @@ $data = getUserData($id);
 				<td><input type = "text" name = "name" value = "<?php echo escapeOutput($data['name']);?>"/></td>
 			</tr>
 			<?php 
-			$role = getLoggedInUser('role');
-			if (isset($role[ADMINISTRATOR_ROLE])) {
+			
+			if ($role == ADMINISTRATOR_ROLE) {
 				echo '<tr>';
 				echo '<td>Role</td>';
 				echo '<td>';		
 				$roles = getAllRoles();
 				foreach ($roles as $id => $name) {
-						echo "<input type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
-						echo escapeOutput($name);
-						echo "<br/>";
+					if ($id == $data['role']) {
+						echo "<input checked=\"checked\" type = \"radio\" name = \"role\" value = \"{$id}\">";
+					} else {
+						echo "<input type = \"radio\" name = \"role\" value = \"{$id}\">";
+					}
+					echo escapeOutput($name);
+					echo "<br/>";
 				}
 				echo '</td>';
 				echo '</tr>';
-			} elseif(isset($role[EXAMINER_ROLE])) {
-				echo '<input type="hidden" name="role[]" value="' . EXAMINEE_ROLE . '"/>';
 			}
 			?>
 			<tr>

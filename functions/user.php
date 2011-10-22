@@ -28,13 +28,14 @@ function getAllUsers($owner = 0)
 	if (!empty($owner)) {
 		$clause['WHERE']['condition'] = 'owner=:owner';
 		$clause['WHERE']['parameters'] = array(':owner' => $owner);
+	} else {
+		$clause['WHERE']['condition'] = 'id<>0';
 	}
 	
 	$data = selectFromTable(ACCOUNTS_TABLE, $columns, $clause);
 	if (!empty($data)) {
 		foreach ($data as $key => $value) {
 			$data[$key]['group'] = _decodeGroup($value['group']);
-			$data[$key]['role'] = _decodeRole($value['role']);
 		}
 	}
 	return $data;
@@ -79,21 +80,21 @@ function addUserGroup($inputData)
 	return insertIntoTable(ACCOUNT_GROUP_TABLE, $data);
 }
 
-function getUserData($id)
+function getUserData($id, $columns = '*')
 {
 	$result = validateAccountsData($id, 'id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$table = ACCOUNTS_TABLE;
-	$sql = "SELECT * FROM {$table} WHERE id = :id";
-	$parameters = array(':id' => $id);
-	$result = queryDatabase($sql, $parameters);
+	$clause = array('WHERE' => array('condition' => 'id=:id',
+									 'parameters' => array(':id' => $id)));
+	$result = selectFromTable(ACCOUNTS_TABLE, $columns, $clause);
 	if (!empty($result) && is_array($result)) {
 		$data = array_shift($result);
-		$data['group'] = _decodeGroup($data['group']);
-		$data['role'] = _decodeRole($data['role']);
+		if (isset($data['group'])) {
+			$data['group'] = _decodeGroup($data['group']);
+		}
 		return $data;
 	}
 	return false;
@@ -243,16 +244,8 @@ function _validateAccountsValue($value, $key = null)
 	$errors = array();
 	if ($key == 'id' && !ctype_digit("$value")) {
 		$errors[] = 'Invalid account id.';
-	} elseif ($key == 'role') {
-		if (is_array($value)) {
-			foreach ($value as $role) {
-				if (!_isValidAccountRole($role)) {
-					$errors[] = 'Invalid role id.';
-				}
-			}
-		} else {
-			$errors[] = 'Invalid role data.';
-		}
+	} elseif ($key == 'role' && !_isValidAccountRole($value)) {
+		$errors[] = 'Invalid role id.';
 	} elseif ($key == 'name' && "" == trim($value)) {
 		$errors[] = 'Account name is empty.';
 	} elseif ($key == 'password') {
@@ -277,7 +270,7 @@ function _validateAccountsValue($value, $key = null)
 
 function _isValidAccountRole($value) 
 {
-	if (ctype_digit("$value") && $value < 4 && $value > 0) {
+	if ($value == EXAMINEE_ROLE || $value == EXAMINER_ROLE) {
 		return true;
 	}
 	return false;
@@ -317,13 +310,8 @@ function _processAccountsData(&$data, $key = null)
 
 function _processAccountsValue(&$value, $key = null)
 {
-	if ($key == 'id' || $key == 'owner') {
+	if ($key == 'id' || $key == 'owner' || $key == 'role') {
 		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
-	} elseif ($key == 'role' && is_array($value)) {
-		foreach ($value as $key => $item) {
-			$value[$key] = filter_var($item, FILTER_SANITIZE_NUMBER_INT);
-		}
-		$value = _encodeRole($value);
 	} elseif ($key == 'group' && is_array($value)) {
 		foreach ($value as $key => $item) {
 			$value[$key] = filter_var($item, FILTER_SANITIZE_NUMBER_INT);
@@ -342,32 +330,6 @@ function _derivePassword($plainText)
 	$salt = substr(md5($rand), 0, 16);
 	$password = _hashPassword($plainText, $salt);
 	return array('hash' => $password, 'salt' => $salt);
-}
-
-function _encodeRole($roleArray)
-{
-	$role = 0;
-	foreach ($roleArray as $value) {
-		$role |= $value;
-	}
-	return $role;
-}
-
-function _decodeRole($encodedRole)
-{
-	$roles = getAllRoles(true);
-	$output = array();
-	
-	if ($encodedRole == ADMINISTRATOR_ROLE) {
-		$output[ADMINISTRATOR_ROLE] = $roles[ADMINISTRATOR_ROLE];
-	} else {
-		foreach ($roles as $id => $name) {
-			if ($encodedRole & $id) {
-				$output[$id] = $name;
-			}
-		}
-	}
-	return $output;
 }
 
 function _encodeGroup($groupArray)

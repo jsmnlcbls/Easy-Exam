@@ -23,20 +23,18 @@ include "functions/user.php";
 			</tr>
 			<?php 
 			$role = getLoggedInUser('role');
-			if (isset($role[ADMINISTRATOR_ROLE])) {
+			if ($role == ADMINISTRATOR_ROLE) {
 				echo '<tr>';
 				echo '<td>Role</td>';
 				echo '<td>';		
 				$roles = getAllRoles();
 				foreach ($roles as $id => $name) {
-						echo "<input type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
+						echo "<input type = \"radio\" name = \"role\" value = \"{$id}\">";
 						echo escapeOutput($name);
 						echo "<br/>";
 				}
 				echo '</td>';
 				echo '</tr>';
-			} elseif(isset($role[EXAMINER_ROLE])) {
-				echo '<input type="hidden" name="role[]" value="' . EXAMINEE_ROLE . '"/>';
 			}
 			?>
 			<tr>
