@@ -13,16 +13,22 @@ CREATE TABLE `accounts` (
   `password` char(64) COLLATE utf8_unicode_ci NOT NULL,
   `salt` char(16) COLLATE utf8_unicode_ci NOT NULL,
   `group` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
+  `owner` int(11) NOT NULL,
+  `other_info` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `role` (`role`)
+  KEY `role` (`role`),
+  KEY `owner` (`owner`),
+  KEY `name` (`name`),
+  KEY `group` (`group`(255))
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `account_group` (
   `group_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
+  `owner` int(11) NOT NULL,
   PRIMARY KEY (`group_id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`name`),
+  KEY `owner` (`owner`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE `exam` (
@@ -47,7 +53,7 @@ CREATE TABLE `exam` (
   PRIMARY KEY (`exam_id`),
   UNIQUE KEY `name` (`name`),
   KEY `questions_category` (`questions_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `exam_archives` (
   `exam_id` int(11) NOT NULL,
@@ -87,7 +93,7 @@ CREATE TABLE `questions` (
   PRIMARY KEY (`question_id`),
   KEY `category` (`category`),
   KEY `type` (`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_category` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -95,7 +101,7 @@ CREATE TABLE `question_category` (
   `parent_category` int(11) NOT NULL,
   PRIMARY KEY (`category_id`),
   KEY `parent_category` (`parent_category`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_type` (
   `id` tinyint(4) NOT NULL AUTO_INCREMENT,
@@ -118,6 +124,12 @@ CREATE TABLE `true_or_false` (
   KEY `category` (`category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+
+ALTER TABLE `accounts`
+  ADD CONSTRAINT `accounts_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `accounts` (`id`) ON UPDATE CASCADE;
+
+ALTER TABLE `account_group`
+  ADD CONSTRAINT `account_group_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `accounts` (`id`) ON UPDATE CASCADE;
 
 ALTER TABLE `exam`
   ADD CONSTRAINT `exam_ibfk_1` FOREIGN KEY (`questions_category`) REFERENCES `question_category` (`category_id`) ON UPDATE CASCADE;

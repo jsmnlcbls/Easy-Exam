@@ -20,23 +20,36 @@ function getAllRoles($includeAdministrator = false)
 	return $data;
 }
 
-function getAllUsers()
+function getAllUsers($owner = 0)
 {
-	$table = ACCOUNTS_TABLE;
-	$sql = "SELECT id, name, role FROM {$table} ORDER BY name ASC";
-	return queryDatabase($sql);
+	$columns = array('id', 'name', 'group', 'role');
+	$clause = array();
+	$clause['ORDER BY'] = 'name';
+	if (!empty($owner)) {
+		$clause['WHERE']['condition'] = 'owner=:owner';
+		$clause['WHERE']['parameters'] = array(':owner' => $owner);
+	}
+	
+	$data = selectFromTable(ACCOUNTS_TABLE, $columns, $clause);
+	if (!empty($data)) {
+		foreach ($data as $key => $value) {
+			$data[$key]['group'] = _decodeGroup($value['group']);
+			$data[$key]['role'] = _decodeRole($value['role']);
+		}
+	}
+	return $data;
 }
 
-function getAllUserGroups()
+function getAllUserGroups($owner = 0)
 {
-	static $cache = null;
-	
-	if (null === $cache) {
-		$table = ACCOUNT_GROUP_TABLE;
+	$table = ACCOUNT_GROUP_TABLE;
+	if (empty($owner)) {
 		$sql = "SELECT group_id, name FROM {$table} ORDER BY name ASC";
-		$cache = queryDatabase($sql, null, 'group_id');
+		return queryDatabase($sql, null, 'group_id');
+	} else {
+		$sql = "SELECT group_id, name FROM {$table} WHERE owner=:owner ORDER BY name ASC";
+		return queryDatabase($sql, array(':owner' => $owner), 'group_id');
 	}
-	return $cache;
 }
 
 function addUser($inputData)
@@ -94,7 +107,7 @@ function getUserGroupData($id)
 	}
 
 	$table = ACCOUNT_GROUP_TABLE;
-	$sql = "SELECT group_id, name FROM $table WHERE group_id = :id";
+	$sql = "SELECT * FROM $table WHERE group_id = :id";
 	$result = queryDatabase($sql, array(':id' => $id));
 	if (is_array($result)) {
 		return array_shift($result);
@@ -196,16 +209,16 @@ function validateAccountGroupData($value, $key = null)
 
 function _getAccountsTableColumns($includePrimaryKeys = false)
 {	
+	$columns = array('role', 'name', 'password', 'group', 'owner', 'other_info');
 	if ($includePrimaryKeys) {
-		return array('id', 'role', 'name', 'password', 'group');
-	} else {
-		return array('role', 'name', 'password', 'group');
+		array_unshift($columns, 'id');
 	}
+	return $columns;
 }
 
 function _getAccountsGroupTableColumns($includePrimaryKeys = false)
 {
-	$columns = array('name');
+	$columns = array('name', 'owner');
 	if ($includePrimaryKeys) {
 		array_unshift($columns, 'group_id');
 	}
@@ -219,6 +232,8 @@ function _validateAccountGroupValue($value, $key)
 		$errors[] = 'Invalid account group.';
 	} elseif ($key == 'name' && '' == trim($value)) {
 		$errors[] = 'Invalid account group name.';
+	} elseif ($key == 'owner' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid owner id.';
 	}
 	return $errors;
 }
@@ -252,6 +267,10 @@ function _validateAccountsValue($value, $key = null)
 		} else {
 			$errors[] = 'Invalid account group data.';
 		}
+	} elseif ($key == 'owner' && !ctype_digit("$value")) {
+		$errors[] = 'Invalid owner id';
+	} elseif ($key == 'other_info') {
+		//no validation
 	}
 	return $errors;
 }
@@ -298,7 +317,7 @@ function _processAccountsData(&$data, $key = null)
 
 function _processAccountsValue(&$value, $key = null)
 {
-	if ($key == 'id') {
+	if ($key == 'id' || $key == 'owner') {
 		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
 	} elseif ($key == 'role' && is_array($value)) {
 		foreach ($value as $key => $item) {
@@ -310,7 +329,7 @@ function _processAccountsValue(&$value, $key = null)
 			$value[$key] = filter_var($item, FILTER_SANITIZE_NUMBER_INT);
 		}
 		$value = _encodeGroup($value);
-	} elseif ($key == 'name') {
+	} elseif ($key == 'name' || $key == 'other_info') {
 		$value = trim($value);
 	} elseif ($key == 'password') {
 		//no processing

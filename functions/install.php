@@ -65,7 +65,8 @@ function _installInitialData()
 	
 	$result[] = beginTransaction();
 	
-	$data = array('id' => 0, 'role' => 0, 'name' => 'Admin', 'password' => '', 'salt' => '');
+	$data = array('id' => 0, 'role' => 0, 'name' => 'Admin', 'password' => '', 
+				  'salt' => '', 'owner' => '0', 'other_info' => 'Root account.');
 	$result[] = insertIntoTable('accounts', $data);
 	
 	$data = array('category_id' => 0, 'name' => '', 'parent_category' => 0);

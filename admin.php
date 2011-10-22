@@ -51,12 +51,14 @@ function _addQuestionAction($data)
 function _addUserAction($data)
 {
 	include "functions/user.php";
+	$data['owner'] = getLoggedInUser('id');
 	return addUser($data);
 }
 
 function _addUserGroupAction($data)
 {
 	include "functions/user.php";
+	$data['owner'] = getLoggedInUser('id');
 	return addUserGroup($data);
 }
 
