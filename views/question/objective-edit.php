@@ -9,12 +9,15 @@
 	<form method = "post" action = "admin.php">
 	<input type = "hidden" name = "type" value = "<?php echo OBJECTIVE_QUESTION; ?>"/>
 	<input type = "hidden" name = "question_id" value = "<?php echo $data['question_id']; ?>"/>
+	<input type="hidden" name="owner" value="<?php echo $data['owner']?>"/>
 	<table id = "questions-table">
 		<tr>
 			<td>Category</td>
 			<td>
-				
-				<?php echo questionCategorySelectHTML(array('selected' => $data['category'])); ?>
+				<?php
+				$owner = getLoggedInUser('id');
+				echo questionCategorySelectHTML(array('selected' => $data['category']), $owner); 
+				?>
 			</td>
 		</tr>
 		<tr>

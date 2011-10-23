@@ -6,7 +6,7 @@
 		<tr>
 			<td>Category</td>
 			<td>
-				<?php echo questionCategorySelectHTML(); ?>
+				<?php echo questionCategorySelectHTML(array(), getLoggedInUser('id')); ?>
 			</td>
 		</tr>
 		<tr>

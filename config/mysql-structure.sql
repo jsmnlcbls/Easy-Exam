@@ -90,18 +90,22 @@ CREATE TABLE `questions` (
   `question` text COLLATE utf8_unicode_ci NOT NULL,
   `category` int(11) NOT NULL,
   `type` tinyint(1) NOT NULL,
+  `owner` int(11) NOT NULL,
   PRIMARY KEY (`question_id`),
   KEY `category` (`category`),
-  KEY `type` (`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  KEY `type` (`type`),
+  KEY `owner` (`owner`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_category` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `parent_category` int(11) NOT NULL,
+  `owner` int(11) NOT NULL,
   PRIMARY KEY (`category_id`),
-  KEY `parent_category` (`parent_category`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  KEY `parent_category` (`parent_category`),
+  KEY `owner` (`owner`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `question_type` (
   `id` tinyint(4) NOT NULL AUTO_INCREMENT,
@@ -143,10 +147,12 @@ ALTER TABLE `objective`
   ADD CONSTRAINT `objective_ibfk_2` FOREIGN KEY (`category`) REFERENCES `question_category` (`category_id`) ON UPDATE CASCADE;
 
 ALTER TABLE `questions`
+  ADD CONSTRAINT `questions_ibfk_3` FOREIGN KEY (`owner`) REFERENCES `accounts` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category`) REFERENCES `question_category` (`category_id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `question_type` (`id`) ON UPDATE CASCADE;
 
 ALTER TABLE `question_category`
+  ADD CONSTRAINT `question_category_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `accounts` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `question_category_ibfk_1` FOREIGN KEY (`parent_category`) REFERENCES `question_category` (`category_id`);
 
 ALTER TABLE `true_or_false`

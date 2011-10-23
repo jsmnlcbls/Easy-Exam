@@ -40,12 +40,14 @@ if ($requestMethod == "GET") {
 function _addQuestionCategoryAction($data)
 {
 	include '/functions/question.php';
+	$data['owner'] = getLoggedInUser('id');
 	return addQuestionCategory($data);
 }
 
 function _addQuestionAction($data)
 {
 	include '/functions/question.php';
+	$data['owner'] = getLoggedInUser('id');
 	return addQuestion($data);
 }
 
@@ -82,13 +84,21 @@ function _addExamAction($data)
 
 function _editQuestionCategoryAction($data)
 {
-	include '/functions/question.php';	
+	include '/functions/question.php';
+	
+	if (!isAllowedByOwnership(getQuestionCategoryData($data['category_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return editQuestionCategory($data); 
 }
 
 function _editQuestionAction($data)
 {
 	include '/functions/question.php';
+	
+	if (!isAllowedByOwnership(getQuestionData($data['question_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return updateQuestion($data);
 }
 
@@ -134,12 +144,20 @@ function _editUserGroupAction($data)
 function _deleteQuestionAction($data)
 {
 	include "functions/question.php";
+	
+	if (!isAllowedByOwnership(getQuestionData($data['question_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return deleteQuestion($data);
 }
 
 function _deleteQuestionCategoryAction($data)
 {
 	include "functions/question.php";
+	
+	if (!isAllowedByOwnership(getQuestionCategoryData($data['category_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return deleteQuestionCategory($data);
 }
 

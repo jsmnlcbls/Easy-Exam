@@ -342,16 +342,35 @@ function rollbackTransaction()
 
 /**
  * Returns all categories for questions.
+ * @param int $owner
  * @param boolean $includeRootCategory
  * @return Array 
  */
-function getAllQuestionCategories($includeRootCategory = false)
+function getAllQuestionCategories($owner = 0, $includeRootCategory = false)
 {
-	$sql = "SELECT * FROM question_category WHERE category_id <> 0 ORDER BY name;";
-	if ($includeRootCategory) {
-		$sql = "SELECT * FROM question_category ORDER BY name";
+	$condition = array();
+	if (!$includeRootCategory) {
+		$condition[] = 'category_id <> 0';
 	}
-	return queryDatabase($sql);
+	$parameters = null;
+	if (!empty($owner) && $includeRootCategory) {
+		$condition[] = 'owner=:owner OR category_id = 0';
+		$parameters = array(':owner' => $owner);
+	} elseif (!empty($owner)) {
+		$condition[] = 'owner=:owner';
+		$parameters = array(':owner' => $owner);
+	}
+	
+	$clause = array();
+	if (!empty($condition)) {
+		$clause['WHERE']['condition'] = implode(' AND ', $condition);
+	}
+	
+	if ($parameters != null) {
+		$clause['WHERE']['parameters'] = $parameters;
+	}
+	
+	return selectFromTable('question_category', '*', $clause);
 }
 
 /**
