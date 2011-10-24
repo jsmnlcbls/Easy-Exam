@@ -73,6 +73,7 @@ function _addExamAction($data)
 	include "functions/exam.php";
 	include "functions/question.php";
 	$step = isset($data['step']) ? $data['step'] : null;
+	$data['owner'] = getLoggedInUser('id');
 	$result = addExam($data);
 	if ($step == 1 && !isErrorMessage($result)) {
 		return function() use ($result) {
@@ -106,6 +107,10 @@ function _editExamAction($data)
 {
 	include "functions/exam.php";
 	include "functions/question.php";
+	
+	if (!isAllowedByOwnership(getExamData($data['exam_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	
 	$id = $data["exam_id"];
 	$step = isset($data['step']) ? $data['step'] : 1;
@@ -164,6 +169,10 @@ function _deleteQuestionCategoryAction($data)
 function _deleteExamAction($data)
 {
 	include "functions/exam.php";
+	
+	if (!isAllowedByOwnership(getExamData($data['exam_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return deleteExam($data);
 }
 

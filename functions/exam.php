@@ -27,18 +27,19 @@ function updateExam($inputData)
 	}
 }
 
-function getExamData($id)
+function getExamData($id, $columns = '*')
 {
 	$result = validateExamData($id, 'exam_id');
 	if (isErrorMessage($result)) {
 		return $result;
 	}
 	
-	$sql = "SELECT * FROM exam WHERE exam_id=:id";
-	$parameters = array(':id' => $id);
-	$result = queryDatabase($sql, $parameters);
-	$data = array_shift($result);
-	if (!empty($data)) {
+	$clause = array('WHERE' => array('condition' => 'exam_id=:id',
+									 'parameters' => array(':id' => $id)));
+	
+	$data = selectFromTable(EXAM_TABLE, $columns, $clause);
+	$data = array_shift($data);
+	if (!empty($data) && $columns == '*') {
 		$data['group'] = decodeArray($data['group']);
 		if ($data['max_take'] != EXAM_UNLIMITED_REPEAT &&
 			$data['max_take'] != EXAM_NO_REPEAT) {
@@ -50,10 +51,17 @@ function getExamData($id)
 	return $data;
 }
 
-function getAllExams()
+function getAllExams($owner = 0)
 {
-	$sql = "SELECT * FROM exam";
-	return queryDatabase($sql);
+	$columns = array('exam_id', 'name');
+	if (empty($owner)) {
+		return selectFromTable(EXAM_TABLE, $columns);
+	}
+	
+	$clause = array();
+	$clause['WHERE'] = array('condition' => 'owner=:owner',
+							'parameters' => array(':owner' => $owner));
+	return selectFromTable(EXAM_TABLE, $columns, $clause);
 }
 
 function getAvailableExams()
@@ -302,7 +310,7 @@ function _getExamTableColumns($includePrimaryKeys = false)
 	$columns = array('name', 'group', 'start_date_time', 'end_date_time', 'time_limit', 
 				 'questions_category', 'default_points', 'passing_score',
 				 'question_display', 'recorded', 'randomize', 'max_take', 
-				 'total_questions', 'revision');
+				 'total_questions', 'revision', 'owner');
 	if ($includePrimaryKeys) {
 		array_unshift($columns, 'exam_id');
 	}

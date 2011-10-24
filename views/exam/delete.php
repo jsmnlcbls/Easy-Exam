@@ -1,4 +1,3 @@
-
 <div id = "select-exam-panel">
 	<span class = "panel-title">Delete An Exam</span>
 	<form method = "post" action = "admin.php" id = "select-exam-form">
@@ -8,13 +7,14 @@
 				<td>Exam Name</td>
 				<td>
 					<select name = "exam_id">
-					<option value = "">None Selected</option>
+					<option value = ""></option>
 					<?php
 						include "functions/exam.php";
-						$exams = getAllExams();
+						$exams = getAllExams(getLoggedInUser('id'));
 						foreach ($exams as $value) {
 							$name = escapeOutput($value['name']);
-							echo "<option value = \"{$value['exam_id']}\">{$name}</option>";
+							$id = $value['exam_id'];
+							echo "<option value = \"{$id}\">{$name}</option>";
 						}
 					?>
 					</select>
