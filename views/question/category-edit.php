@@ -11,7 +11,8 @@ $categoryId = getUrlQuery('category_id', '');
 			$attributes = array('name' => 'category_id', 
 								'selected' => $categoryId,
 								'blankOption' => true);
-			echo questionCategorySelectHTML($attributes); 
+			$owner = getLoggedInUser('id');
+			echo questionCategorySelectHTML($attributes, $owner); 
 			?>
 			<button>Edit</button>
 		</div>

@@ -7,37 +7,46 @@ include "functions/user.php";
 		<table>
 			<tr>
 				<td>Group</td>
-				<td id="user-group-container">
-					<div class="user-group-div">
+				<td>
 					<?php
 					$attributes = array('name' => 'group[]', 'id' => 'initial-user-group');
-					echo userGroupSelectHTML($attributes); 
+					echo userGroupSelectHTML($attributes, getLoggedInUser('id')); 
 					?>
-					<img src ="images/add_group.png" id ="add-more-group-button"></img>
-					</div>
+					<script>
+						$('#initial-user-group').userGroupChoice();
+					</script>
 				</td>
 			</tr>
 			<tr>
 				<td>User Name</td>
 				<td><input type = "text" name = "name" /></td>
 			</tr>
-			<tr>
-				<td>Role</td>
-				<td>
-				<?php
-					$roles = getAllRoles();
-					foreach ($roles as $id => $name) {
-						echo "<input type = \"checkbox\" name = \"role[]\" value = \"{$id}\">";
+			<?php 
+			$role = getLoggedInUser('role');
+			if ($role == ADMINISTRATOR_ROLE) {
+				echo '<tr>';
+				echo '<td>Role</td>';
+				echo '<td>';		
+				$roles = getAllRoles();
+				foreach ($roles as $id => $name) {
+						echo "<input type = \"radio\" name = \"role\" value = \"{$id}\">";
 						echo escapeOutput($name);
 						echo "<br/>";
-					}
-				?>
-				</td>
-			</tr>
+				}
+				echo '</td>';
+				echo '</tr>';
+			}
+			?>
 			<tr>
 				<td>Password</td>
 				<td>
 					<input type = "text" name = "password"/>
+				</td>
+			</tr>
+			<tr>
+				<td>Other Info</td>
+				<td>
+					<textarea name="other_info"></textarea>
 				</td>
 			</tr>
 			<tr>
@@ -48,17 +57,3 @@ include "functions/user.php";
 		<input type = "hidden" name = "action" value = "addUser" />
 	</form>
 </div>
-<script>
-	$(function(){
-		$("#add-more-group-button").click(function(){
-			var select = $('#initial-user-group').clone().removeAttr('id');
-			var container = $('#user-group-container').append('<div class = "user-group-div">');
-			var button = '<img class = "delete-group-button" src = "images/delete_group.png"></img>';
-			container.children().last().append(select).append("\n").append(button);
-		});
-		
-		$(".delete-group-button").live('click', function(){
-			$(this).parent('.user-group-div').remove();
-		});
-	});
-</script>

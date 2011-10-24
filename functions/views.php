@@ -1,9 +1,9 @@
 <?php
 
-function userGroupSelectHTML($attributes = array())
+function userGroupSelectHTML($attributes = array(), $userId = 0)
 {
 	$attributes['name'] = isset($attributes['name']) ? $attributes['name'] : 'group_id';
-	$groups = getAllUserGroups();
+	$groups = getAllUserGroups($userId);
 	$input = array();
 	foreach ($groups as $value) {
 		$input[$value['group_id']] = $value['name'];
@@ -93,12 +93,12 @@ function objectiveQuestionHTML($data)
 	return _questionTemplate($contents);
 }
 
-function questionCategorySelectHTML($attributes = array(), $includeRootCategory = false)
+function questionCategorySelectHTML($attributes = array(), $owner = 0, $includeRootCategory = false)
 {
 	if (!isset($attributes['name'])) {
 		$attributes['name'] = 'category';
 	}
-	$categories = getAllQuestionCategories($includeRootCategory);
+	$categories = getAllQuestionCategories($owner, $includeRootCategory);
 	$input = array();
 	foreach ($categories as $value) {
 		$input[$value['category_id']] = $value['name'];

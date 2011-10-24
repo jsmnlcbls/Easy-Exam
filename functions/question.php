@@ -34,12 +34,12 @@ function getAllQuestionTypes()
 	return queryDatabase($sql);
 }
 
-function getQuestionCategoryData($id)
+function getQuestionCategoryData($id, $columns = '*')
 {
-	$sql = "SELECT * FROM question_category WHERE category_id = :id";
-	$parameters = array(':id' => $id);
-	$result = queryDatabase($sql, $parameters);
-	return array_shift($result);
+	$clause = array('WHERE' => array('condition' => 'category_id=:id',
+									'parameters' => array(':id' => $id)));
+	$data = selectFromTable(QUESTION_CATEGORY_TABLE, $columns, $clause);
+	return array_shift($data);
 }
 
 function getCategoryQuestions($category, $includeSubcategories = true)
@@ -95,6 +95,7 @@ function searchQuestions($data)
 	$category = $data['category'];
 	$type = $data['type'];
 	$question = $data['question'];
+	$owner = isset($data['owner']) ? $data['owner'] : '';
 	
 	$categoryCondition = "";
 	$parameters = array();
@@ -123,6 +124,12 @@ function searchQuestions($data)
 		$parameters[":type"] = $type;
 	}
 	
+	$ownerCondition = '';
+	if ($owner != '') {
+		$ownerCondition = 'owner=:owner';
+		$parameters[':owner'] = $owner;
+	}
+	
 	$sqlCondition = array();
 	if ("" != $categoryCondition) {
 		$sqlCondition[] = $categoryCondition;
@@ -132,6 +139,9 @@ function searchQuestions($data)
 	}
 	if ("" != $typeCondition) {
 		$sqlCondition[] = $typeCondition;
+	}
+	if ("" != $ownerCondition) {
+		$sqlCondition[] = $ownerCondition;
 	}
 	
 	$sqlCondition = implode (" AND ", $sqlCondition);
@@ -262,7 +272,7 @@ function validateQuestionData($value, $key = null, $type = null)
 
 function _getQuestionCategoryTableColumns($includePrimaryKeys = false)
 {
-	$columns = array('name', 'parent_category');
+	$columns = array('name', 'parent_category', 'owner');
 	if ($includePrimaryKeys) {
 		array_unshift($columns, 'category_id');
 	}
@@ -271,7 +281,7 @@ function _getQuestionCategoryTableColumns($includePrimaryKeys = false)
 
 function _getQuestionTableColumns($includePrimaryKeys = false)
 {
-	$columns = array('question', 'category', 'type');
+	$columns = array('question', 'category', 'type', 'owner');
 	if ($includePrimaryKeys) {
 		array_unshift($columns, 'question_id');
 	}
@@ -476,6 +486,8 @@ function _processQuestionValue(&$value, $key, $type = null)
 		}
 	} elseif ($key == 'choices' && $type == MULTIPLE_CHOICE_QUESTION) {
 		$value = _encodeMultipleChoices($value);
+	} elseif ($key == 'randomize' && $type == MULTIPLE_CHOICE_QUESTION) {
+		$value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
 	}
 }
 

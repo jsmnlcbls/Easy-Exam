@@ -4,6 +4,10 @@
 	include "functions/question.php";
 	
 	$data = getUrlQuery(array('category', 'question', 'type'));
+	$userRole = getLoggedInUser('role');
+	if ($userRole != ADMINISTRATOR_ROLE) {
+		$data['owner'] = getLoggedInUser('id');
+	}
 	$result = searchQuestions($data);
 	
 	$countResults = count($result);

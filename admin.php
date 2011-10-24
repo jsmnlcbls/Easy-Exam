@@ -5,6 +5,7 @@ allowOnlyIfInstalled();
 
 initialize();
 allowLoggedInUserOnly();
+allowOnlyUserRoles(array(EXAMINER_ROLE, ADMINISTRATOR_ROLE));
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
@@ -39,24 +40,31 @@ if ($requestMethod == "GET") {
 function _addQuestionCategoryAction($data)
 {
 	include '/functions/question.php';
+	$data['owner'] = getLoggedInUser('id');
 	return addQuestionCategory($data);
 }
 
 function _addQuestionAction($data)
 {
 	include '/functions/question.php';
+	$data['owner'] = getLoggedInUser('id');
 	return addQuestion($data);
 }
 
 function _addUserAction($data)
 {
 	include "functions/user.php";
+	$data['owner'] = getLoggedInUser('id');
+	if (getLoggedInUser('role') == EXAMINER_ROLE) {
+		$data['role'] = EXAMINEE_ROLE;
+	}
 	return addUser($data);
 }
 
 function _addUserGroupAction($data)
 {
 	include "functions/user.php";
+	$data['owner'] = getLoggedInUser('id');
 	return addUserGroup($data);
 }
 
@@ -65,6 +73,7 @@ function _addExamAction($data)
 	include "functions/exam.php";
 	include "functions/question.php";
 	$step = isset($data['step']) ? $data['step'] : null;
+	$data['owner'] = getLoggedInUser('id');
 	$result = addExam($data);
 	if ($step == 1 && !isErrorMessage($result)) {
 		return function() use ($result) {
@@ -76,13 +85,21 @@ function _addExamAction($data)
 
 function _editQuestionCategoryAction($data)
 {
-	include '/functions/question.php';	
+	include '/functions/question.php';
+	
+	if (!isAllowedByOwnership(getQuestionCategoryData($data['category_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return editQuestionCategory($data); 
 }
 
 function _editQuestionAction($data)
 {
 	include '/functions/question.php';
+	
+	if (!isAllowedByOwnership(getQuestionData($data['question_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return updateQuestion($data);
 }
 
@@ -90,6 +107,10 @@ function _editExamAction($data)
 {
 	include "functions/exam.php";
 	include "functions/question.php";
+	
+	if (!isAllowedByOwnership(getExamData($data['exam_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	
 	$id = $data["exam_id"];
 	$step = isset($data['step']) ? $data['step'] : 1;
@@ -105,43 +126,73 @@ function _editExamAction($data)
 function _editUserAction($data)
 {
 	include "functions/user.php";
+	if (getLoggedInUser('role') == EXAMINER_ROLE) {
+		$data['role'] = EXAMINEE_ROLE;
+	}
+	
+	if (!isAllowedByOwnership(getUserData($data['id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return updateUser($data);
 }
 
 function _editUserGroupAction($data)
 {
 	include "functions/user.php";
+	
+	if (!isAllowedByOwnership(getUserGroupData($data['group_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return updateUserGroup($data);
 }
 
 function _deleteQuestionAction($data)
 {
 	include "functions/question.php";
+	
+	if (!isAllowedByOwnership(getQuestionData($data['question_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return deleteQuestion($data);
 }
 
 function _deleteQuestionCategoryAction($data)
 {
 	include "functions/question.php";
+	
+	if (!isAllowedByOwnership(getQuestionCategoryData($data['category_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return deleteQuestionCategory($data);
 }
 
 function _deleteExamAction($data)
 {
 	include "functions/exam.php";
+	
+	if (!isAllowedByOwnership(getExamData($data['exam_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
 	return deleteExam($data);
 }
 
 function _deleteUserAction($data)
 {
 	include "functions/user.php";
-	return deleteUser($data['id']);
+	
+	if (!isAllowedByOwnership(getUserData($data['id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
+	return deleteUser($data);
 }
 
 function _deleteUserGroupAction($data)
 {
 	include "functions/user.php";
-	return deleteUserGroup($data['group_id']);
+	if (!isAllowedByOwnership(getUserGroupData($data['group_id'], 'owner'))) {
+		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
+	return deleteUserGroup($data);
 }
 
 function _displayResultNotification($result)

@@ -11,12 +11,12 @@ if ($requestMethod == "GET") {
 		$result = authenticateUser($_POST['username'], $_POST['password']);
 		if (false !== $result) {
 			include "functions/user.php";
-			$id = intval($result);
-			$user = getArrayValues(getUserData($id), array('id', 'role', 'name'));
-			setLoggedInUser($user['id'], $user['role'], $user['name']);
-			if (isset($user['role'][EXAMINEE_ROLE])) {
+			$id = $result;
+			$user = getUserData($id, array('role', 'name'));
+			setLoggedInUser($id, $user['role'], $user['name']);
+			if ($user['role'] == EXAMINEE_ROLE) {
 				redirect(getSettings('User Page'));
-			} elseif (isset($user['role'][EXAMINER_ROLE]) || isset($user['role'][ADMINISTRATOR_ROLE])) {
+			} elseif ($user['role'] == EXAMINER_ROLE || $user['role'] == ADMINISTRATOR_ROLE) {
 				redirect(getSettings('Admin Page'));
 			}
 		} else {

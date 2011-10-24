@@ -7,7 +7,8 @@ $data = escapeOutput(getUserGroupData($id));
 	<span class = "panel-title">Edit User Group</span>
 	<form method = "post" action = "admin.php">
 		<input type = "hidden" name = "action" value = "editUserGroup" />
-		<input type = "hidden" name = "group_id" value = "<?php echo $data['group_id']; ?>" />	
+		<input type = "hidden" name = "group_id" value = "<?php echo $data['group_id']; ?>" />
+		<input type = "hidden" name = "owner" value = "<?php echo $data['owner']; ?>" />
 		<table>
 			<tr>
 				<td>Name</td>

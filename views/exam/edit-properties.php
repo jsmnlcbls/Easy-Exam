@@ -1,6 +1,7 @@
 <?php
 include "functions/exam.php";
 include "functions/user.php";
+
 $examId = getUrlQuery("examId");
 $data = escapeOutput(getExamData($examId));
 ?>
@@ -12,6 +13,7 @@ $data = escapeOutput(getExamData($examId));
 		<input type="hidden" name="action" value="editExam" />
 		<input type="hidden" name="exam_id" value="<?php echo $data['exam_id']; ?>" />
 		<input type="hidden" name="revision" value="<?php echo $data['revision']; ?>" />
+		<input type="hidden" name="owner" value="<?php echo $data['owner']?>"/>
 		<input type="hidden" name="step" value="1" />
 		<table>
 			<tr>
@@ -22,10 +24,11 @@ $data = escapeOutput(getExamData($examId));
 				<td>Available Only To</td>
 				<td>
 					<?php
+					$owner = getLoggedInUser('id');
 					foreach ($data['group'] as $groupId) {
 						$button = '';
 						$attributes = array('name' => 'group[]', 'selected' => $groupId);
-						echo userGroupSelectHTML($attributes);
+						echo userGroupSelectHTML($attributes, $owner);
 						echo "\n";
 						echo $button;
 					}
@@ -38,10 +41,11 @@ $data = escapeOutput(getExamData($examId));
 			<tr>
 				<td>Get Questions From</td>
 				<td>
-				<?php 
+				<?php
+				$owner = getLoggedInUser('id');
 				$attributes = array('name' => 'questions_category',
 									'selected' => $data['questions_category']);
-				echo questionCategorySelectHTML($attributes);
+				echo questionCategorySelectHTML($attributes, $owner);
 				?>
 				</td>
 			</tr>

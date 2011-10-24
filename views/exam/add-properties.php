@@ -19,7 +19,8 @@ include "functions/user.php";
 				<td>
 					<?php
 					$attributes = array('name' => 'group[]', 'id' => 'initial-user-group');
-					echo userGroupSelectHTML($attributes); 
+					$owner = getLoggedInUser('id');
+					echo userGroupSelectHTML($attributes, $owner); 
 					?>
 					<script>
 						$('#initial-user-group').userGroupChoice();
@@ -31,7 +32,8 @@ include "functions/user.php";
 				<td>
 				<?php 
 				$attributes = array('name' => 'questions_category');
-				echo questionCategorySelectHTML($attributes);
+				$owner = getLoggedInUser('id');
+				echo questionCategorySelectHTML($attributes, $owner);
 				?>
 				</td>
 			</tr>

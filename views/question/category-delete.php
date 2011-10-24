@@ -1,4 +1,3 @@
-
 <div id = "select-category-panel">
 	<span class = "panel-title">Select Category To Delete</span>
 	<form method = "post" action = "admin.php" id = "edit-category-form">
@@ -7,7 +6,10 @@
 			<tr>
 				<td>Category Name</td>
 				<td>
-					<?php echo questionCategorySelectHTML(array('name' => 'category_id')); ?>
+					<?php
+					$owner = getLoggedInUser('id');
+					echo questionCategorySelectHTML(array('name' => 'category_id'), $owner); 
+					?>
 				</td>
 			</tr>
 			<tr>

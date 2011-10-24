@@ -11,7 +11,7 @@ include "functions/question.php";
 				<td>Question Type</td>
 				<td>
 					<select name = "type">
-					<option value = "">None Selected</option>
+					<option value = ""></option>
 					<?php
 					$questionTypes = getAllQuestionTypes();
 					foreach ($questionTypes as $type) {
@@ -24,7 +24,7 @@ include "functions/question.php";
 			<td>In Category</td>
 			<td>
 				<?php
-				echo questionCategorySelectHTML();
+				echo questionCategorySelectHTML(array(), getLoggedInUser('id'));
 				?>
 			</td>
 		</tr>

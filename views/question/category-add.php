@@ -15,7 +15,8 @@
 				$attributes = array('name' => 'parent_category', 
 									'blankOption' => false,
 									'selected' => 0);
-				echo questionCategorySelectHTML($attributes, true);
+				$owner = getLoggedInUser('id');
+				echo questionCategorySelectHTML($attributes, $owner, true);
 				?>
 				</td>
 			</tr>

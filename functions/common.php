@@ -1,11 +1,16 @@
 <?php
 const VALIDATION_ERROR = 1000;
 const DATABASE_ERROR = 2000;
+const AUTHORIZATION_ERROR = 3000;
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 const ESSAY_QUESTION = 2;
 const TRUE_OR_FALSE_QUESTION = 3;
 const OBJECTIVE_QUESTION = 4;
+
+const ADMINISTRATOR_ROLE = 0;
+const EXAMINEE_ROLE = 1;
+const EXAMINER_ROLE = 2;
 
 /**
  * Returns all settings in an associative array or a specific setting if key is
@@ -76,7 +81,27 @@ function authenticateUser($username, $password)
 function allowLoggedInUserOnly()
 {
 	if (isset($_SESSION['user'])) {
-		return true;
+		return;
+	}
+	redirect(getSettings('Login Page'));
+	die();
+}
+
+/**
+ * Issues a redirect to login page and halts PHP execution if the currently 
+ * logged in user does not belong in the specified roles.
+ * @param int|Array $role
+ * @return void 
+ */
+function allowOnlyUserRoles($role)
+{
+	$loggedInRole = getLoggedInUser('role');
+	if (is_array($role)) {
+		if (in_array($loggedInRole, $role)) {
+			return;
+		}
+	} elseif ($loggedInRole == $role) {
+		return;
 	}
 	redirect(getSettings('Login Page'));
 	die();
@@ -280,6 +305,32 @@ function deleteFromTable($tableName, $whereCondition, $whereParameterValues = nu
 	return executeDatabase($sql, $whereParameterValues);
 }
 
+function selectFromTable($table, $columns, $clauses, $index = null)
+{
+	$table = _escapeSqlIdentifier($table);
+	
+	if (is_array($columns)) {
+		$columns = implode(', ', _escapeSqlIdentifier($columns));
+	}
+	
+	$where = '';
+	if (isset($clauses['WHERE']['condition'])) {
+		$where = 'WHERE ' . $clauses['WHERE']['condition'];
+	}
+	$parameters = null;
+	if (isset($clauses['WHERE']['parameters'])) {
+		$parameters = $clauses['WHERE']['parameters'];
+	}
+	
+	$orderBy = '';
+	if (isset($clauses['ORDER BY'])) {
+		$orderBy = 'ORDER BY ' . $clauses['ORDER BY'];
+	}
+	
+	$sql = "SELECT {$columns} FROM {$table} {$where} {$orderBy}";
+	return queryDatabase($sql, $parameters, $index);
+}
+
 /**
  * Rollbacks the current database transaction
  * @return boolean
@@ -291,16 +342,35 @@ function rollbackTransaction()
 
 /**
  * Returns all categories for questions.
+ * @param int $owner
  * @param boolean $includeRootCategory
  * @return Array 
  */
-function getAllQuestionCategories($includeRootCategory = false)
+function getAllQuestionCategories($owner = 0, $includeRootCategory = false)
 {
-	$sql = "SELECT * FROM question_category WHERE category_id <> 0 ORDER BY name;";
-	if ($includeRootCategory) {
-		$sql = "SELECT * FROM question_category ORDER BY name";
+	$condition = array();
+	if (!$includeRootCategory) {
+		$condition[] = 'category_id <> 0';
 	}
-	return queryDatabase($sql);
+	$parameters = null;
+	if (!empty($owner) && $includeRootCategory) {
+		$condition[] = 'owner=:owner OR category_id = 0';
+		$parameters = array(':owner' => $owner);
+	} elseif (!empty($owner)) {
+		$condition[] = 'owner=:owner';
+		$parameters = array(':owner' => $owner);
+	}
+	
+	$clause = array();
+	if (!empty($condition)) {
+		$clause['WHERE']['condition'] = implode(' AND ', $condition);
+	}
+	
+	if ($parameters != null) {
+		$clause['WHERE']['parameters'] = $parameters;
+	}
+	
+	return selectFromTable('question_category', '*', $clause);
 }
 
 /**
@@ -665,6 +735,28 @@ function output($content, $header = array(), $statusCode = 200)
 		echo $content;
 	}
 	flush();
+}
+
+/**
+ * Returns true if the currently logged in user is the same as the specified
+ * owner or if the current user is an administrator. False otherwise.
+ * @param Array $control
+ * @return Boolean
+ */
+function isAllowedByOwnership($control)
+{
+	$loggedInRole = getLoggedInUser('role');
+	if ($loggedInRole == ADMINISTRATOR_ROLE) {
+		return true;
+	}
+	
+	$loggedInUserId = getLoggedInUser('id');
+	$owner = $control['owner'];
+	if ($loggedInUserId == $owner) {
+		return true;
+	}
+	
+	return false;
 }
 
 //------------------------Internal functions-----------------------------------
