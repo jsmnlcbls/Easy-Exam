@@ -544,10 +544,11 @@ function _validateExamQuestionsData($examId, $revision, $data)
 
 function _processExamData(&$data, $key = null)
 {
-	$function = function(&$data, $key) { 
-		if (is_array($data)) {
-			_processScoreIsPercentage($data);
-		}
+	if (is_array($data)) {
+		_processScoreIsPercentage($data);
+	}
+	
+	$function = function(&$data, $key) {	
 		_processExamValue($data, $key); 
 	};
 	processData($function, $data, $key);
