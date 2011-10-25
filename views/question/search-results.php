@@ -24,12 +24,11 @@
 		foreach ($result as $question) {
 			$id = $question['question_id'];
 			$type = $question['type'];
-			$editView = getQuestionEditView($type);
 			echo "<tr><td>{$counter}</td><td>";
 			echo "<form method=\"get\">";
 			echo escapeOutput($question['question']);
 			echo "</td><td>";
-			echo "<a href=\"?view=$editView&question-id=$id&type=$type\">Edit</a> | ";
+			echo "<a href=\"?view=question-edit&question-id=$id&type=$type\">Edit</a> | ";
 			echo "<a href=\"?view=question-delete&question-id=$id&type=$type\">Delete</a>";
 			echo "</td></tr>";
 			echo "</form>";

@@ -1,9 +1,4 @@
-<?php
-include "functions/question.php";
-
-$questionId = getUrlQuery("question-id");
-$data = escapeOutput(getQuestionData($questionId, TRUE_OR_FALSE_QUESTION));
-?>
+<?php if (isset($data)) { ?>
 <div id = "add-question-panel">
 	<span class = "panel-title">Edit True Or False Question</span>
 	<form method = "post" action = "admin.php">
@@ -38,3 +33,4 @@ $data = escapeOutput(getQuestionData($questionId, TRUE_OR_FALSE_QUESTION));
 		</table>
 	</form>
 </div>
+<?php } ?>

@@ -239,19 +239,6 @@ function deleteQuestionCategory($inputData)
 	return deleteFromTable(QUESTION_CATEGORY_TABLE, $condition, $parameters);
 }
 
-function getQuestionEditView($type)
-{
-	if ($type == MULTIPLE_CHOICE_QUESTION) {
-		return "question-multiple-choice-edit";
-	} elseif ($type == ESSAY_QUESTION) {
-		return "question-essay-edit";
-	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-		return "question-true-or-false-edit";
-	} elseif ($type == OBJECTIVE_QUESTION) {
-		return "question-objective-edit";
-	}
-}
-
 function validateQuestionCategoryData($value, $key = null)
 {
 	$validator = function ($value, $key) {
