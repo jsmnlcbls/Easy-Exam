@@ -1,7 +1,5 @@
 <?php
-const ACCOUNTS_TABLE = 'accounts';
 const ROLE_TABLE = 'role';
-const ACCOUNT_GROUP_TABLE = 'account_group';
 
 function getAllRoles($includeAdministrator = false)
 {

@@ -10,13 +10,15 @@ allowOnlyUserRoles(array(EXAMINER_ROLE, ADMINISTRATOR_ROLE));
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
 	include "functions/views.php";
-	$args = array();	
+	$args = array();
 	$view = getUrlQuery('view', '');
+	
 	if ('' != $view) {
 		$mainPanel = renderView($view);
 		$args = array('mainPanel' => $mainPanel);
 	}
 	output(_renderAdminPage($args));
+
 	return;
 } else if ($requestMethod == "POST") {
 	$postData = getPost();
@@ -87,7 +89,7 @@ function _editQuestionCategoryAction($data)
 {
 	include '/functions/question.php';
 	
-	if (!isAllowedByOwnership(getQuestionCategoryData($data['category_id'], 'owner'))) {
+	if (!isAllowedByOwnership(QUESTION_CATEGORY_RESOURCE, $data['category_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return editQuestionCategory($data); 
@@ -97,7 +99,7 @@ function _editQuestionAction($data)
 {
 	include '/functions/question.php';
 	
-	if (!isAllowedByOwnership(getQuestionData($data['question_id'], 'owner'))) {
+	if (!isAllowedByOwnership(QUESTION_RESOURCE, $data['question_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return updateQuestion($data);
@@ -108,7 +110,7 @@ function _editExamAction($data)
 	include "functions/exam.php";
 	include "functions/question.php";
 	
-	if (!isAllowedByOwnership(getExamData($data['exam_id'], 'owner'))) {
+	if (!isAllowedByOwnership(EXAM_RESOURCE, $data['exam_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	
@@ -119,7 +121,7 @@ function _editExamAction($data)
 		return function() use ($id) {
 				redirect('admin.php?view=exam-edit-questions&examId=' . $id);
 			};
-	} 
+	}
 	return $result;
 }
 
@@ -130,7 +132,7 @@ function _editUserAction($data)
 		$data['role'] = EXAMINEE_ROLE;
 	}
 	
-	if (!isAllowedByOwnership(getUserData($data['id'], 'owner'))) {
+	if (!isAllowedByOwnership(ACCOUNT_RESOURCE, $data['id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return updateUser($data);
@@ -140,7 +142,7 @@ function _editUserGroupAction($data)
 {
 	include "functions/user.php";
 	
-	if (!isAllowedByOwnership(getUserGroupData($data['group_id'], 'owner'))) {
+	if (!isAllowedByOwnership(ACCOUNT_GROUP_RESOURCE, $data['group_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return updateUserGroup($data);
@@ -150,7 +152,7 @@ function _deleteQuestionAction($data)
 {
 	include "functions/question.php";
 	
-	if (!isAllowedByOwnership(getQuestionData($data['question_id'], 'owner'))) {
+	if (!isAllowedByOwnership(QUESTION_RESOURCE, $data['question_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return deleteQuestion($data);
@@ -160,7 +162,7 @@ function _deleteQuestionCategoryAction($data)
 {
 	include "functions/question.php";
 	
-	if (!isAllowedByOwnership(getQuestionCategoryData($data['category_id'], 'owner'))) {
+	if (!isAllowedByOwnership(QUESTION_CATEGORY_RESOURCE, $data['category_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return deleteQuestionCategory($data);
@@ -170,7 +172,7 @@ function _deleteExamAction($data)
 {
 	include "functions/exam.php";
 	
-	if (!isAllowedByOwnership(getExamData($data['exam_id'], 'owner'))) {
+	if (!isAllowedByOwnership(EXAM_RESOURCE, $data['exam_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return deleteExam($data);
@@ -180,7 +182,7 @@ function _deleteUserAction($data)
 {
 	include "functions/user.php";
 	
-	if (!isAllowedByOwnership(getUserData($data['id'], 'owner'))) {
+	if (!isAllowedByOwnership(ACCOUNT_RESOURCE, $data['id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return deleteUser($data);
@@ -189,7 +191,7 @@ function _deleteUserAction($data)
 function _deleteUserGroupAction($data)
 {
 	include "functions/user.php";
-	if (!isAllowedByOwnership(getUserGroupData($data['group_id'], 'owner'))) {
+	if (!isAllowedByOwnership(ACCOUNT_GROUP_RESOURCE, $data['group_id'])) {
 		return errorMessage(AUTHORIZATION_ERROR, 'Not allowed');
 	}
 	return deleteUserGroup($data);
@@ -236,6 +238,14 @@ function _isInActionWhitelist($action)
 	
 	if (in_array($action, $list)) {
 		return true;
+	}
+	return false;
+}
+
+function _ownerCheck($query)
+{
+	if (isset($query['exam-id']) && isAllowedByOwnership(getE)) {
+		
 	}
 	return false;
 }

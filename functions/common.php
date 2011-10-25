@@ -12,6 +12,20 @@ const ADMINISTRATOR_ROLE = 0;
 const EXAMINEE_ROLE = 1;
 const EXAMINER_ROLE = 2;
 
+const EXAM_RESOURCE = 'Exam';
+const QUESTION_RESOURCE = 'Question';
+const QUESTION_CATEGORY_RESOURCE = 'Question Category';
+const ACCOUNT_RESOURCE = 'Account';
+const ACCOUNT_GROUP_RESOURCE = 'Account Group';
+
+const EXAM_TABLE = 'exam';
+const EXAM_ARCHIVES_TABLE = 'exam_archives';
+const QUESTIONS_TABLE = 'questions';
+const QUESTION_CATEGORY_TABLE = 'question_category';
+const ACCOUNTS_TABLE = 'accounts';
+const ACCOUNT_GROUP_TABLE = 'account_group';
+
+
 /**
  * Returns all settings in an associative array or a specific setting if key is
  * specified. 
@@ -742,24 +756,62 @@ function output($content, $header = array(), $statusCode = 200)
  * @param Array $control
  * @return Boolean
  */
-function isAllowedByOwnership($control)
+function isAllowedByOwnership($resource, $resourceId)
 {
-	$loggedInRole = getLoggedInUser('role');
-	if ($loggedInRole == ADMINISTRATOR_ROLE) {
+	if (getLoggedInUser('role') == ADMINISTRATOR_ROLE) {
 		return true;
 	}
 	
-	$loggedInUserId = getLoggedInUser('id');
-	$owner = $control['owner'];
-	if ($loggedInUserId == $owner) {
-		return true;
+	$userId = getLoggedInUser('id');
+	
+	$table = null;
+	if ($resource == EXAM_RESOURCE) {
+		$table = EXAM_TABLE;
+	} elseif ($resource == QUESTION_RESOURCE) {
+		$table = QUESTIONS_TABLE;
+	} elseif ($resource == QUESTION_CATEGORY_RESOURCE) {
+		$table = QUESTION_CATEGORY_TABLE;
+	} elseif ($resource == ACCOUNT_RESOURCE) {
+		$table = ACCOUNTS_TABLE;
+	} elseif ($resource == ACCOUNT_GROUP_RESOURCE) {
+		$table = ACCOUNT_GROUP_TABLE;
 	}
 	
+	$owner = _getOwner($table, $resourceId);
+	if ($userId == $owner) {
+		return true;
+	}
 	return false;
 }
 
+
 //------------------------Internal functions-----------------------------------
 
+function _getOwner($table, $id)
+{
+	$primaryColumn = '';
+	if ($table == EXAM_TABLE) {
+		$primaryColumn = 'exam_id';
+	} elseif ($table == QUESTIONS_TABLE) {
+		$primaryColumn = 'question_id';
+	} elseif ($table == QUESTION_CATEGORY_TABLE) {
+		$primaryColumn = 'category_id';
+	} elseif ($table == ACCOUNTS_TABLE) {
+		$primaryColumn = 'id';
+	} elseif ($table == ACCOUNT_GROUP_TABLE) {
+		$primaryColumn = 'group_id';
+	}
+	
+	$clause = array();
+	$clause['WHERE']['condition'] = "$primaryColumn=:id";
+	$clause['WHERE']['parameters'] = array(':id' => $id);
+	$result = selectFromTable($table, 'owner', $clause);
+	if (is_array($result)) {
+		$result = array_shift($result);
+		return $result['owner'];
+	}
+	return null;
+}
 
 function _getViewFile($view)
 {

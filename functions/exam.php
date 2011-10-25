@@ -1,6 +1,4 @@
 <?php
-const EXAM_TABLE = 'exam';
-const EXAM_ARCHIVES_TABLE = 'exam_archives';
 const QUESTION_DISPLAY_ALL_AT_ONCE = 0;
 const QUESTION_DISPLAY_ONE_BY_ONE = 1;
 const EXAM_UNLIMITED_REPEAT = 0;

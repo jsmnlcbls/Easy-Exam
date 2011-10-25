@@ -1,6 +1,4 @@
 <?php
-const QUESTIONS_TABLE = 'questions';
-const QUESTION_CATEGORY_TABLE = 'question_category';
 
 function addQuestionCategory($inputData)
 {
