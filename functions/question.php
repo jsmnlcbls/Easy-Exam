@@ -1,4 +1,5 @@
 <?php
+const QUESTION_TYPE_TABLE = 'question_type';
 
 function addQuestionCategory($inputData)
 {
@@ -28,8 +29,8 @@ function editQuestionCategory($inputData)
 
 function getAllQuestionTypes()
 {
-	$sql = "SELECT id, name FROM question_type ORDER BY id";
-	return queryDatabase($sql);
+	$clause = array('ORDER BY' => 'id');
+	return selectFromTable(QUESTION_TYPE_TABLE, array('id', 'name'), $clause);
 }
 
 function getQuestionCategoryData($id, $columns = '*')
@@ -147,8 +148,10 @@ function searchQuestions($data)
 		return array();
 	}
 	
-	$sql = "SELECT question_id, type, question FROM questions WHERE $sqlCondition";
-	return queryDatabase($sql, $parameters);
+	$clause = array();
+	$clause['WHERE']['condition'] = $sqlCondition;
+	$clause['WHERE']['parameters'] = $parameters;
+	return selectFromTable(QUESTIONS_TABLE, array('question_id', 'type', 'question'), $clause);
 }
 
 function getQuestionData($id, $type = null)
@@ -491,9 +494,10 @@ function _processQuestionValue(&$value, $key, $type = null)
 
 function _getQuestions($category)
 {
-	$sql = "SELECT * FROM questions WHERE category = :category";
-	$parameters = array(':category' => $category);
-	return queryDatabase($sql, $parameters);
+	$clause = array();
+	$clause['WHERE']['condition'] = 'category=:category';
+	$clause['WHERE']['parameters'] = array(':category' => $category);
+	return selectFromTable(QUESTIONS_TABLE, '*', $clause);
 }
 
 function _getSecondaryQuestionTables()
