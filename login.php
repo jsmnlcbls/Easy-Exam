@@ -12,7 +12,7 @@ if ($requestMethod == "GET") {
 		if (false !== $result) {
 			include "functions/user.php";
 			$id = $result;
-			$user = getUserData($id, array('role', 'name', 'group'));
+			$user = getUserData($id, array('id', 'role', 'name', 'group'));
 			setLoggedInUser($user);
 			if ($user['role'] == EXAMINEE_ROLE) {
 				redirect(getSettings('User Page'));
