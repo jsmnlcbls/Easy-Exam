@@ -119,6 +119,11 @@ function allowOnlyIfInstalled()
 	}
 }
 
+/**
+ * Return information about the currently logged in user.
+ * @param String $key
+ * @return Mixed 
+ */
 function getLoggedInUser($key = null)
 {
 	if (null == $key && isset($_SESSION['user'])) {
@@ -305,6 +310,18 @@ function deleteFromTable($tableName, $whereCondition, $whereParameterValues = nu
 	return executeDatabase($sql, $whereParameterValues);
 }
 
+/**
+ * Get rows from a table.
+ * @param String $table the table name
+ * @param String|Array $columns the table columns
+ * @param Array $clauses SQL select clause. Currently supports only WHERE and ORDER BY
+ * Usage:
+ * $clause['WHERE']['condition'] = "The condition";
+ * $clause['WHERE']['parameters'] = array(':name' => $value); //optional
+ * $clause['ORDER BY'] = "column name";
+ * @param String $index
+ * @return Array 
+ */
 function selectFromTable($table, $columns, $clauses, $index = null)
 {
 	$table = _escapeSqlIdentifier($table);
@@ -440,15 +457,6 @@ function renderViewFile($filepath, $arguments = array())
 	return $render;
 }
 
-function getChoicesLetterColumns()
-{
-	$choices = array();
-	foreach (range('A', 'E') as $letter) {
-		$choices[$letter] = "choice{$letter}";
-	}
-	return $choices;
-}
-
 /**
  * Sanitize data so that it is safe for output in HTML
  * @param Array|String $output
@@ -524,32 +532,17 @@ function getArrayValues($inputArray, $keys = null)
 }
 
 /**
- * Validate a given data using supplied validator and error message function.
- * Returns true on success or an error message in failure.
+ * Validate a given data using supplied validator. Returns true on success or an
+ * error message on failure.
  * The validator function should accept a value and key as arguments and return
  * true on success or false on validation failure.
  * The error message function should accept a key and value as arguments and 
  * return a corresponding message for the validation failure on that given key.
- * @param Array $data the data to be validated
  * @param Closure $validatorFunction
- * @param Closure $errorMessageFunction
+ * @param Array $data the data to be validated
+ * @param String $key
  * @return Mixed
  */
-function validateData($data, $validatorFunction, $errorMessageFunction)
-{
-	$errorMessages = array();
-	foreach ($data as $key => $value) {
-		if (!$validatorFunction($value, $key)) {
-			$errorMessages[] = $errorMessageFunction($key, $value);
-		}
-	}
-	if (empty($errorMessages)) {
-		return true;
-	} else {
-		return errorMessage(VALIDATION_ERROR, $errorMessages);
-	}
-}
-
 function validateInputData($validatorFunction, $data, $key = null)
 {
 	$errorMessages = array();
@@ -573,6 +566,12 @@ function validateInputData($validatorFunction, $data, $key = null)
 	return errorMessage(VALIDATION_ERROR, $errorMessages);
 }
 
+/**
+ * Perform some processing on values using a supplied function.
+ * @param Closure $function
+ * @param Array $data
+ * @param String $key 
+ */
 function processData($function, &$data, $key = null)
 {
 	if (is_array($data) && $key == null) {
