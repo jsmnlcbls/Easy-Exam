@@ -503,13 +503,11 @@ function redirect($location)
 
 /**
  * Set some data about the current user.
- * @param int $id
- * @param int $role
- * @param String $name 
+ * @param Array $data 
  */
-function setLoggedInUser($id, $role, $name = '')
+function setLoggedInUser($data)
 {
-	$_SESSION['user'] = array('id' => $id, 'role' => $role, 'name' => $name);
+	$_SESSION['user'] = $data;
 }
 
 /**
