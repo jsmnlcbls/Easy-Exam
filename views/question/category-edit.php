@@ -1,5 +1,5 @@
 <?php
-$categoryId = getUrlQuery('category_id', '');
+$categoryId = getUrlQuery('question-category-id', '');
 ?>
 <div id = "select-category-to-edit-panel">
 	<span class = "panel-title">Edit Question Category</span>
@@ -8,7 +8,7 @@ $categoryId = getUrlQuery('category_id', '');
 		<div>
 			Category Name 
 			<?php
-			$attributes = array('name' => 'category_id', 
+			$attributes = array('name' => 'question-category-id', 
 								'selected' => $categoryId,
 								'blankOption' => true);
 			$owner = getLoggedInUser('id');

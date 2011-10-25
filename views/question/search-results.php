@@ -3,7 +3,7 @@
 	<?php
 	include "functions/question.php";
 	
-	$data = getUrlQuery(array('category', 'question', 'type'));
+	$data = getUrlQuery(array('question-category-id', 'question', 'type'));
 	$userRole = getLoggedInUser('role');
 	if ($userRole != ADMINISTRATOR_ROLE) {
 		$data['owner'] = getLoggedInUser('id');
@@ -29,8 +29,8 @@
 			echo "<form method=\"get\">";
 			echo escapeOutput($question['question']);
 			echo "</td><td>";
-			echo "<a href=\"?view=$editView&questionId=$id&type=$type\">Edit</a> | ";
-			echo "<a href=\"?view=question-delete&questionId=$id&type=$type\">Delete</a>";
+			echo "<a href=\"?view=$editView&question-id=$id&type=$type\">Edit</a> | ";
+			echo "<a href=\"?view=question-delete&question-id=$id&type=$type\">Delete</a>";
 			echo "</td></tr>";
 			echo "</form>";
 			$counter++;

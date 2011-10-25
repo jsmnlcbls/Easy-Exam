@@ -91,7 +91,7 @@ function searchQuestions($data)
 {
 	//no validation intended
 	
-	$category = $data['category'];
+	$category = $data['question-category-id'];
 	$type = $data['type'];
 	$question = $data['question'];
 	$owner = isset($data['owner']) ? $data['owner'] : '';
@@ -139,15 +139,16 @@ function searchQuestions($data)
 	if ("" != $typeCondition) {
 		$sqlCondition[] = $typeCondition;
 	}
-	if ("" != $ownerCondition) {
-		$sqlCondition[] = $ownerCondition;
-	}
 	
-	$sqlCondition = implode (" AND ", $sqlCondition);
-	if ("" == $sqlCondition) {
+	if (empty($sqlCondition)) {
 		return array();
 	}
 	
+	if ("" != $ownerCondition) {
+		$sqlCondition[] = $ownerCondition;
+	}
+	$sqlCondition = implode (" AND ", $sqlCondition);
+
 	$clause = array();
 	$clause['WHERE']['condition'] = $sqlCondition;
 	$clause['WHERE']['parameters'] = $parameters;

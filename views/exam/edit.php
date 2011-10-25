@@ -2,7 +2,7 @@
 	<span class = "panel-title">Select Exam To Modify</span>
 	<form method = "get" action = "admin.php" id = "select-exam-form">
 		<input type="hidden" name="view" value="exam-edit-properties"/>
-		<select name = "examId">
+		<select name = "exam-id">
 			<option value = ""></option>
 			<?php
 				include "functions/exam.php";

@@ -1,6 +1,6 @@
 <?php
 include "functions/user.php";
-$id = getUrlQuery('id');
+$id = getUrlQuery('user-group-id');
 $data = escapeOutput(getUserGroupData($id));
 ?>
 <div id = "edit-user-group-panel">

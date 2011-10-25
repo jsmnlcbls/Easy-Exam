@@ -1,7 +1,7 @@
 <?php
 	include "functions/question.php";
 
-	$questionId = getUrlQuery("questionId");
+	$questionId = getUrlQuery("question-id");
 	$data = escapeOutput(getQuestionData($questionId, MULTIPLE_CHOICE_QUESTION));
 ?>
 <div id = "edit-question-panel">

@@ -12,7 +12,10 @@ if ($requestMethod == "GET") {
 	include "functions/views.php";
 	$args = array();
 	$view = getUrlQuery('view', '');
-	
+	if (!_checkOwnership(getUrlQuery())) {
+		_displayResultNotification(errorMessage(AUTHORIZATION_ERROR, 'Not Allowed.'));
+		return;
+	}
 	if ('' != $view) {
 		$mainPanel = renderView($view);
 		$args = array('mainPanel' => $mainPanel);
@@ -79,7 +82,7 @@ function _addExamAction($data)
 	$result = addExam($data);
 	if ($step == 1 && !isErrorMessage($result)) {
 		return function() use ($result) {
-				redirect('admin.php?view=exam-add-questions&examId=' . $result);
+				redirect('admin.php?view=exam-add-questions&exam-id=' . $result);
 		};
 	}
 	return $result;
@@ -119,7 +122,7 @@ function _editExamAction($data)
 	$result = updateExam($data);
 	if ($step == 1 && !isErrorMessage ($result)) {
 		return function() use ($id) {
-				redirect('admin.php?view=exam-edit-questions&examId=' . $id);
+				redirect('admin.php?view=exam-edit-questions&exam-id=' . $id);
 			};
 	}
 	return $result;
@@ -242,10 +245,27 @@ function _isInActionWhitelist($action)
 	return false;
 }
 
-function _ownerCheck($query)
+function _checkOwnership($query)
 {
-	if (isset($query['exam-id']) && isAllowedByOwnership(getE)) {
-		
+	if (isset($query['exam-id']) && !empty($query['exam-id']) &&
+		!isAllowedByOwnership(EXAM_RESOURCE, $query['exam-id'])) {
+		return false;
 	}
-	return false;
+	if (isset($query['question-category-id']) && !empty($query['question-category-id']) &&
+		!isAllowedByOwnership(QUESTION_CATEGORY_RESOURCE, $query['question-category-id'])) {
+		return false;
+	}
+	if (isset($query['question-id']) && !empty($query['question-id']) &&
+		!isAllowedByOwnership(QUESTION_RESOURCE, $query['question-id'])) {
+		return false;
+	}
+	if (isset($query['id']) && !empty($query['id']) &&
+		!isAllowedByOwnership(ACCOUNT_RESOURCE, $query['id'])) {
+		return false;
+	}
+	if (isset($query['user-group-id']) && !empty($query['user-group-id']) &&
+		!isAllowedByOwnership(ACCOUNT_GROUP_RESOURCE, $query['user-group-id'])) {
+		return false;
+	}
+	return true;
 }

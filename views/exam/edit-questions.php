@@ -1,7 +1,7 @@
 <?php
 include "functions/exam.php";
 include "functions/question.php";
-$examId = getUrlQuery("examId");
+$examId = getUrlQuery("exam-id");
 $examData = getExamData($examId);
 $randomQuestions = (bool) $examData['randomize'];
 $categoryData = getQuestionCategoryData($examData['questions_category']);

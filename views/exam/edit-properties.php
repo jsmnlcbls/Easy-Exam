@@ -2,7 +2,7 @@
 include "functions/exam.php";
 include "functions/user.php";
 
-$examId = getUrlQuery("examId");
+$examId = getUrlQuery("exam-id");
 $data = escapeOutput(getExamData($examId));
 ?>
 <div id = "add-exam-panel">
