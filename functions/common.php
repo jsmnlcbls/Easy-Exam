@@ -282,8 +282,8 @@ function commitTransaction()
  */
 function insertIntoTable($tableName, $columnValues)
 {
-	$tableName = _escapeSqlIdentifier($tableName);
-	$columns = _escapeSqlIdentifier(array_keys($columnValues));
+	$tableName = escapeSqlIdentifier($tableName);
+	$columns = escapeSqlIdentifier(array_keys($columnValues));
 	$columns = implode(", ", $columns);
 	
 	$parameters = _createParameterValues($columnValues);
@@ -302,7 +302,7 @@ function insertIntoTable($tableName, $columnValues)
  */
 function updateTable($tableName, $columnValues, $condition, $conditionParameters = array())
 {
-	$tableName = _escapeSqlIdentifier($tableName);
+	$tableName = escapeSqlIdentifier($tableName);
 	
 	$setString = _createUpdateSqlSetString(array_keys($columnValues));
 	$parameters = array_merge(_createParameterValues($columnValues), $conditionParameters);
@@ -319,7 +319,7 @@ function updateTable($tableName, $columnValues, $condition, $conditionParameters
  */
 function deleteFromTable($tableName, $whereCondition, $whereParameterValues = null)
 {
-	$tableName = _escapeSqlIdentifier($tableName);
+	$tableName = escapeSqlIdentifier($tableName);
 	$sql = "DELETE FROM {$tableName} WHERE $whereCondition";
 	return executeDatabase($sql, $whereParameterValues);
 }
@@ -338,10 +338,10 @@ function deleteFromTable($tableName, $whereCondition, $whereParameterValues = nu
  */
 function selectFromTable($table, $columns, $clauses, $index = null)
 {
-	$table = _escapeSqlIdentifier($table);
+	$table = escapeSqlIdentifier($table);
 	
 	if (is_array($columns)) {
-		$columns = implode(', ', _escapeSqlIdentifier($columns));
+		$columns = implode(', ', escapeSqlIdentifier($columns));
 	}
 	
 	$where = '';
@@ -782,6 +782,14 @@ function isAllowedByOwnership($resource, $resourceId)
 	return false;
 }
 
+function escapeSqlIdentifier($identifier)
+{
+	$dsnPrefix = getSettings('Data Source Name Prefix');
+	if ($dsnPrefix == 'mysql') {
+		return _escapeMysqlIdentifier($identifier);
+	}
+	return $identifier;
+}
 
 //------------------------Internal functions-----------------------------------
 
@@ -905,18 +913,9 @@ function _createUpdateSqlSetString($columns)
 {
 	$output = array();
 	foreach ($columns as $name) {
-		$output[] = _escapeSqlIdentifier($name) . " = :$name";
+		$output[] = escapeSqlIdentifier($name) . " = :$name";
 	}
 	return implode(", ", $output);
-}
-
-function _escapeSqlIdentifier($identifier)
-{
-	$dsnPrefix = getSettings('Data Source Name Prefix');
-	if ($dsnPrefix == 'mysql') {
-		return _escapeMysqlIdentifier($identifier);
-	}
-	return $identifier;
 }
 
 function _escapeMysqlIdentifier($identifier)

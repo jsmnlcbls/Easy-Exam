@@ -6,7 +6,6 @@ allowOnlyIfInstalled();
 initialize();
 allowLoggedInUserOnly();
 allowOnlyUserRoles(array(EXAMINER_ROLE, ADMINISTRATOR_ROLE));
-
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 if ($requestMethod == "GET") {
 	include "functions/views.php";

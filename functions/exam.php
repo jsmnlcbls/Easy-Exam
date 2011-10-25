@@ -62,12 +62,27 @@ function getAllExams($owner = 0)
 	return selectFromTable(EXAM_TABLE, $columns, $clause);
 }
 
-function getAvailableExams()
+function getAvailableExams($userGroup)
 {
+	$condition = array();
+	$condition[] = ':dateTime >= start_date_time AND :dateTime < end_date_time';
+	
 	$localDateTime = date("Y-m-d H:s");
-	$sql = "SELECT * FROM exam WHERE :dateTime >= start_date_time AND :dateTime < end_date_time ORDER BY name";
-	$parameters = array(':dateTime' => $localDateTime);
-	return queryDatabase($sql, $parameters);
+	$parameters = array();
+	$parameters[':dateTime'] = $localDateTime;
+	$count = 0;
+	foreach ($userGroup as $value) {
+		$condition[] = escapeSqlIdentifier('group')  . " LIKE :group{$count}";
+		$parameters[":group{$count}"] = '%'. encodeArray(array($value)) . '%'; 
+		$count++;
+	}
+	
+	$clause = array();
+	$clause['WHERE']['condition'] = implode(' AND ', $condition);
+	$clause['WHERE']['parameters'] = $parameters;
+	$clause['ORDER BY'] = 'name';
+	$data = selectFromTable(EXAM_TABLE, array('exam_id', 'name'), $clause);
+	return $data;
 }
 
 function getExamQuestions($examId, $revision, $filterForExam = false)

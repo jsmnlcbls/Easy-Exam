@@ -11,8 +11,15 @@ if ($requestMethod == "GET") {
 	$viewArgs = array();
 	if (($examId = getUrlQuery("exam", null)) != null) {
 		$examData = getExamData($examId);
-		$view = renderView('user-questions', array('examData' => $examData));
-		$viewArgs = array('innerView' => $view);
+		if (!empty($examData)) {
+			$examGroup = $examData['group'];
+			$userGroup = getLoggedInUser('group');
+			$intersection = array_intersect($examGroup, $userGroup);
+			if (!empty($intersection)) {
+				$view = renderView('user-questions', array('examData' => $examData));
+				$viewArgs = array('innerView' => $view);
+			}
+		}
 	}
 	output(renderView('user-index', $viewArgs));
 } else if ($requestMethod == "POST") {
