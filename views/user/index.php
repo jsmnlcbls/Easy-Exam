@@ -31,6 +31,9 @@
 		<span style="font-size:120%;color:GOLD">My Account</span>
 		<ul>
 			<li>
+				<a href="index.php?view=exam-results">Exam Results</a>
+			</li>
+			<li>
 				<form action = "login.php" method ="post" class="hidden-form">
 					<input type = "hidden" name ="action" value ="logout"/>
 					<button id ="logout-button">Logout</button>

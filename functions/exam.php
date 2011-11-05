@@ -3,6 +3,11 @@ const QUESTION_DISPLAY_ALL_AT_ONCE = 0;
 const QUESTION_DISPLAY_ONE_BY_ONE = 1;
 const EXAM_UNLIMITED_REPEAT = 0;
 const EXAM_NO_REPEAT = 1;
+const STATUS_NEEDS_MANUAL_SCORING = 1;
+const STATUS_DONE_AUTO_SCORING = 2;
+const STATUS_DONE_MANUAL_SCORING = 4;
+
+const RECORDED_EXAM_TABLE = 'recorded_exams';
 
 function addExam($inputData)
 {
@@ -159,13 +164,86 @@ function validateExamData($data, $key = null)
 	return validateInputData($validator, $data, $key);
 }
 
+function startRecordedExam($inputData)
+{
+	$result = _validateRecordedExamValues($inputData, true);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$examId = $inputData['exam_id'];
+	$revision = $inputData['revision'];
+	$userId = $inputData['account_id'];
+
+	_setExamAsTaken($examId, $revision);
+	$takeCount = _getExamTakeCount($examId, $revision, $userId);
+	if (null === $takeCount) {
+		$result = _initializeRecordedExam($examId, $revision, $userId);
+		if (false === $result) {
+			return errorMessage(DATABASE_ERROR, 'Failed to initialize recorded exam.');
+		}
+	} else {
+		$maxTake = getExamData($examId, 'max_take');
+		$maxTake = $maxTake['max_take'];
+		if ($maxTake == EXAM_NO_REPEAT && $takeCount > 0) {
+			return errorMessage(USER_ERROR, 'Exam does not allow retake.');
+		} elseif ($maxTake != EXAM_UNLIMITED_REPEAT && $takeCount > $maxTake) {
+			return errorMessage(USER_ERROR, 'Exam max retake exceeded.');
+		}
+	}
+	return true;
+}
+
+function endRecordedExam($inputData)
+{
+	$result = _validateRecordedExamValues($inputData);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$examId = $inputData['exam_id'];
+	$revision = $inputData['revision'];
+	$userId = $inputData['account_id'];
+	
+	$takeCount = _getExamTakeCount($examId, $revision, $userId);
+	$maxTake = getExamData($examId, 'max_take');
+	$maxTake = $maxTake['max_take'];
+	if ($maxTake == EXAM_NO_REPEAT && $takeCount > 0) {
+		return errorMessage(USER_ERROR, 'Exam does not allow retake.');
+	} elseif ($maxTake != EXAM_UNLIMITED_REPEAT && $takeCount > $maxTake) {
+		return errorMessage(USER_ERROR, 'Exam max retake exceeded.');
+	}
+	
+	$questionAnswers = _getExamQuestionsFromInputData($inputData);
+	$questions = json_encode(array_keys($questionAnswers));
+	$answers = json_encode(array_values($questionAnswers));
+	
+	$result = gradeExamAnswers($questionAnswers, $examId, $revision);
+	$endTime = date("Y-m-d H:s");
+	$columnValues = array('questions' => $questions,
+						  'answers' => $answers,
+						  'correct_items' => $result['correct_items'],
+						  'total_points' => $result['total_points'],
+						  'time_ended' => $endTime,
+						  'take_count' => ($takeCount + 1),
+						  'status' => $result['status']);
+	$condition = 'exam_id=:examId AND revision=:revision AND account_id=:userId';
+	$parameters = array(':examId' => $examId, ':revision' => $revision, ':userId' => $userId);
+	updateTable(RECORDED_EXAM_TABLE, $columnValues, $condition, $parameters);
+}
+
 function gradeExamAnswers($answers, $examId, $revision)
 {
 	$answerKey = getExamAnswerKey($examId, $revision);
-	$correctAnswers = 0;
+	$questions = getExamQuestions($examId, $revision);
+	$correctItems = 0;
 	$totalPoints = 0;
+	$totalAnswers = count($answers);
+	$status = null;
+	$totalItems = 0;
 	foreach ($answers as $id => $answer) {
 		if (!isset($answerKey[$id])) {
+			$status = STATUS_NEEDS_MANUAL_SCORING;
 			continue;
 		}
 		$correct = false;
@@ -183,18 +261,111 @@ function gradeExamAnswers($answers, $examId, $revision)
 			$correct = true;
 		}
 		if ($correct) {
-			$correctAnswers++;
+			$correctItems++;
 			$totalPoints += $answerKey[$id]['points'];
 		}
+		$totalItems++;
 	}	
-	$properties = getExamProperties($examId, $revision);
-	$passingScore = $properties['passing_score'];
-	$isPercentage = $properties['score_is_percentage'];
 	
-	return array('correct_answers' => $correctAnswers, 'total_points' => $totalPoints);
+	if ($totalItems == $totalAnswers) {
+		$status = STATUS_DONE_AUTO_SCORING;
+	}
+	return array('correct_items' => $correctItems,
+				 'total_items' => $totalItems,
+				 'total_points' => $totalPoints,
+				 'status' => $status);
+}
+
+function getRecordedExamResultsByAccount($accountId)
+{
+	$recordedExamTable = RECORDED_EXAM_TABLE;
+	$examArchivesTable = EXAM_ARCHIVES_TABLE;
+	$sql = "SELECT ret.exam_id, ret.revision, ret.correct_items, ret.total_points, "
+		 . "ret.time_started, ret.status, eat.properties FROM {$recordedExamTable} "
+		 . "AS ret INNER JOIN {$examArchivesTable} AS eat ON ret.exam_id=eat.exam_id "
+		 . "AND ret.revision = eat.revision WHERE ret.account_id=:accountId";
+		 
+	return queryDatabase($sql, array(':accountId' => $accountId));
+}
+
+function getRecordedExams($owner)
+{
+	$exams = getAllExams($owner);
+	$condition = array();
+	$examNames = array();
+	foreach ($exams as $value) {
+		$examNames[$value['exam_id']] = $value['name'];
+		$condition[] = "ret.exam_id={$value['exam_id']}";
+	}
+	$condition = implode(' OR ', $condition);
+	
+	$recordedExamTable = RECORDED_EXAM_TABLE;
+	$examArchivesTable = EXAM_ARCHIVES_TABLE;
+	$sql = "SELECT DISTINCT ret.exam_id, ret.revision, eat.properties FROM $recordedExamTable AS ret "
+		 . "INNER JOIN {$examArchivesTable} AS eat ON ret.exam_id=eat.exam_id "
+		 . "AND ret.revision=eat.revision WHERE $condition";
+	
+	$data = queryDatabase($sql);
+	foreach ($data as $key => $value) {
+		$data[$key]['properties'] = json_decode($value['properties'], true);
+		$data[$key]['properties']['group'] = decodeArray($data[$key]['properties']['group']);
+	}
+	return $data;
+}
+
+function getRecordedExamTakersCount($examId, $revision)
+{
+	$table = RECORDED_EXAM_TABLE;
+	$sql = "SELECT COUNT(account_id) AS count FROM {$table} WHERE exam_id=:examId AND revision=:revisionId";
+	$parameters = array(':examId' => $examId, ':revisionId' => $revision);
+	$result = queryDatabase($sql, $parameters);
+	if (is_array($result)) {
+		$result = array_shift($result);
+		return $result['count'];
+	}
+	return $result;
 }
 
 //------------------------------------------------------------------------------
+
+function _getExamTakeCount($examId, $revision, $userId)
+{
+	$clause = array();
+	$clause['WHERE']['condition'] = 'exam_id=:examId AND revision=:revision AND account_id=:userId';
+	$clause['WHERE']['parameters'] = array(':examId' => $examId, 
+										   ':revision' => $revision, 
+										   ':userId' => $userId);
+	
+	$data  = selectFromTable(RECORDED_EXAM_TABLE, 'take_count', $clause);
+	if (!empty($data)) {
+		$data = array_shift($data);
+		if (isset($data['take_count'])) {
+			return $data['take_count'];
+		}
+	}
+	return null;
+}
+
+function _initializeRecordedExam($examId, $revision, $userId)
+{
+	$startTime = date("Y-m-d H:s");
+	$data = array('exam_id' => $examId, 
+				'revision' => $revision, 
+				'account_id' => $userId,
+				'time_started' => $startTime,
+				'correct_items' => 0,
+				'total_points' => 0,
+				'take_count' => 0);
+	return insertIntoTable(RECORDED_EXAM_TABLE, $data);
+}
+
+function _setExamAsTaken($examId, $revision)
+{	
+	$condition = 'exam_id=:exam_id AND revision=:revision';
+	$parameters = array(':exam_id' => $examId, ':revision' => $revision);
+	$columnValues = array('is_taken' => true);
+	return updateTable(EXAM_ARCHIVES_TABLE, $columnValues, $condition, $parameters);
+}
 
 function _addExamProperties($inputData)
 {
@@ -339,6 +510,54 @@ function _getExamQuestionsFromInputData($inputData)
 		}
 	}
 	return $data;
+}
+
+function _validateRecordedExamValues($inputData, $validateAvailability = false)
+{
+	$examId = $inputData['exam_id'];
+	$revision = $inputData['revision'];
+	$userGroup = $inputData['account_group'];
+	
+	$examData = getExamData($examId);
+	if (!is_array($examData) || empty($examData)) {
+		return errorMessage(VALIDATION_ERROR, 'Invalid exam id.');
+	}
+	
+	if ($validateAvailability) {
+		$examDateTime = array('start_date_time' => $examData['start_date_time'],
+							  'end_date_time' => $examData['end_date_time']);
+		$result = _validateExamAvailability($examDateTime);
+		if (isErrorMessage($result)) {
+			return $result;
+		}
+	}
+	
+	if ($examData['revision'] != $revision) {
+		return errorMessage(VALIDATION_ERROR, 'Invalid exam revision.');
+	}
+	
+	$examGroup = $examData['group'];
+	$intersection = (array_intersect($examGroup, $userGroup));
+	if (empty($intersection)) {
+		return errorMessage(VALIDATION_ERROR, 'Invalid group.');
+	}
+	
+	return true;
+}
+
+function _validateExamAvailability($examData)
+{
+	if (isset($examData['exam_id'])) {
+		$examData = getExamData($examData['exam_id']);
+	}
+	
+	$examStart = date_create(implode(' ', $examData['start_date_time']));
+	$examEnd = date_create(implode(' ', $examData['end_date_time']));
+	$localDateTime = date_create(date("Y-m-d H:s"));
+	if ($localDateTime < $examStart || $localDateTime > $examEnd) {
+		return errorMessage(VALIDATION_ERROR, 'Invalid exam time.');
+	}
+	return true;
 }
 
 function _validateExamValue($value, $key)
