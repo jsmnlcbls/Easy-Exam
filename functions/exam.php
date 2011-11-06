@@ -462,6 +462,7 @@ function _updateExamQuestions($inputData)
 	
 	$questionsData = array();
 	$answerKey = array();
+	$totalPoints = 0;
 	foreach ($data as $id => $value) {
 		$question = getQuestionData($id, $value['type']);
 		$question['points'] = $value['points'];
@@ -476,6 +477,7 @@ function _updateExamQuestions($inputData)
 			$question['enabled'] = false;
 		}
 		$questionsData[$id] = $question;
+		$totalPoints += $value['points'];
 	}
 	
 	$questionsData = json_encode($questionsData);
@@ -486,7 +488,11 @@ function _updateExamQuestions($inputData)
 					  'modified' => $modifiedDate);
 	$condition = 'exam_id=:id AND revision=:revisionCount';
 	$parameters = array(':id' => $examId, ':revisionCount' => $revision);
-	return updateTable(EXAM_ARCHIVES_TABLE, $examData, $condition, $parameters);
+	$success = updateTable(EXAM_TABLE, array('total_points' => $totalPoints), $condition, $parameters);
+	if ($success) {
+		return updateTable(EXAM_ARCHIVES_TABLE, $examData, $condition, $parameters);
+	}
+	return false;
 }
 
 function _getExamTableColumns($includePrimaryKeys = false)

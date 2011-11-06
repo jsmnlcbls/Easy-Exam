@@ -36,6 +36,7 @@ CREATE TABLE `exam` (
   `name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `group` varchar(256) COLLATE utf8_unicode_ci NOT NULL,
   `total_questions` tinyint(3) NOT NULL,
+  `total_points` int(11) NOT NULL,
   `start_date_time` datetime NOT NULL,
   `end_date_time` datetime NOT NULL,
   `time_limit` decimal(4,2) NOT NULL,
