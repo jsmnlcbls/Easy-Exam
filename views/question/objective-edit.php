@@ -1,9 +1,4 @@
-<?php
-	include "functions/question.php";
-
-	$questionId = getUrlQuery("questionId");
-	$data = escapeOutput(getQuestionData($questionId, OBJECTIVE_QUESTION));
-?>
+<?php if (isset($data)) { ?>
 <div id = "add-question-panel">
 	<span class = "panel-title">Edit Objective Question</span>
 	<form method = "post" action = "admin.php">
@@ -38,3 +33,4 @@
 	<input type = "hidden" name = "action" value = "editQuestion"/>
 	</form>
 </div>
+<?php } ?>

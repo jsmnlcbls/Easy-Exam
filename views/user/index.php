@@ -11,8 +11,7 @@
 		<span>Welcome <strong>
 		<?php
 		include "functions/user.php";
-		$userData = getUserData(getLoggedInUser('id'));
-		echo $userData['name'];
+		echo getLoggedInUser('name');
 		?>
 		</em></strong>
 	</div>
@@ -20,7 +19,7 @@
 		<span style="font-size:120%;color:GOLD">Available Exams</span>
 		<ul>
 		<?php
-			$exams = getAvailableExams();
+			$exams = getAvailableExams(getLoggedInUser('group'));
 			foreach ($exams as $value) {
 				$name = escapeOutput($value['name']);
 				$id = $value['exam_id'];
@@ -31,6 +30,9 @@
 		<br/>
 		<span style="font-size:120%;color:GOLD">My Account</span>
 		<ul>
+			<li>
+				<a href="index.php?view=exam-results">Exam Results</a>
+			</li>
 			<li>
 				<form action = "login.php" method ="post" class="hidden-form">
 					<input type = "hidden" name ="action" value ="logout"/>

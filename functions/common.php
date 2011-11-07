@@ -2,6 +2,7 @@
 const VALIDATION_ERROR = 1000;
 const DATABASE_ERROR = 2000;
 const AUTHORIZATION_ERROR = 3000;
+const USER_ERROR = 4000;
 
 const MULTIPLE_CHOICE_QUESTION = 1;
 const ESSAY_QUESTION = 2;
@@ -11,6 +12,20 @@ const OBJECTIVE_QUESTION = 4;
 const ADMINISTRATOR_ROLE = 0;
 const EXAMINEE_ROLE = 1;
 const EXAMINER_ROLE = 2;
+
+const EXAM_RESOURCE = 'Exam';
+const QUESTION_RESOURCE = 'Question';
+const QUESTION_CATEGORY_RESOURCE = 'Question Category';
+const ACCOUNT_RESOURCE = 'Account';
+const ACCOUNT_GROUP_RESOURCE = 'Account Group';
+
+const EXAM_TABLE = 'exam';
+const EXAM_ARCHIVES_TABLE = 'exam_archives';
+const QUESTIONS_TABLE = 'questions';
+const QUESTION_CATEGORY_TABLE = 'question_category';
+const ACCOUNTS_TABLE = 'accounts';
+const ACCOUNT_GROUP_TABLE = 'account_group';
+
 
 /**
  * Returns all settings in an associative array or a specific setting if key is
@@ -119,6 +134,11 @@ function allowOnlyIfInstalled()
 	}
 }
 
+/**
+ * Return information about the currently logged in user.
+ * @param String $key
+ * @return Mixed 
+ */
 function getLoggedInUser($key = null)
 {
 	if (null == $key && isset($_SESSION['user'])) {
@@ -263,8 +283,8 @@ function commitTransaction()
  */
 function insertIntoTable($tableName, $columnValues)
 {
-	$tableName = _escapeSqlIdentifier($tableName);
-	$columns = _escapeSqlIdentifier(array_keys($columnValues));
+	$tableName = escapeSqlIdentifier($tableName);
+	$columns = escapeSqlIdentifier(array_keys($columnValues));
 	$columns = implode(", ", $columns);
 	
 	$parameters = _createParameterValues($columnValues);
@@ -283,7 +303,7 @@ function insertIntoTable($tableName, $columnValues)
  */
 function updateTable($tableName, $columnValues, $condition, $conditionParameters = array())
 {
-	$tableName = _escapeSqlIdentifier($tableName);
+	$tableName = escapeSqlIdentifier($tableName);
 	
 	$setString = _createUpdateSqlSetString(array_keys($columnValues));
 	$parameters = array_merge(_createParameterValues($columnValues), $conditionParameters);
@@ -300,17 +320,29 @@ function updateTable($tableName, $columnValues, $condition, $conditionParameters
  */
 function deleteFromTable($tableName, $whereCondition, $whereParameterValues = null)
 {
-	$tableName = _escapeSqlIdentifier($tableName);
+	$tableName = escapeSqlIdentifier($tableName);
 	$sql = "DELETE FROM {$tableName} WHERE $whereCondition";
 	return executeDatabase($sql, $whereParameterValues);
 }
 
+/**
+ * Get rows from a table.
+ * @param String $table the table name
+ * @param String|Array $columns the table columns
+ * @param Array $clauses SQL select clause. Currently supports only WHERE and ORDER BY
+ * Usage:
+ * $clause['WHERE']['condition'] = "The condition";
+ * $clause['WHERE']['parameters'] = array(':name' => $value); //optional
+ * $clause['ORDER BY'] = "column name";
+ * @param String $index
+ * @return Array 
+ */
 function selectFromTable($table, $columns, $clauses, $index = null)
 {
-	$table = _escapeSqlIdentifier($table);
+	$table = escapeSqlIdentifier($table);
 	
 	if (is_array($columns)) {
-		$columns = implode(', ', _escapeSqlIdentifier($columns));
+		$columns = implode(', ', escapeSqlIdentifier($columns));
 	}
 	
 	$where = '';
@@ -440,15 +472,6 @@ function renderViewFile($filepath, $arguments = array())
 	return $render;
 }
 
-function getChoicesLetterColumns()
-{
-	$choices = array();
-	foreach (range('A', 'E') as $letter) {
-		$choices[$letter] = "choice{$letter}";
-	}
-	return $choices;
-}
-
 /**
  * Sanitize data so that it is safe for output in HTML
  * @param Array|String $output
@@ -481,13 +504,11 @@ function redirect($location)
 
 /**
  * Set some data about the current user.
- * @param int $id
- * @param int $role
- * @param String $name 
+ * @param Array $data 
  */
-function setLoggedInUser($id, $role, $name = '')
+function setLoggedInUser($data)
 {
-	$_SESSION['user'] = array('id' => $id, 'role' => $role, 'name' => $name);
+	$_SESSION['user'] = $data;
 }
 
 /**
@@ -524,32 +545,17 @@ function getArrayValues($inputArray, $keys = null)
 }
 
 /**
- * Validate a given data using supplied validator and error message function.
- * Returns true on success or an error message in failure.
+ * Validate a given data using supplied validator. Returns true on success or an
+ * error message on failure.
  * The validator function should accept a value and key as arguments and return
  * true on success or false on validation failure.
  * The error message function should accept a key and value as arguments and 
  * return a corresponding message for the validation failure on that given key.
- * @param Array $data the data to be validated
  * @param Closure $validatorFunction
- * @param Closure $errorMessageFunction
+ * @param Array $data the data to be validated
+ * @param String $key
  * @return Mixed
  */
-function validateData($data, $validatorFunction, $errorMessageFunction)
-{
-	$errorMessages = array();
-	foreach ($data as $key => $value) {
-		if (!$validatorFunction($value, $key)) {
-			$errorMessages[] = $errorMessageFunction($key, $value);
-		}
-	}
-	if (empty($errorMessages)) {
-		return true;
-	} else {
-		return errorMessage(VALIDATION_ERROR, $errorMessages);
-	}
-}
-
 function validateInputData($validatorFunction, $data, $key = null)
 {
 	$errorMessages = array();
@@ -573,6 +579,12 @@ function validateInputData($validatorFunction, $data, $key = null)
 	return errorMessage(VALIDATION_ERROR, $errorMessages);
 }
 
+/**
+ * Perform some processing on values using a supplied function.
+ * @param Closure $function
+ * @param Array $data
+ * @param String $key 
+ */
 function processData($function, &$data, $key = null)
 {
 	if (is_array($data) && $key == null) {
@@ -743,24 +755,70 @@ function output($content, $header = array(), $statusCode = 200)
  * @param Array $control
  * @return Boolean
  */
-function isAllowedByOwnership($control)
+function isAllowedByOwnership($resource, $resourceId)
 {
-	$loggedInRole = getLoggedInUser('role');
-	if ($loggedInRole == ADMINISTRATOR_ROLE) {
+	if (getLoggedInUser('role') == ADMINISTRATOR_ROLE) {
 		return true;
 	}
 	
-	$loggedInUserId = getLoggedInUser('id');
-	$owner = $control['owner'];
-	if ($loggedInUserId == $owner) {
-		return true;
+	$userId = getLoggedInUser('id');
+	
+	$table = null;
+	if ($resource == EXAM_RESOURCE) {
+		$table = EXAM_TABLE;
+	} elseif ($resource == QUESTION_RESOURCE) {
+		$table = QUESTIONS_TABLE;
+	} elseif ($resource == QUESTION_CATEGORY_RESOURCE) {
+		$table = QUESTION_CATEGORY_TABLE;
+	} elseif ($resource == ACCOUNT_RESOURCE) {
+		$table = ACCOUNTS_TABLE;
+	} elseif ($resource == ACCOUNT_GROUP_RESOURCE) {
+		$table = ACCOUNT_GROUP_TABLE;
 	}
 	
+	$owner = _getOwner($table, $resourceId);
+	if ($userId == $owner) {
+		return true;
+	}
 	return false;
+}
+
+function escapeSqlIdentifier($identifier)
+{
+	$dsnPrefix = getSettings('Data Source Name Prefix');
+	if ($dsnPrefix == 'mysql') {
+		return _escapeMysqlIdentifier($identifier);
+	}
+	return $identifier;
 }
 
 //------------------------Internal functions-----------------------------------
 
+function _getOwner($table, $id)
+{
+	$primaryColumn = '';
+	if ($table == EXAM_TABLE) {
+		$primaryColumn = 'exam_id';
+	} elseif ($table == QUESTIONS_TABLE) {
+		$primaryColumn = 'question_id';
+	} elseif ($table == QUESTION_CATEGORY_TABLE) {
+		$primaryColumn = 'category_id';
+	} elseif ($table == ACCOUNTS_TABLE) {
+		$primaryColumn = 'id';
+	} elseif ($table == ACCOUNT_GROUP_TABLE) {
+		$primaryColumn = 'group_id';
+	}
+	
+	$clause = array();
+	$clause['WHERE']['condition'] = "$primaryColumn=:id";
+	$clause['WHERE']['parameters'] = array(':id' => $id);
+	$result = selectFromTable($table, 'owner', $clause);
+	if (is_array($result)) {
+		$result = array_shift($result);
+		return $result['owner'];
+	}
+	return null;
+}
 
 function _getViewFile($view)
 {
@@ -856,18 +914,9 @@ function _createUpdateSqlSetString($columns)
 {
 	$output = array();
 	foreach ($columns as $name) {
-		$output[] = _escapeSqlIdentifier($name) . " = :$name";
+		$output[] = escapeSqlIdentifier($name) . " = :$name";
 	}
 	return implode(", ", $output);
-}
-
-function _escapeSqlIdentifier($identifier)
-{
-	$dsnPrefix = getSettings('Data Source Name Prefix');
-	if ($dsnPrefix == 'mysql') {
-		return _escapeMysqlIdentifier($identifier);
-	}
-	return $identifier;
 }
 
 function _escapeMysqlIdentifier($identifier)

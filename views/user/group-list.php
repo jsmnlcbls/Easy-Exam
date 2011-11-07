@@ -10,8 +10,8 @@
 			$value = escapeOutput($value);
 			$script = $_SERVER['PHP_SELF'];
 			$id = $value['group_id'];
-			$editLink = "<a href = \"$script?view=user-group-edit&id={$id}\">Edit</a>";
-			$deleteLink = "<a href = \"$script?view=user-group-delete&id={$id}\">Delete</a>";
+			$editLink = "<a href = \"$script?view=user-group-edit&user-group-id={$id}\">Edit</a>";
+			$deleteLink = "<a href = \"$script?view=user-group-delete&user-group-id={$id}\">Delete</a>";
 			$out .= "<tr><td>{$value['name']}</td><td>$editLink | $deleteLink</td></tr>";
 		}
 		$out .= "</table>";

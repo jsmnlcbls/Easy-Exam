@@ -1,7 +1,7 @@
 <?php
 include "functions/question.php";
 
-$questionId = getUrlQuery("questionId");
+$questionId = getUrlQuery("question-id");
 $type = getUrlQuery('type');
 $data = escapeOutput(getQuestionData($questionId, $type));
 if (!empty($data)) {

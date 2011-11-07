@@ -24,7 +24,7 @@ include "functions/question.php";
 			<td>In Category</td>
 			<td>
 				<?php
-				echo questionCategorySelectHTML(array(), getLoggedInUser('id'));
+				echo questionCategorySelectHTML(array('name' => 'question-category-id'), getLoggedInUser('id'));
 				?>
 			</td>
 		</tr>

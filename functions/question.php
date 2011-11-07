@@ -1,6 +1,5 @@
 <?php
-const QUESTIONS_TABLE = 'questions';
-const QUESTION_CATEGORY_TABLE = 'question_category';
+const QUESTION_TYPE_TABLE = 'question_type';
 
 function addQuestionCategory($inputData)
 {
@@ -30,8 +29,8 @@ function editQuestionCategory($inputData)
 
 function getAllQuestionTypes()
 {
-	$sql = "SELECT id, name FROM question_type ORDER BY id";
-	return queryDatabase($sql);
+	$clause = array('ORDER BY' => 'id');
+	return selectFromTable(QUESTION_TYPE_TABLE, array('id', 'name'), $clause);
 }
 
 function getQuestionCategoryData($id, $columns = '*')
@@ -92,7 +91,7 @@ function searchQuestions($data)
 {
 	//no validation intended
 	
-	$category = $data['category'];
+	$category = $data['question-category-id'];
 	$type = $data['type'];
 	$question = $data['question'];
 	$owner = isset($data['owner']) ? $data['owner'] : '';
@@ -140,17 +139,20 @@ function searchQuestions($data)
 	if ("" != $typeCondition) {
 		$sqlCondition[] = $typeCondition;
 	}
-	if ("" != $ownerCondition) {
-		$sqlCondition[] = $ownerCondition;
-	}
 	
-	$sqlCondition = implode (" AND ", $sqlCondition);
-	if ("" == $sqlCondition) {
+	if (empty($sqlCondition)) {
 		return array();
 	}
 	
-	$sql = "SELECT question_id, type, question FROM questions WHERE $sqlCondition";
-	return queryDatabase($sql, $parameters);
+	if ("" != $ownerCondition) {
+		$sqlCondition[] = $ownerCondition;
+	}
+	$sqlCondition = implode (" AND ", $sqlCondition);
+
+	$clause = array();
+	$clause['WHERE']['condition'] = $sqlCondition;
+	$clause['WHERE']['parameters'] = $parameters;
+	return selectFromTable(QUESTIONS_TABLE, array('question_id', 'type', 'question'), $clause);
 }
 
 function getQuestionData($id, $type = null)
@@ -235,19 +237,6 @@ function deleteQuestionCategory($inputData)
 	$condition = 'category_id = :id';
 	$parameters = array(':id' => $id);
 	return deleteFromTable(QUESTION_CATEGORY_TABLE, $condition, $parameters);
-}
-
-function getQuestionEditView($type)
-{
-	if ($type == MULTIPLE_CHOICE_QUESTION) {
-		return "question-multiple-choice-edit";
-	} elseif ($type == ESSAY_QUESTION) {
-		return "question-essay-edit";
-	} elseif ($type == TRUE_OR_FALSE_QUESTION) {
-		return "question-true-or-false-edit";
-	} elseif ($type == OBJECTIVE_QUESTION) {
-		return "question-objective-edit";
-	}
 }
 
 function validateQuestionCategoryData($value, $key = null)
@@ -493,9 +482,10 @@ function _processQuestionValue(&$value, $key, $type = null)
 
 function _getQuestions($category)
 {
-	$sql = "SELECT * FROM questions WHERE category = :category";
-	$parameters = array(':category' => $category);
-	return queryDatabase($sql, $parameters);
+	$clause = array();
+	$clause['WHERE']['condition'] = 'category=:category';
+	$clause['WHERE']['parameters'] = array(':category' => $category);
+	return selectFromTable(QUESTIONS_TABLE, '*', $clause);
 }
 
 function _getSecondaryQuestionTables()
