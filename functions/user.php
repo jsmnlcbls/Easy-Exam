@@ -35,6 +35,17 @@ function getAllUsers($owner = 0)
 	return $data;
 }
 
+function getAllUsersUnderGroup($groupId)
+{
+	$groupId = _encodeGroup(array($groupId));
+	$column = escapeSqlIdentifier('group');
+	$clause = array();
+	$clause['WHERE'] = array('condition' => "{$column} LIKE :groupId", 
+							'parameters' => array(':groupId' => $groupId));
+	$accounts = selectFromTable(ACCOUNTS_TABLE, 'id', $clause);
+	return $accounts;
+}
+
 function getAllUserGroups($owner = 0)
 {
 	$table = ACCOUNT_GROUP_TABLE;

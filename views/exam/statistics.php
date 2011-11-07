@@ -26,7 +26,10 @@
 		
 		$group = array();
 		foreach ($value['properties']['group'] as $groupId) {
-			$group[] = $groupList[$groupId]['name'];
+			$href = "?view=exam-group-statistics&user-group-id=$groupId"
+				  . "&exam-id={$value['exam_id']}&revision={$value['revision']}";
+			$link = "<a href=\"$href\">" . $groupList[$groupId]['name'] . '</a>';
+			$group[] = $link;
 		}
 		echo '<tr>';
 		echo '<td>', $name, '</a></td>';

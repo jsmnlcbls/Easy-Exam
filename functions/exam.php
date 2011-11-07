@@ -326,6 +326,67 @@ function getRecordedExamTakersCount($examId, $revision)
 	return $result;
 }
 
+function getRecordedExamGroupStatistics($examId, $revision, $groupId)
+{
+	$accounts = getAllUsersUnderGroup($groupId);
+	$accountParameters = array();
+	$accountCondition = array();
+	foreach ($accounts as $key => $value) {
+		$accountCondition[] = "account_id = :account{$key}";
+		$accountParameters[":account{$key}"] = $value['id'];
+	}
+	$accountCondition = implode(' OR ', $accountCondition);
+	
+	$parameters = array_merge(array(':examId' => $examId, ':revision' => $revision), $accountParameters);
+	$condition = "exam_id=:examId AND revision=:revision AND ({$accountCondition})";
+	$clause = array();
+	$clause['WHERE'] = array('condition' => $condition, 'parameters' => $parameters);
+	$table = RECORDED_EXAM_TABLE;
+	$data = selectFromTable($table, 'total_points', $clause);
+	
+	$examProperties = getExamProperties($examId, $revision);
+	$passingPoints = $examProperties['passing_score'];
+	if ($examProperties['score_is_percentage']) {
+		$passingPoints = $examProperties['total_points'] * ($examProperties['passing_score'] / 100);
+		$passingPoints = round($passingPoints);
+	}
+	
+	$passCount = 0;
+	$failCount = 0;
+	$lowestScore = null;
+	$highestScore = 0;
+	$totalPoints = 0;
+	foreach ($data as $value) {		
+		$currentPoints = $value['total_points'];
+		if (null == $lowestScore) {
+			$lowestScore = $currentPoints;
+		}
+		
+		$totalPoints += $currentPoints;
+		if ($currentPoints >= $passingPoints) {
+			$passCount++;
+		} else {
+			$failCount++;
+		}
+		
+		if ($currentPoints > $highestScore) {
+			$highestScore = $currentPoints;
+		}
+		if ($currentPoints < $lowestScore) {
+			$lowestScore = $currentPoints;
+		}
+	}
+	
+	$statistics = array();
+	$statistics['total_examinees'] = count($data);
+	$statistics['passed_examinees'] = $passCount;
+	$statistics['failed_examinees'] = $failCount;
+	$statistics['passing_percentage'] = round((($passCount / $statistics['total_examinees']) * 100), 2);
+	$statistics['highest_score'] = $highestScore;
+	$statistics['lowest_score'] = $lowestScore;
+	$statistics['average_score'] = round($totalPoints/$statistics['total_examinees'], 2);
+	return $statistics;
+}
 //------------------------------------------------------------------------------
 
 function _getExamTakeCount($examId, $revision, $userId)
