@@ -72,7 +72,7 @@ function getAvailableExams($userGroup)
 	$condition = array();
 	$condition[] = ':dateTime >= start_date_time AND :dateTime < end_date_time';
 	
-	$localDateTime = date("Y-m-d H:s");
+	$localDateTime = date("Y-m-d H:i");
 	$parameters = array();
 	$parameters[':dateTime'] = $localDateTime;
 	$count = 0;
@@ -219,7 +219,7 @@ function endRecordedExam($inputData)
 	$answers = json_encode(array_values($questionAnswers));
 	
 	$result = gradeExamAnswers($questionAnswers, $examId, $revision);
-	$endTime = date("Y-m-d H:s");
+	$endTime = date("Y-m-d H:i");
 	$columnValues = array('questions' => $questions,
 						  'answers' => $answers,
 						  'correct_items' => $result['correct_items'],
@@ -387,6 +387,18 @@ function getRecordedExamGroupStatistics($examId, $revision, $groupId)
 	$statistics['average_score'] = round($totalPoints/$statistics['total_examinees'], 2);
 	return $statistics;
 }
+
+function getRecordedExamAccountStatistics($examId, $revision)
+{
+	$table = RECORDED_EXAM_TABLE;
+	$sql = "SELECT ret.account_id, ret.total_points, ret.time_started, ret.time_ended, "
+		 . "a.name FROM {$table} AS ret "
+		 . "INNER JOIN accounts AS a ON ret.account_id = a.id WHERE ret.exam_id=:examId "
+		 . "AND ret.revision=:revisionId ORDER BY ret.total_points DESC";
+	$parameters = array(':examId' => $examId, ':revisionId' => $revision);
+	return queryDatabase($sql, $parameters);
+}
+
 //------------------------------------------------------------------------------
 
 function _getExamTakeCount($examId, $revision, $userId)
@@ -409,7 +421,7 @@ function _getExamTakeCount($examId, $revision, $userId)
 
 function _initializeRecordedExam($examId, $revision, $userId)
 {
-	$startTime = date("Y-m-d H:s");
+	$startTime = date("Y-m-d H:i");
 	$data = array('exam_id' => $examId, 
 				'revision' => $revision, 
 				'account_id' => $userId,
@@ -620,7 +632,7 @@ function _validateExamAvailability($examData)
 	
 	$examStart = date_create(implode(' ', $examData['start_date_time']));
 	$examEnd = date_create(implode(' ', $examData['end_date_time']));
-	$localDateTime = date_create(date("Y-m-d H:s"));
+	$localDateTime = date_create(date("Y-m-d H:i"));
 	if ($localDateTime < $examStart || $localDateTime > $examEnd) {
 		return errorMessage(VALIDATION_ERROR, 'Invalid exam time.');
 	}

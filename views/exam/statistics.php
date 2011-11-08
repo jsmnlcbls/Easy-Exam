@@ -19,8 +19,8 @@
 	foreach ($queue as $value) {
 		$properties = $value['properties'];
 		$name = $properties['name'];
-		$startTime = date_format(date_create($properties['start_date_time']), 'M j, Y h:s');
-		$endTime = date_format(date_create($properties['end_date_time']) , 'M j, Y h:s');
+		$startTime = date_format(date_create($properties['start_date_time']), 'M j, Y h:i');
+		$endTime = date_format(date_create($properties['end_date_time']) , 'M j, Y h:i');
 		$questions = $properties['total_questions'];
 		$takers = getRecordedExamTakersCount($value['exam_id'], $value['revision']); 
 		
@@ -31,13 +31,16 @@
 			$link = "<a href=\"$href\">" . $groupList[$groupId]['name'] . '</a>';
 			$group[] = $link;
 		}
+		
+		$accountsLink = "?view=exam-examinee-statistics&exam-id={$value['exam_id']}&revision={$value['revision']}";
+		
 		echo '<tr>';
 		echo '<td>', $name, '</a></td>';
 		echo '<td>', $startTime, '</td>';
 		echo '<td>', $endTime, '</td>';
 		echo '<td>', implode(', ', $group), '</td>';
 		echo '<td style="text-align:center">', $questions, '</td>';
-		echo '<td style="text-align:center">', $takers, '</td>';
+		echo '<td style="text-align:center"><a href="', $accountsLink, '">', $takers, '</a></td>';
 		echo '</tr>';
 	}
 	
