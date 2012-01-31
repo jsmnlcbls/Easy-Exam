@@ -33,13 +33,14 @@
 		}
 		
 		$accountsLink = "?view=exam-examinee-statistics&exam-id={$value['exam_id']}&revision={$value['revision']}";
+		$questionsLink = "?view=exam-question-statistics&exam-id={$value['exam_id']}&revision={$value['revision']}";
 		
 		echo '<tr>';
 		echo '<td>', $name, '</a></td>';
 		echo '<td>', $startTime, '</td>';
 		echo '<td>', $endTime, '</td>';
 		echo '<td>', implode(', ', $group), '</td>';
-		echo '<td style="text-align:center">', $questions, '</td>';
+		echo '<td style="text-align:center"><a href="', $questionsLink, '">', $questions,  '</a></td>';
 		echo '<td style="text-align:center"><a href="', $accountsLink, '">', $takers, '</a></td>';
 		echo '</tr>';
 	}

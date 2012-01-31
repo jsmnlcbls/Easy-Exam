@@ -3,9 +3,16 @@ const QUESTION_DISPLAY_ALL_AT_ONCE = 0;
 const QUESTION_DISPLAY_ONE_BY_ONE = 1;
 const EXAM_UNLIMITED_REPEAT = 0;
 const EXAM_NO_REPEAT = 1;
+const STATUS_EXAM_SUBMITTED = 0;
 const STATUS_NEEDS_MANUAL_SCORING = 1;
 const STATUS_DONE_AUTO_SCORING = 2;
 const STATUS_DONE_MANUAL_SCORING = 4;
+
+const POINTS_FULL = 'F';
+const POINTS_PARTIAL = 'P';
+const POINTS_UNKNOWN = 'U';
+const POINTS_NONE = 'N';
+
 
 const RECORDED_EXAM_TABLE = 'recorded_exams';
 
@@ -58,7 +65,8 @@ function getAllExams($owner = 0)
 {
 	$columns = array('exam_id', 'name');
 	if (empty($owner)) {
-		return selectFromTable(EXAM_TABLE, $columns);
+		$clause = array('WHERE' => array('condition' => '1=1'));
+		return selectFromTable(EXAM_TABLE, $columns, $clause);
 	}
 	
 	$clause = array();
@@ -214,22 +222,42 @@ function endRecordedExam($inputData)
 		return errorMessage(USER_ERROR, 'Exam max retake exceeded.');
 	}
 	
-	$questionAnswers = _getExamQuestionsFromInputData($inputData);
-	$questions = json_encode(array_keys($questionAnswers));
-	$answers = json_encode(array_values($questionAnswers));
+	$answers = _getExamAnswersFromInputData($inputData);
+	$encodedAnswers = json_encode($answers);
+	$scores = getExamScore($answers, $examId, $revision);
+	$encodedScores = json_encode($scores);
+	$totalPoints = _getTotalPointsFromScore($scores);
 	
-	$result = gradeExamAnswers($questionAnswers, $examId, $revision);
 	$endTime = date("Y-m-d H:i");
-	$columnValues = array('questions' => $questions,
-						  'answers' => $answers,
-						  'correct_items' => $result['correct_items'],
-						  'total_points' => $result['total_points'],
+	$columnValues = array('answers' => $encodedAnswers,
+						  'scores' => $encodedScores,
+						  'total_points' => $totalPoints,
 						  'time_ended' => $endTime,
 						  'take_count' => ($takeCount + 1),
-						  'status' => $result['status']);
+						  'status' => STATUS_EXAM_SUBMITTED);
 	$condition = 'exam_id=:examId AND revision=:revision AND account_id=:userId';
 	$parameters = array(':examId' => $examId, ':revision' => $revision, ':userId' => $userId);
-	updateTable(RECORDED_EXAM_TABLE, $columnValues, $condition, $parameters);
+	return updateTable(RECORDED_EXAM_TABLE, $columnValues, $condition, $parameters);
+}
+
+function getExamScore($answers, $examId, $revision)
+{
+	$answerKey = getExamAnswerKey($examId, $revision);
+	$score = array();
+	foreach ($answers as $id => $answer)
+	{
+		if (!isset($answerKey[$id])) {
+			$score[$id] = '0' . POINTS_UNKNOWN;
+		} else {
+			$correctAnswer = $answerKey[$id]['answer'];
+			if (_isCorrectAnswer($correctAnswer, $answer)) {
+				$score[$id] = $answerKey[$id]['points'] . POINTS_FULL;
+			} else {
+				$score[$id] = '0' . POINTS_NONE;
+			}
+		}
+	}
+	return $score;
 }
 
 function gradeExamAnswers($answers, $examId, $revision)
@@ -246,21 +274,9 @@ function gradeExamAnswers($answers, $examId, $revision)
 			$status = STATUS_NEEDS_MANUAL_SCORING;
 			continue;
 		}
-		$correct = false;
-		$questionAnswer = $answerKey[$id]['answer'];
-		if (is_array($questionAnswer) && is_array($answer)) {
-			$diff = array_diff($questionAnswer, $answer);
-			if (empty($diff)) {
-				$correct = true;
-			}
-		} elseif (is_array($questionAnswer) && count($questionAnswer) == 1 && is_string($answer)) {
-			if (array_pop($questionAnswer) == $answer) {
-				$correct = true;
-			}
-		} elseif ($questionAnswer == $answer) {
-			$correct = true;
-		}
-		if ($correct) {
+		
+		$correctAnswer = $answerKey[$id]['answer'];
+		if (_isCorrectAnswer($correctAnswer, $answer)) {
 			$correctItems++;
 			$totalPoints += $answerKey[$id]['points'];
 		}
@@ -270,8 +286,7 @@ function gradeExamAnswers($answers, $examId, $revision)
 	if ($totalItems == $totalAnswers) {
 		$status = STATUS_DONE_AUTO_SCORING;
 	}
-	return array('correct_items' => $correctItems,
-				 'total_items' => $totalItems,
+	return array('total_items' => $totalItems,
 				 'total_points' => $totalPoints,
 				 'status' => $status);
 }
@@ -280,12 +295,17 @@ function getRecordedExamResultsByAccount($accountId)
 {
 	$recordedExamTable = RECORDED_EXAM_TABLE;
 	$examArchivesTable = EXAM_ARCHIVES_TABLE;
-	$sql = "SELECT ret.exam_id, ret.revision, ret.correct_items, ret.total_points, "
+	$sql = "SELECT ret.exam_id, ret.revision, ret.total_points, "
 		 . "ret.time_started, ret.status, eat.properties FROM {$recordedExamTable} "
 		 . "AS ret INNER JOIN {$examArchivesTable} AS eat ON ret.exam_id=eat.exam_id "
 		 . "AND ret.revision = eat.revision WHERE ret.account_id=:accountId";
 		 
-	return queryDatabase($sql, array(':accountId' => $accountId));
+	$results = queryDatabase($sql, array(':accountId' => $accountId));
+	
+	foreach ($results as $key => $value) {
+		$results[$key]['properties'] = json_decode($results[$key]['properties'], true);
+	}
+	return $results;
 }
 
 function getRecordedExams($owner)
@@ -399,7 +419,86 @@ function getRecordedExamAccountStatistics($examId, $revision)
 	return queryDatabase($sql, $parameters);
 }
 
+function getRecordedExamQuestionStatistics($examId, $revision)
+{
+	$table = RECORDED_EXAM_TABLE;
+	$sql = "SELECT scores FROM $table WHERE exam_id = :examId AND revision = :revision";
+	$parameters = array(':examId' => $examId, ':revision' => $revision);
+	$results = queryDatabase($sql, $parameters);
+
+	$questions = getExamQuestions($examId, $revision);
+	
+	$points = array(POINTS_FULL, POINTS_NONE, POINTS_PARTIAL, POINTS_UNKNOWN);
+	$output = array();
+	foreach ($results as $value) {
+		$scores = json_decode($value['scores']);
+		foreach ($scores as $questionId => $pointTypeValue) {
+			if (!isset($output[$questionId])) {
+				$output[$questionId] = array ('point' => array(), 
+											  'question' => $questions[$questionId]['question']);
+			}
+			foreach ($points as $pointType) {
+				if (!isset($output[$questionId]['point'][$pointType])) {
+					$output[$questionId]['point'][$pointType] = 0;
+				}
+				
+				if (false !== strrpos($pointTypeValue, $pointType)) {
+					$output[$questionId]['point'][$pointType]++;
+				}
+			}
+			if (!isset($output[$questionId]['question'])) {
+				$output[$questionId]['question'] = $questions[$questionId]['question'];
+			}
+		}
+	}
+
+	return $output;
+}
+
+
 //------------------------------------------------------------------------------
+
+function _getPointsCountFromScore($scores)
+{
+	$points = array(POINTS_FULL => 0, POINTS_NONE => 0, POINTS_PARTIAL => 0, POINTS_UNKNOWN => 0);
+	foreach ($scores as $item) {
+		foreach ($points as $key => $value) {
+			if (false !== strrpos($item, $key)) {
+				$points[$key] = $value + 1;
+			}
+		}		
+	}
+	return $points;
+}
+
+function _getTotalPointsFromScore($scores)
+{
+	$total = 0;
+	foreach ($scores as $item) {
+		$total += (int) filter_var($item, FILTER_SANITIZE_NUMBER_INT);
+	}
+	return $total;
+}
+
+function _isCorrectAnswer($correctAnswer, $answer)
+{
+	$correct = false;
+	
+	if (is_array($correctAnswer) && is_array($answer)) {
+		$diff = array_diff($correctAnswer, $answer);
+		if (empty($diff)) {
+			$correct = true;
+		}
+	} elseif (is_array($correctAnswer) && count($correctAnswer) == 1 && is_string($answer)) {
+		if (array_pop($correctAnswer) == $answer) {
+			$correct = true;
+		}
+	} elseif ($correctAnswer == $answer) {
+		$correct = true;
+	}
+	
+	return $correct;
+}
 
 function _getExamTakeCount($examId, $revision, $userId)
 {
@@ -426,7 +525,6 @@ function _initializeRecordedExam($examId, $revision, $userId)
 				'revision' => $revision, 
 				'account_id' => $userId,
 				'time_started' => $startTime,
-				'correct_items' => 0,
 				'total_points' => 0,
 				'take_count' => 0);
 	return insertIntoTable(RECORDED_EXAM_TABLE, $data);
@@ -525,7 +623,7 @@ function _updateExamProperties($inputData)
 
 function _updateExamQuestions($inputData)
 {
-	$data = _getExamQuestionsFromInputData($inputData);
+	$data = _getExamAnswersFromInputData($inputData);
 	$examId = $inputData['exam_id'];
 	$revision = $inputData['revision'];
 	$result = _validateExamQuestionsData($examId, $revision, $data);
@@ -580,7 +678,7 @@ function _getExamTableColumns($includePrimaryKeys = false)
 	return $columns;
 }
 
-function _getExamQuestionsFromInputData($inputData)
+function _getExamAnswersFromInputData($inputData)
 {
 	$data = array();
 	foreach ($inputData as $id => $question) {
