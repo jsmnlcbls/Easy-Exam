@@ -408,14 +408,35 @@ function getRecordedExamGroupStatistics($examId, $revision, $groupId)
 	return $statistics;
 }
 
-function getRecordedExamAccountStatistics($examId, $revision)
+function getRecordedExamAccountStatistics($examId, $revision, $filter = null)
 {
 	$table = RECORDED_EXAM_TABLE;
+	$filterCondition = "";
+	$filterParameter = array();
+	$examProperty = getExamProperties($examId, $revision);
+	if ($filter == 'pass' || $filter == 'fail') {
+		$passingPoints = _getPassingPoints($examProperty['total_points'], 
+										   $examProperty['passing_score'], 
+										   $examProperty['score_is_percentage']);
+		$filterParameter = array(':passingPoints' => $passingPoints);
+		
+		if ($filter == 'pass') {
+			$filterCondition = "AND ret.total_points >= :passingPoints";
+		} elseif ($filter == 'fail') {
+			$filterCondition = "AND ret.total_points < :passingPoints";
+		}
+	} elseif ($filter == 'bottom') {
+		$filterCondition = "AND ret.total_points = (SELECT MIN(total_points) FROM $table)";
+	} elseif ($filter == 'top') {
+		$filterCondition = "AND ret.total_points = (SELECT MAX(total_points) FROM $table)";
+	}
+	
 	$sql = "SELECT ret.account_id, ret.total_points, ret.time_started, ret.time_ended, "
 		 . "a.name FROM {$table} AS ret "
 		 . "INNER JOIN accounts AS a ON ret.account_id = a.id WHERE ret.exam_id=:examId "
-		 . "AND ret.revision=:revisionId ORDER BY ret.total_points DESC";
+		 . "AND ret.revision=:revisionId {$filterCondition} ORDER BY ret.total_points DESC";
 	$parameters = array(':examId' => $examId, ':revisionId' => $revision);
+	$parameters = array_merge($parameters, $filterParameter);
 	return queryDatabase($sql, $parameters);
 }
 
@@ -457,6 +478,17 @@ function getRecordedExamQuestionStatistics($examId, $revision)
 
 
 //------------------------------------------------------------------------------
+
+function _getPassingPoints($totalPoints, $passingScore, $scoreIsPercentage)
+{
+	$passingPoints = $passingScore;
+	if ($scoreIsPercentage) {
+		$passingPoints = $totalPoints * ($passingScore / 100);
+		$passingPoints = round($passingPoints);
+	}
+	return $passingPoints;
+}
+
 
 function _getPointsCountFromScore($scores)
 {
@@ -654,7 +686,9 @@ function _updateExamQuestions($inputData)
 	$questionsData = json_encode($questionsData);
 	$answerKey = json_encode($answerKey);
 	$modifiedDate = date('Y-m-d H:i:s');
-	$examData = array('questions' => $questionsData, 
+	$properties = json_encode(getExamData($examId));
+	$examData = array('properties' => $properties,
+					  'questions' => $questionsData, 
 					  'answer_key' => $answerKey,
 					  'modified' => $modifiedDate);
 	$condition = 'exam_id=:id AND revision=:revisionCount';
@@ -724,10 +758,6 @@ function _validateRecordedExamValues($inputData, $validateAvailability = false)
 
 function _validateExamAvailability($examData)
 {
-	if (isset($examData['exam_id'])) {
-		$examData = getExamData($examData['exam_id']);
-	}
-	
 	$examStart = date_create(implode(' ', $examData['start_date_time']));
 	$examEnd = date_create(implode(' ', $examData['end_date_time']));
 	$localDateTime = date_create(date("Y-m-d H:i"));
