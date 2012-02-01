@@ -654,7 +654,9 @@ function _updateExamQuestions($inputData)
 	$questionsData = json_encode($questionsData);
 	$answerKey = json_encode($answerKey);
 	$modifiedDate = date('Y-m-d H:i:s');
-	$examData = array('questions' => $questionsData, 
+	$properties = json_encode(getExamData($examId));
+	$examData = array('properties' => $properties,
+					  'questions' => $questionsData, 
 					  'answer_key' => $answerKey,
 					  'modified' => $modifiedDate);
 	$condition = 'exam_id=:id AND revision=:revisionCount';
@@ -724,10 +726,6 @@ function _validateRecordedExamValues($inputData, $validateAvailability = false)
 
 function _validateExamAvailability($examData)
 {
-	if (isset($examData['exam_id'])) {
-		$examData = getExamData($examData['exam_id']);
-	}
-	
 	$examStart = date_create(implode(' ', $examData['start_date_time']));
 	$examEnd = date_create(implode(' ', $examData['end_date_time']));
 	$localDateTime = date_create(date("Y-m-d H:i"));
