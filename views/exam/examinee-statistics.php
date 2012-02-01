@@ -2,10 +2,31 @@
 include "functions/exam.php";
 $examId = getUrlQuery('exam-id');
 $revision = getUrlQuery('revision');
-$data = getRecordedExamAccountStatistics($examId, $revision);
+$filter = getUrlQuery('filter', null);
+
+$data = array();
+$title = 'Exam Examinee Statistics';
+if ($filter == 'passed') {
+	$title = 'Passed Examinee Statistics';
+	$data = getRecordedExamAccountStatistics($examId, $revision, 'pass');
+} elseif ($filter == 'failed') {
+	$title = 'Failed Examinee Statistics';
+	$data = getRecordedExamAccountStatistics($examId, $revision, 'fail');
+} elseif ($filter == 'top') {
+	$title = 'Top Examinee Statistics';
+	$data = getRecordedExamAccountStatistics($examId, $revision, 'top');
+} elseif ($filter == 'bottom') {
+	$title = 'Last Examinee Statistics';
+	$data = getRecordedExamAccountStatistics($examId, $revision, 'bottom');
+}
+else {
+	$data = getRecordedExamAccountStatistics($examId, $revision);
+}
+
+
 ?>
 <div>
-	<span class="panel-title">Exam Examinee Statistics</span>
+	<span class="panel-title"><?php echo $title; ?></span>
 	<table>
 		<tr>
 			<th>Account</th><th>Total Points</th><th>Time Started</th><th>Time Ended</th>
