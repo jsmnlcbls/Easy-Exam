@@ -38,7 +38,7 @@ if (empty($questions)) {
 			$name = $value['question_id'];
 			
 			$includeCheckbox = '<input type="checkbox" value="1" name="'. $name . '[enabled]" />';
-			if ($value['enabled']) {
+			if (isset($value['enabled']) && $value['enabled']) {
 				$includeCheckbox = '<input checked="checked" type="checkbox" value="1" name="'. $name . '[enabled]" />';	
 			}
 			
@@ -49,7 +49,10 @@ if (empty($questions)) {
 				$options[] = 'Order <input style="width:2em" maxlength="3" type="text" value="' . $value['order'] . '" name="' . $name . '[order]" />';
 			} else {
 				$options[] = '<input type="hidden" name="' . $name . '[points]" value="' . $defaultPoints . '" />';
-				$options[] = '<input type="hidden" name="' . $name . '[order]" value="' . $value['order'] . '" />';
+				if (!isset($value['order'])) {
+					$value['order'] = 1;
+					$options[] = '<input type="hidden" name="' . $name . '[order]" value="' . $value['order'] . '" />';
+				}
 			}
 			$out[] = '<li>';
 			$out[] = '<input type="hidden" name="' . $name . '[type]" value="' . $value['type'] .'" />'; 
