@@ -8,10 +8,10 @@
 	include "functions/exam.php";
 	include "functions/user.php";
 	$exams = getRecordedExams(getLoggedInUser('id'));
-
 	$queue = new SplPriorityQueue();
 	foreach ($exams as $value) {
-		$priority = date_timestamp_get(date_create($value['properties']['start_date_time']));
+		$dateTime = $value['properties']['start_date_time']['date'] . ' ' . $value['properties']['start_date_time']['time'];
+		$priority = date_timestamp_get(date_create($dateTime));
 		$queue->insert($value, $priority);
 	}
 	
@@ -19,8 +19,8 @@
 	foreach ($queue as $value) {
 		$properties = $value['properties'];
 		$name = $properties['name'];
-		$startTime = date_format(date_create($properties['start_date_time']), 'M j, Y h:i');
-		$endTime = date_format(date_create($properties['end_date_time']) , 'M j, Y h:i');
+		$startTime = $properties['start_date_time']['date'] . ' ' . $properties['start_date_time']['time'];
+		$endTime = $properties['end_date_time']['date'] . ' ' . $properties['end_date_time']['time'];
 		$questions = $properties['total_questions'];
 		$takers = getRecordedExamTakersCount($value['exam_id'], $value['revision']); 
 		
