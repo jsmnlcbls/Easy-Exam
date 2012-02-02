@@ -686,7 +686,9 @@ function _updateExamQuestions($inputData)
 	$questionsData = json_encode($questionsData);
 	$answerKey = json_encode($answerKey);
 	$modifiedDate = date('Y-m-d H:i:s');
-	$properties = json_encode(getExamData($examId));
+	$properties = getExamData($examId);
+	$properties['group'] = encodeArray($properties['group']);	//ugly hackaround
+	$properties = json_encode($properties);
 	$examData = array('properties' => $properties,
 					  'questions' => $questionsData, 
 					  'answer_key' => $answerKey,
