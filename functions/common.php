@@ -792,6 +792,15 @@ function escapeSqlIdentifier($identifier)
 	return $identifier;
 }
 
+function relativeLink($path, $query = null, $fragment = null)
+{
+	$link = empty($path) ? '' : $path;
+	$link .= empty($query) ? '' : "?" .http_build_query($query);
+	$link .= empty($fragment) ? '' : "#{$fragment}";
+	return $link;
+}
+
+
 //------------------------Internal functions-----------------------------------
 
 function _getOwner($table, $id)

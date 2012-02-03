@@ -247,13 +247,13 @@ function getExamScore($answers, $examId, $revision)
 	foreach ($answers as $id => $answer)
 	{
 		if (!isset($answerKey[$id])) {
-			$score[$id] = '0' . POINTS_UNKNOWN;
+			$score[$id] = POINTS_UNKNOWN . '0';
 		} else {
 			$correctAnswer = $answerKey[$id]['answer'];
 			if (_isCorrectAnswer($correctAnswer, $answer)) {
-				$score[$id] = $answerKey[$id]['points'] . POINTS_FULL;
+				$score[$id] = POINTS_FULL . $answerKey[$id]['points'];
 			} else {
-				$score[$id] = '0' . POINTS_NONE;
+				$score[$id] = POINTS_NONE . '0';
 			}
 		}
 	}
@@ -408,8 +408,8 @@ function getRecordedExamGroupStatistics($examId, $revision, $groupId)
 	return $statistics;
 }
 
-function getRecordedExamAccountStatistics($examId, $revision, $filter = null)
-{
+function getRecordedExamAccountStatistics($examId, $revision, $filter = null, $filterArguments = array())
+{	
 	$table = RECORDED_EXAM_TABLE;
 	$filterCondition = "";
 	$filterParameter = array();
@@ -429,6 +429,15 @@ function getRecordedExamAccountStatistics($examId, $revision, $filter = null)
 		$filterCondition = "AND ret.total_points = (SELECT MIN(total_points) FROM $table)";
 	} elseif ($filter == 'top') {
 		$filterCondition = "AND ret.total_points = (SELECT MAX(total_points) FROM $table)";
+	} elseif ($filter == 'points') {
+		$questionId = filter_var($filterArguments['question'], FILTER_SANITIZE_NUMBER_INT);
+		$filterType = $filterArguments['type'];
+		if ($filterType == POINTS_FULL || $filterType == POINTS_PARTIAL ||
+			$filterType == POINTS_NONE || $filterType == POINTS_UNKNOWN) {
+			$match = '%"' . $questionId . '":"' . $filterType . '%"%';
+			$filterCondition = 'AND ret.scores LIKE :match';
+			$filterParameter = array(':match' => $match);
+		}
 	}
 	
 	$sql = "SELECT ret.account_id, ret.total_points, ret.time_started, ret.time_ended, "

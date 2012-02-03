@@ -18,6 +18,12 @@ if ($filter == 'passed') {
 } elseif ($filter == 'bottom') {
 	$title = 'Last Examinee Statistics';
 	$data = getRecordedExamAccountStatistics($examId, $revision, 'bottom');
+} elseif ($filter == 'points') {
+	$title = 'Examinee By Points Statistics';
+	$type = getUrlQuery('type');
+	$question = getUrlQuery('question');
+	$filterArguments = array('type' => $type, 'question' => $question);
+	$data = getRecordedExamAccountStatistics($examId, $revision, 'points', $filterArguments);
 }
 else {
 	$data = getRecordedExamAccountStatistics($examId, $revision);
