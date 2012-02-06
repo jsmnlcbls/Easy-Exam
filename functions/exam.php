@@ -346,6 +346,35 @@ function getRecordedExamTakersCount($examId, $revision)
 	return $result;
 }
 
+function getRecordedExamPointsStatistics($examId, $revision, $userId)
+{
+	$table = RECORDED_EXAM_TABLE;
+	$condition = "account_id = :accountId AND exam_id = :examId AND revision = :revision";
+	$parameters = array(":accountId" => $userId,
+						":examId" => $examId,
+						"revision" => $revision);
+	$clause = array('WHERE' => array('condition' => $condition, 'parameters' => $parameters));
+	$scores = selectFromTable($table, 'scores', $clause);
+	$scores = array_shift($scores);
+	$scores = json_decode($scores['scores'], true);
+	
+	$questions = getExamQuestions($examId, $revision);
+	
+	$data = array();
+	foreach ($scores as $key => $value) {
+		if (isset($questions[$key])) {
+			$points = substr($scores[$key], 1);
+			$pointsType = substr($scores[$key], 0, 1);
+			$data[$key] = array('question_id' => $key, 
+								'question' => $questions[$key]['question'],
+								'points' => $points,
+								'points_type' => $pointsType);
+		}
+	}
+	
+	return $data;
+}
+
 function getRecordedExamGroupStatistics($examId, $revision, $groupId)
 {
 	$accounts = getAllUsersUnderGroup($groupId);
