@@ -41,9 +41,14 @@ else {
 		foreach ($data as $value) {
 			$timeStarted = date_format(date_create($value['time_started']), 'M j, Y h:i');
 			$timeEnded = date_format(date_create($value['time_ended']), 'M j, Y h:i');
+			
+			$pointsLink = relativeLink(null, array('view' => 'exam-points-statistics',
+												   'exam-id' => $examId, 'revision' => $revision,
+												   'account-id' => $value['account_id']));
+			
 			echo '<tr>';
 			echo '<td>', $value['name'], '</td>';
-			echo '<td style="text-align:center">', $value['total_points'], '</td>';
+			echo '<td style="text-align:center">', '<a href="', $pointsLink, '">', $value['total_points'], '</a></td>';
 			echo '<td>', $timeStarted, '</td>';
 			echo '<td>', $timeEnded, '</td>';
 			echo '</tr>';
