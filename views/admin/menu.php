@@ -20,6 +20,7 @@
 	<li><a href="?view=exam-edit">Edit</a></li>
 	<li><a href="?view=exam-delete">Delete</a></li>
 	<li><a href="?view=exam-statistics">Statistics</a></li>
+	<li><a href="?view=exam-manual-scoring">Manual Scoring</a></li>
 </ul>
 <br/>
 <span class="submenu-title">User</span>

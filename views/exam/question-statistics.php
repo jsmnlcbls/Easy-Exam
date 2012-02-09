@@ -20,21 +20,10 @@ $statistics = getRecordedExamQuestionStatistics($examId, $revision);
 					   'revision' => $revision,
 					   'filter' => 'points');
 	
+	$pointsTypeList = array(POINTS_FULL, POINTS_PARTIAL, POINTS_NONE, POINTS_UNKNOWN);
 	foreach ($statistics as $questionId => $value) {
 		$point = $value['point'];
-		
-		$fullPointsQuery = array_merge($baseQuery, array('type' => POINTS_FULL, 'question' => $questionId));
-		$fullPointsLink = relativeLink('', $fullPointsQuery);
-		
-		$partialPointsQuery = array_merge($baseQuery, array('type' => POINTS_PARTIAL, 'question' => $questionId));
-		$partialPointsLink = relativeLink('', $partialPointsQuery);
-		
-		$noPointsQuery = array_merge($baseQuery, array('type' => POINTS_NONE, 'question' => $questionId));
-		$noPointsLink = relativeLink('', $noPointsQuery);
-		
-		$unknownPointsQuery = array_merge($baseQuery, array('type' => POINTS_UNKNOWN, 'question' => $questionId));
-		$unknownPointsLink = relativeLink('', $unknownPointsQuery);
-		
+	
 		echo '<tr>';
 		echo '<td>';
 		if (strlen($value['question']) > 80) {
@@ -43,10 +32,16 @@ $statistics = getRecordedExamQuestionStatistics($examId, $revision);
 			echo $value['question'];
 		}
 		echo '</td>';
-		echo '<td><a href="', $fullPointsLink, '">', $point[POINTS_FULL], '</a></td>';
-		echo '<td><a href="', $partialPointsLink, '">', $point[POINTS_PARTIAL], '</td>';
-		echo '<td><a href="', $noPointsLink, '">', $point[POINTS_NONE], '</td>';
-		echo '<td><a href="', $unknownPointsLink, '">', $point[POINTS_UNKNOWN], '</td>';
+		
+		foreach ($pointsTypeList as $type) {
+			$query = array_merge($baseQuery, array('type' => $type, 'question' => $questionId));
+			$link = relativeLink('', $query);
+			if (isset($point[$type])) {
+				echo '<td style="text-align:center"><a href="', $link, '">', $point[$type], '</a></td>';
+			} else {
+				echo '<td style="text-align:center">0</td>';
+			}
+		}
 		echo '</tr>';
 	}
 	?>
