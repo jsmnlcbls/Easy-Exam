@@ -3,10 +3,10 @@ const QUESTION_DISPLAY_ALL_AT_ONCE = 0;
 const QUESTION_DISPLAY_ONE_BY_ONE = 1;
 const EXAM_UNLIMITED_REPEAT = 0;
 const EXAM_NO_REPEAT = 1;
-const STATUS_EXAM_SUBMITTED = 0;
-const STATUS_NEEDS_MANUAL_SCORING = 1;
-const STATUS_DONE_AUTO_SCORING = 2;
-const STATUS_DONE_MANUAL_SCORING = 4;
+
+const STATUS_EXAM_SUBMITTED = 1;
+const STATUS_NEEDS_MANUAL_SCORING = 2;
+const STATUS_DONE_SCORING = 4;
 
 const POINTS_FULL = 'F';
 const POINTS_PARTIAL = 'P';
@@ -226,7 +226,18 @@ function endRecordedExam($inputData)
 	$encodedAnswers = json_encode($answers);
 	$scores = getExamScore($answers, $examId, $revision);
 	$encodedScores = json_encode($scores);
-	$totalPoints = _getTotalPointsFromScore($scores);
+
+	$totalPoints = 0;
+	$status = STATUS_EXAM_SUBMITTED;
+	foreach ($scores as $value) {
+		$pointType = _decodePointsType($value);
+		if ($pointType['type'] == POINTS_UNKNOWN &&
+			$status != STATUS_NEEDS_MANUAL_SCORING) {
+			$status = STATUS_NEEDS_MANUAL_SCORING;
+			
+		}
+		$totalPoints += $pointType['points'];
+	}
 	
 	$endTime = date("Y-m-d H:i");
 	$columnValues = array('answers' => $encodedAnswers,
@@ -234,7 +245,7 @@ function endRecordedExam($inputData)
 						  'total_points' => $totalPoints,
 						  'time_ended' => $endTime,
 						  'take_count' => ($takeCount + 1),
-						  'status' => STATUS_EXAM_SUBMITTED);
+						  'status' => $status);
 	$condition = 'exam_id=:examId AND revision=:revision AND account_id=:userId';
 	$parameters = array(':examId' => $examId, ':revision' => $revision, ':userId' => $userId);
 	return updateTable(RECORDED_EXAM_TABLE, $columnValues, $condition, $parameters);
@@ -247,13 +258,13 @@ function getExamScore($answers, $examId, $revision)
 	foreach ($answers as $id => $answer)
 	{
 		if (!isset($answerKey[$id])) {
-			$score[$id] = POINTS_UNKNOWN . '0';
+			$score[$id] = _encodePointsType(0, POINTS_UNKNOWN);
 		} else {
 			$correctAnswer = $answerKey[$id]['answer'];
 			if (_isCorrectAnswer($correctAnswer, $answer)) {
-				$score[$id] = POINTS_FULL . $answerKey[$id]['points'];
+				$score[$id] = _encodePointsType($answerKey[$id]['points'], POINTS_FULL);
 			} else {
-				$score[$id] = POINTS_NONE . '0';
+				$score[$id] = _encodePointsType('0', POINTS_NONE);
 			}
 		}
 	}
@@ -283,7 +294,7 @@ function gradeExamAnswers($answers, $examId, $revision)
 		$totalItems++;
 	}	
 	
-	if ($totalItems == $totalAnswers) {
+	if (null == $status && $totalItems == $totalAnswers) {
 		$status = STATUS_DONE_AUTO_SCORING;
 	}
 	return array('total_items' => $totalItems,
@@ -306,6 +317,31 @@ function getRecordedExamResultsByAccount($accountId)
 		$results[$key]['properties'] = json_decode($results[$key]['properties'], true);
 	}
 	return $results;
+}
+
+function getRecordedExamsForManualScoring()
+{
+	$recordedExamTable = RECORDED_EXAM_TABLE;
+	$examArchivesTable = EXAM_ARCHIVES_TABLE;
+	$sql = "SELECT DISTINCT ret.exam_id, ret.revision, eat.properties FROM $recordedExamTable AS ret "
+		 . "INNER JOIN $examArchivesTable AS eat ON ret.exam_id=eat.exam_id AND ret.revision = eat.revision "
+		 . "WHERE ret.status=" . STATUS_NEEDS_MANUAL_SCORING;
+	$result = queryDatabase($sql);
+
+	$output = array();
+	foreach ($result as $value) {
+		$properties = json_decode($value['properties'], true);
+		$startDateTime = _decodeDateTime($properties['start_date_time']);
+		$endDateTime = _decodeDateTime($properties['end_date_time']);
+		$output[$value['exam_id']] = array('exam_id' => $value['exam_id'],
+										   'revision' => $value['revision'],
+										   'name' => $properties['name'],
+										   'start_date_time' => $startDateTime,
+										   'end_date_time' => $endDateTime
+										   );
+	}
+	
+	return $output;
 }
 
 function getRecordedExams($owner)
@@ -487,7 +523,6 @@ function getRecordedExamQuestionStatistics($examId, $revision)
 
 	$questions = getExamQuestions($examId, $revision);
 	
-	$points = array(POINTS_FULL, POINTS_NONE, POINTS_PARTIAL, POINTS_UNKNOWN);
 	$output = array();
 	foreach ($results as $value) {
 		$scores = json_decode($value['scores']);
@@ -496,18 +531,13 @@ function getRecordedExamQuestionStatistics($examId, $revision)
 				$output[$questionId] = array ('point' => array(), 
 											  'question' => $questions[$questionId]['question']);
 			}
-			foreach ($points as $pointType) {
-				if (!isset($output[$questionId]['point'][$pointType])) {
-					$output[$questionId]['point'][$pointType] = 0;
-				}
-				
-				if (false !== strrpos($pointTypeValue, $pointType)) {
-					$output[$questionId]['point'][$pointType]++;
-				}
+			
+			$pointType = _decodePointsType($pointTypeValue);
+			$type = $pointType['type'];
+			if (!isset($output[$questionId]['point'][$type])) {
+				$output[$questionId]['point'][$type] = 0;
 			}
-			if (!isset($output[$questionId]['question'])) {
-				$output[$questionId]['question'] = $questions[$questionId]['question'];
-			}
+			$output[$questionId]['point'][$type]++;
 		}
 	}
 
@@ -517,6 +547,24 @@ function getRecordedExamQuestionStatistics($examId, $revision)
 
 //------------------------------------------------------------------------------
 
+function _encodePointsType($points, $type)
+{
+	return "$type" . "$points";
+}
+
+function _decodePointsType($encodedValue)
+{
+	$points = array(POINTS_FULL, POINTS_NONE, POINTS_PARTIAL, POINTS_UNKNOWN);
+	$output = array();
+	foreach ($points as $pointType) {
+		if (false !== strrpos($encodedValue, $pointType)) {
+			$output['type'] = $pointType;
+			$output['points'] = (int) filter_var($encodedValue, FILTER_SANITIZE_NUMBER_INT);
+		}
+	}
+	return $output;
+}
+
 function _getPassingPoints($totalPoints, $passingScore, $scoreIsPercentage)
 {
 	$passingPoints = $passingScore;
@@ -525,29 +573,6 @@ function _getPassingPoints($totalPoints, $passingScore, $scoreIsPercentage)
 		$passingPoints = round($passingPoints);
 	}
 	return $passingPoints;
-}
-
-
-function _getPointsCountFromScore($scores)
-{
-	$points = array(POINTS_FULL => 0, POINTS_NONE => 0, POINTS_PARTIAL => 0, POINTS_UNKNOWN => 0);
-	foreach ($scores as $item) {
-		foreach ($points as $key => $value) {
-			if (false !== strrpos($item, $key)) {
-				$points[$key] = $value + 1;
-			}
-		}		
-	}
-	return $points;
-}
-
-function _getTotalPointsFromScore($scores)
-{
-	$total = 0;
-	foreach ($scores as $item) {
-		$total += (int) filter_var($item, FILTER_SANITIZE_NUMBER_INT);
-	}
-	return $total;
 }
 
 function _isCorrectAnswer($correctAnswer, $answer)
