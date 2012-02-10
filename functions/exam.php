@@ -344,6 +344,26 @@ function getRecordedExamsForManualScoring()
 	return $output;
 }
 
+function getQuestionsForManualScoring($examId, $revision)
+{
+	$questions = getExamQuestions($examId, $revision);
+	$clause = array('WHERE' => array('condition' => 'exam_id=:examId AND revision=:revision',
+									 'parameters' => array(':examId' => $examId, ':revision' => $revision)));
+	
+	$examScores = selectFromTable(RECORDED_EXAM_TABLE, 'scores', $clause);
+	$output = array();
+	foreach ($examScores as $value) {
+		$score = json_decode($value['scores'], true);
+		foreach ($score as $questionId => $encodedPointsType) {
+			$pointsType = _decodePointsType($encodedPointsType);
+			if ($pointsType['type'] == POINTS_UNKNOWN) {
+				$output[$questionId] = $questions[$questionId]['question'];
+			}
+		}
+	}
+	return $output;
+}
+
 function getRecordedExams($owner)
 {
 	$exams = getAllExams($owner);
