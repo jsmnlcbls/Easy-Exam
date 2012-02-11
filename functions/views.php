@@ -11,6 +11,13 @@ function userGroupSelectHTML($attributes = array(), $userId = 0)
 	return _generateSelectHTML($input, $attributes);
 }
 
+function answerScoringHTML($type, $data)
+{
+	if ($type == ESSAY_QUESTION) {
+		return essayScoringHTML($data);
+	}
+}
+
 function questionHTML($type, $data)
 {
 	if ($type == MULTIPLE_CHOICE_QUESTION) {
@@ -91,6 +98,15 @@ function objectiveQuestionHTML($data)
 	$contents['answer'] = escapeOutput($data['answer']);
 	$contents['type'] = $data['type'];
 	return _questionTemplate($contents);
+}
+
+function essayScoringHTML($data)
+{
+	$name = $data['account_id'];
+	$html = '<div>' . escapeOutput($data['answer']) . '</div>'
+		  . '<div>Score: <input name="scores[' . $name . ']" type="text" style="width:1em"/>'
+		  . ' / ' . $data['points'] . ' pts</div>';
+	return $html;
 }
 
 function questionCategorySelectHTML($attributes = array(), $owner = 0, $includeRootCategory = false)
