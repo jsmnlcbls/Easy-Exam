@@ -199,6 +199,16 @@ function _deleteUserGroupAction($data)
 	return deleteUserGroup($data);
 }
 
+function _updateExamScoresAction($data)
+{
+	include "functions/exam.php";
+	if (!isAllowedByOwnership(ACCOUNT_RESOURCE, $data['exam_id'])) {
+		return errorMesssage(AUTHORIZATION_ERROR, 'Not allowed');
+	}
+	return updateExamScores($data);
+}
+
+
 function _displayResultNotification($result)
 {
 	$notification = '';
@@ -235,7 +245,7 @@ function _isInActionWhitelist($action)
 	$list = array('addQuestionCategory', 'addQuestion', 'addUser', 'addExam',
 				'editQuestionCategory', 'editQuestion', 'editUser', 'editExam',
 				'deleteQuestionCategory', 'deleteQuestion', 'deleteUser', 'deleteExam',
-				'editAdminCredentials', 
+				'editAdminCredentials', 'updateExamScores', 
 				'addUserGroup', 'editUserGroup', 'deleteUserGroup');
 	
 	if (in_array($action, $list)) {

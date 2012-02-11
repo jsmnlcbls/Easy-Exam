@@ -37,6 +37,30 @@ function updateExam($inputData)
 	}
 }
 
+function updateExamScores($inputData)
+{
+	$result = validateExamData($inputData);
+	if (isErrorMessage($result)) {
+		return $result;
+	}
+	
+	$examId = $inputData['exam_id'];
+	$revision = $inputData['revision'];
+	$scores = $inputData['scores'];
+	
+	if (isset($inputData['question_id'])) {
+		$questionId = $inputData['question_id'];
+		$questionData = getExamQuestions($examId, $revision);
+		$result = _validateExamManualScoring($examId, $revision, $questionId, $scores, $questionData);
+		if (isErrorMessage($result)) {
+			return $result;
+		}
+		
+		return _updateExamScoresByQuestion($examId, $revision, $scores, $questionId, $questionData);
+	}
+	
+}
+
 function getExamData($id, $columns = '*')
 {
 	$result = validateExamData($id, 'exam_id');
@@ -364,6 +388,22 @@ function getQuestionsForManualScoring($examId, $revision)
 	return $output;
 }
 
+function getAnswersForManualScoring($examId, $revision, $questionId)
+{
+	$clause = array('WHERE' => array('condition' => 'exam_id=:examId AND revision=:revision',
+									 'parameters' => array(':examId' => $examId, ':revision' => $revision)));
+	$columns = array('account_id', 'answers');
+	$examAnswers = selectFromTable(RECORDED_EXAM_TABLE, $columns, $clause);
+	$output = array();
+	foreach ($examAnswers as $value) {
+		$answers = json_decode($value['answers'], true);
+		$questionAnswer = $answers[$questionId];
+		$output[] = array('account_id' => $value['account_id'],
+						  'answer' => $questionAnswer);
+	}
+	return $output;
+}
+
 function getRecordedExams($owner)
 {
 	$exams = getAllExams($owner);
@@ -566,6 +606,56 @@ function getRecordedExamQuestionStatistics($examId, $revision)
 
 
 //------------------------------------------------------------------------------
+
+
+function _updateExamScoresByQuestion($examId, $revision, $scores, $questionId, $questionData)
+{
+	$accounts = array_keys($scores);
+	$accountsCondition = array();
+	$accountsParameters = array();
+	foreach ($accounts as $value) {
+		$parameter = ":accountId{$value}";
+		$accountsCondition[] = "account_id={$parameter}";
+		$accountsParameters[$parameter] = $value;
+	}
+	
+	$condition = 'exam_id=:examId AND revision=:revision AND (' . implode(' OR ', $accountsCondition) . ')';
+	$parameters = array_merge(array(':examId' => $examId, ':revision' => $revision), $accountsParameters);
+	$clause = array('WHERE' => array('condition' => $condition,
+									 'parameters' => $parameters));
+	$currentScores = selectFromTable(RECORDED_EXAM_TABLE, array('account_id', 'scores'), $clause);
+	
+	beginTransaction();
+	foreach ($currentScores as $value) {
+		$accountId = $value['account_id'];
+		$condition = "exam_id=:examId AND revision=:revision AND account_id=:accountId";
+		$conditionParameters = array(':examId' => $examId, ':revision' => $revision, 
+									 ':accountId' => $accountId);
+		$currentAccountScore = json_decode($value['scores'], true);
+		
+		$encodedScore = null;
+		$currentScore = $scores[$accountId];
+		$maxPoints = $questionData[$questionId]['points'];
+		
+		if ($currentScore == $maxPoints) {
+			$encodedScore = _encodePointsType($currentScore, POINTS_FULL);
+		} elseif (ctype_digit($currentScore) && $currentScore > 0 && $currentScore < $maxPoints) {
+			$encodedScore = _encodePointsType($currentScore, POINTS_PARTIAL);
+		} else {
+			$encodedScore = _encodePointsType(0, POINTS_UNKNOWN);
+		}
+		
+		$currentAccountScore[$questionId] = $encodedScore;
+		$newEncodedScore = json_encode($currentAccountScore);
+		$result = updateTable(RECORDED_EXAM_TABLE, array('scores' => $newEncodedScore), $condition, $conditionParameters);
+		if (false == $result) {
+			rollbackTransaction();
+			return errorMessage('Failed to update exam scores.');
+		}
+	}
+	commitTransaction();
+	return true;
+}
 
 function _encodePointsType($points, $type)
 {
@@ -848,6 +938,19 @@ function _validateExamAvailability($examData)
 	$localDateTime = date_create(date("Y-m-d H:i"));
 	if ($localDateTime < $examStart || $localDateTime > $examEnd) {
 		return errorMessage(VALIDATION_ERROR, 'Invalid exam time.');
+	}
+	return true;
+}
+
+function _validateExamManualScoring($examId, $revision, $questionId, $scores, $questionData)
+{
+	foreach ($scores as $points) {
+		$maxPoints = $questionData[$questionId]['points'];
+		if (empty($points) || ctype_digit($points) && $points > 0 && $points <= $maxPoints) {
+			continue;
+		} else {
+			return errorMessage(VALIDATION_ERROR, 'Invalid score.');
+		}
 	}
 	return true;
 }
